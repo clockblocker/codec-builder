@@ -31,6 +31,7 @@ export function buildNullableUnionAndNullishString<
 		valuesOrEnum instanceof z.ZodEnum
 			? valuesOrEnum
 			: z.enum(valuesOrEnum as MutableNonEmptyStringTuple<TValues>);
+
 	const inputSchema = z.string().nullish();
 	const outputSchema = enumSchema.nullable();
 	const allowedValues = enumSchema.options as readonly TValues[number][];
