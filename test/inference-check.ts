@@ -1,15 +1,14 @@
 import { z } from "zod";
 import { yesNoAndBoolean as yesNoBool } from "../field-codecs/common/atoms/yes-no-and-boolean";
 import {
-	buildAddaptersAndOutputSchema,
-	buildAddFieldAdapterAndOutputSchema,
-	buildLooseAddaptersAndOutputSchema,
+	buildReshapeCodec,
+	buildStrictFieldAdapterCodec,
 	type Codec,
 	codecArrayOf,
 	noOpCodec,
 	type ShapeOfStrictFieeldAdapter,
 	type ShapeOfStrictFieldAdapter,
-} from "../adapter-builder/build-codec";
+} from "../index";
 import { pipeCodecs } from "../pipe-codecs";
 
 type Properties<T> = {
@@ -40,18 +39,18 @@ const counterpartyCodec = {
 	id: noOpCodec,
 };
 
-const widened = buildAddaptersAndOutputSchema(ClientSchemaWidened(), {
+const widened = buildStrictFieldAdapterCodec(ClientSchemaWidened(), {
 	id: noOpCodec,
 	counterparties: codecArrayOf(counterpartyCodec),
 });
 
-buildAddaptersAndOutputSchema(ClientSchemaWidened(), {
+buildStrictFieldAdapterCodec(ClientSchemaWidened(), {
 	// @ts-expect-error widened scalar number field cannot use yes/no codec
 	id: yesNoBool,
 	counterparties: codecArrayOf(counterpartyCodec),
 });
 
-buildAddaptersAndOutputSchema(ClientSchemaWidened(), {
+buildStrictFieldAdapterCodec(ClientSchemaWidened(), {
 	// @ts-expect-error widened scalar number field cannot use array shape
 	id: codecArrayOf(counterpartyCodec),
 	counterparties: codecArrayOf(counterpartyCodec),
@@ -79,12 +78,12 @@ const strict = z.object({
 	id: z.number(),
 });
 
-buildAddaptersAndOutputSchema(strict, {
+buildStrictFieldAdapterCodec(strict, {
 	// @ts-expect-error number field cannot use yes/no codec
 	id: yesNoBool,
 });
 
-buildAddaptersAndOutputSchema(strict, {
+buildStrictFieldAdapterCodec(strict, {
 	// @ts-expect-error scalar field cannot use array shape
 	id: codecArrayOf(counterpartyCodec),
 });
@@ -95,7 +94,7 @@ const numberOrStringInputCodec = {
 	outputSchema: z.string(),
 } satisfies Codec<string, number | string, z.ZodString>;
 
-buildAddaptersAndOutputSchema(strict, {
+buildStrictFieldAdapterCodec(strict, {
 	id: numberOrStringInputCodec,
 });
 
@@ -119,14 +118,14 @@ const pipedDateToIsoCodec = pipeCodecs(numberToDateCodec, dateToIsoCodec);
 type PipedDateToIsoOutput = z.infer<typeof pipedDateToIsoCodec.outputSchema>;
 const _pipedDateToIsoOutput: PipedDateToIsoOutput = "2020-01-01T00:00:00.000Z";
 
-const strictArrayMapped = buildAddaptersAndOutputSchema(strictArray, {
+const strictArrayMapped = buildStrictFieldAdapterCodec(strictArray, {
 	dates: codecArrayOf(numberToDateCodec),
 });
 
 type StrictArrayMappedOutput = z.infer<typeof strictArrayMapped.outputSchema>;
 const _strictArrayMappedCheck: StrictArrayMappedOutput["dates"] = [new Date()];
 
-buildAddaptersAndOutputSchema(strictArray, {
+buildStrictFieldAdapterCodec(strictArray, {
 	// @ts-expect-error number[] item cannot use yes/no codec
 	dates: codecArrayOf(yesNoBool),
 });
@@ -138,42 +137,13 @@ const strictNested = z.object({
 	}),
 });
 
-buildAddaptersAndOutputSchema(strictNested, {
+buildStrictFieldAdapterCodec(strictNested, {
 	a: {
 		b: noOpCodec,
 		c: noOpCodec,
 		packed: noOpCodec,
 	},
 });
-
-const unknownToStringCodec = {
-	fromInput: (v: unknown) => String(v ?? ""),
-	fromOutput: (v: string) => v,
-	outputSchema: z.string(),
-} satisfies Codec<string, unknown, z.ZodString>;
-
-const looseNested = buildLooseAddaptersAndOutputSchema(strictNested, {
-	a: {
-		b: noOpCodec,
-		c: noOpCodec,
-		packed: unknownToStringCodec,
-	},
-});
-
-type LooseNestedOutput = z.infer<typeof looseNested.outputSchema>;
-const _looseNestedPacked: LooseNestedOutput["a"]["packed"] = "ok";
-
-const looseNestedDefaults = buildLooseAddaptersAndOutputSchema(strictNested, {
-	a: {
-		packed: unknownToStringCodec,
-	},
-});
-
-type LooseNestedDefaultsOutput = z.infer<
-	typeof looseNestedDefaults.outputSchema
->;
-const _looseNestedDefaultB: LooseNestedDefaultsOutput["a"]["b"] = 1;
-const _looseNestedDefaultC: LooseNestedDefaultsOutput["a"]["c"] = "value";
 
 const questionnaireServerSchema = z.object({
 	ans_to_q1: z.string(),
@@ -206,7 +176,7 @@ const questionnaireAnswersItemShapeWithWrongKey = {
 	comment_to_q2: noOpCodec,
 } satisfies ShapeOfStrictFieeldAdapter<QuestionnaireServer["answers"][number]>;
 
-const addQuestionareFieldCodec = buildAddFieldAdapterAndOutputSchema(
+const addQuestionareFieldCodec = buildReshapeCodec(
 	questionnaireServerSchema,
 	{
 		fieldName: "questionnaire",
@@ -238,7 +208,7 @@ const addQuestionareFieldCodec = buildAddFieldAdapterAndOutputSchema(
 	},
 );
 
-buildAddFieldAdapterAndOutputSchema(questionnaireServerSchema, {
+buildReshapeCodec(questionnaireServerSchema, {
 	fieldName: "questionnaire",
 	fieldSchema: z.object({
 		q1: z.object({ answer: z.string(), comment: z.string() }),
@@ -283,7 +253,7 @@ const dropQuestionnaireFieldsFromVariable: Array<
 	keyof z.infer<typeof questionnaireServerSchema>
 > = ["ans_to_q1", "comment_to_q1_", "answers"];
 const addQuestionareFieldCodecFromVariableDropFields =
-	buildAddFieldAdapterAndOutputSchema(questionnaireServerSchema, {
+	buildReshapeCodec(questionnaireServerSchema, {
 		fieldName: "questionnaire",
 		fieldSchema: z.object({
 			q1: z.object({ answer: z.string(), comment: z.string() }),
@@ -328,9 +298,6 @@ type _addQuestionareVariableDropFieldsIdMatches = Assert<
 void _widenedArrayCheck;
 void _strictArrayMappedCheck;
 void _pipedDateToIsoOutput;
-void _looseNestedPacked;
-void _looseNestedDefaultB;
-void _looseNestedDefaultC;
 void _addQuestionareFieldValue;
 void questionnaireAnswersItemShape;
 void questionnaireAnswersItemShapeWithWrongKey;
