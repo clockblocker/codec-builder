@@ -6,7 +6,9 @@ describe("codecBuilder.helpers", () => {
 	test("namespaces helper builders under helpers", () => {
 		expect(codecBuilder.helpers.buildArrayOfCodec).toBeDefined();
 		expect(codecBuilder.helpers.buildArrayAndNullishArrayCodec).toBeDefined();
-		expect(codecBuilder.helpers.buildNullableUnionAndNullishString).toBeDefined();
+		expect(
+			codecBuilder.helpers.buildNullableUnionAndNullishString,
+		).toBeDefined();
 		expect(codecBuilder.helpers.buildFilteredNullishArrayCodec).toBeDefined();
 		expect(codecBuilder.helpers.buildWithNullishFiltered).toBeDefined();
 		expect(codecBuilder.helpers.pipeCodecs).toBeDefined();
@@ -23,7 +25,11 @@ describe("codecBuilder.helpers", () => {
 		const arrayOfCodec = codecBuilder.helpers.buildArrayOfCodec(
 			codecBuilder.fieldCodec.emptiableStringAndNullishString,
 		);
-		expect(arrayOfCodec.fromInput([undefined, "a", null])).toEqual(["", "a", ""]);
+		expect(arrayOfCodec.fromInput([undefined, "a", null])).toEqual([
+			"",
+			"a",
+			"",
+		]);
 		expect(arrayOfCodec.fromOutput(["", "a"])).toEqual([undefined, "a"]);
 
 		const arrayAndNullishArrayCodec =
@@ -47,10 +53,9 @@ describe("codecBuilder.helpers", () => {
 				z.string().nullish(),
 				z.string().min(1),
 			);
-		expect(filteredArrayCodec.fromInput(["a", "", null, undefined, "b"])).toEqual([
-			"a",
-			"b",
-		]);
+		expect(
+			filteredArrayCodec.fromInput(["a", "", null, undefined, "b"]),
+		).toEqual(["a", "b"]);
 
 		const nullishWrappedCodec = codecBuilder.helpers.buildWithNullishFiltered(
 			codecBuilder.fieldCodec.numericStringAndInt,
