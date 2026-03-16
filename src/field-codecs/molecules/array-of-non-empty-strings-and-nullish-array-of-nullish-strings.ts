@@ -3,7 +3,7 @@ import { z } from "zod";
 import { pipeCodecs } from "../../core/pipe-codecs";
 import type { Codec } from "../../core/types";
 import { emptiableStringAndNullishString } from "./atoms/nullish-string-and-emptiable-string";
-import { buildArrayOfCodec } from "./builders/array-of";
+import { buildArrayAndNullishArrayCodec } from "./builders/array-and-nullish-array";
 import { buildFilteredNullishArrayCodec } from "./builders/filtered-nullish-array";
 
 const nonEmptyStringSchema = z.string().min(1);
@@ -14,12 +14,12 @@ const {
 	fromOutput: fromArrayOfNullishStrings,
 	fromInput: fromArrayOfNonEmptyStrings,
 } = pipeCodecs(
-	buildArrayOfCodec(emptiableStringAndNullishString),
+	buildArrayAndNullishArrayCodec(emptiableStringAndNullishString),
 	buildFilteredNullishArrayCodec(z.string(), nonEmptyStringSchema),
 );
 
 export const arrayOfNonEmptyStringsAndNullishArrayOfNullishStrings = {
-	fromInput: (input) => fromArrayOfNonEmptyStrings(input ?? []),
+	fromInput: fromArrayOfNonEmptyStrings,
 	fromOutput: fromArrayOfNullishStrings,
 	inputSchema,
 	outputSchema,

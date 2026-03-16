@@ -17,6 +17,7 @@ import {
 import {
 	arrayOfNonEmptyStringsAndNullishArrayOfNullishStrings,
 } from "./field-codecs/molecules/array-of-non-empty-strings-and-nullish-array-of-nullish-strings";
+import { buildArrayAndNullishArrayCodec } from "./field-codecs/molecules/builders/array-and-nullish-array";
 import { buildFilteredNullishArrayCodec } from "./field-codecs/molecules/builders/filtered-nullish-array";
 import { buildNullableUnionAndNullishString } from "./field-codecs/molecules/builders/union-and-string";
 import { withNullishFilteredCodecBuilder } from "./field-codecs/molecules/builders/with-nullish-filtered";
@@ -55,6 +56,7 @@ export const codecBuilder = {
 	fieldCodec: { ...fieldCodecs, arrayOfCodecShapes },
 	buildStrictFieldAdapterCodec,
 	buildReshapeCodec,
+	buildArrayAndNullishArrayCodec,
 	buildNullableUnionAndNullishString,
 	buildFilteredNullishArrayCodec,
 	withNullishFilteredCodecBuilder,

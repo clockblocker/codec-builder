@@ -12,6 +12,16 @@ describe("arrayOfNonEmptyStringsAndNullishArrayOfNullishStrings", () => {
 		expect(
 			arrayOfNonEmptyStringsAndNullishArrayOfNullishStrings.fromInput(null),
 		).toEqual([]);
+		expect(
+			arrayOfNonEmptyStringsAndNullishArrayOfNullishStrings.inputSchema.parse(
+				undefined,
+			),
+		).toBeUndefined();
+		expect(
+			arrayOfNonEmptyStringsAndNullishArrayOfNullishStrings.inputSchema.parse(
+				null,
+			),
+		).toBeNull();
 	});
 
 	test("drops nullish and empty string items", () => {
