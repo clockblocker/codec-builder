@@ -1,11 +1,11 @@
 import { z } from "zod";
 
-import type { Nullish } from "../../core/helpers/helper-types";
-import type { Codec } from "../../core/types";
+import type { Nullish } from "../../../core/helpers/helper-types";
+import type { Codec } from "../../../core/types";
 import {
 	mapNullishToNullable,
 	nullishToUndefined,
-} from "../../core/helpers/nullish-utils";
+} from "../../../core/helpers/nullish-utils";
 
 export function buildNullableUnionAndNullishString<
 	const TValues extends NonEmptyStringTuple,

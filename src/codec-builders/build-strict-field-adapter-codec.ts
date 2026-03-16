@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any -- Library typecasts */
 import { z } from "zod";
 
-import { yesNoAndBoolean } from "../field-codecs/atoms/yes-no-and-boolean";
+import { yesNoAndBoolean } from "../field-codecs/molecules/atoms/yes-no-and-boolean";
 import { pipeCodecs } from "../core/pipe-codecs";
 import type {
 	Codec,
