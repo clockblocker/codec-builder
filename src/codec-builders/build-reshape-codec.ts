@@ -1,7 +1,6 @@
 import { z } from "zod";
 import type { Codec, SchemaShapeOf } from "../core/types";
 
-
 export function buildReshapeCodec<
 	TInputSchema extends z.AnyZodObject,
 	const TFieldName extends string,

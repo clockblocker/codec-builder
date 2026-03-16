@@ -1,28 +1,10 @@
 import { z } from "zod";
 
 import type { Codec } from "../../core/types";
-
-type NonEmptyStringTuple = readonly [string, ...string[]];
-type MutableTuple<T extends readonly string[]> = [...T];
-type MutableNonEmptyStringTuple<T extends NonEmptyStringTuple> =
-	MutableTuple<T> extends [string, ...string[]] ? MutableTuple<T> : never;
-
-function nullableUnionFromNullishString<TUnion extends string>(
-	v: string | null | undefined,
-	allowedValues: readonly TUnion[],
-): TUnion | null {
-	if (v == null) {
-		return null;
-	}
-
-	return allowedValues.includes(v as TUnion) ? (v as TUnion) : null;
-}
-
-function nullishStringFromNullableUnion<TUnion extends string>(
-	v: TUnion | null,
-): TUnion | undefined {
-	return v ?? undefined;
-}
+import {
+	mapNullishToNull,
+	nullishToUndefined,
+} from "../helpers/nullish-utils";
 
 export function buildNullableUnionAndNullishString<
 	const TValues extends NonEmptyStringTuple,
@@ -44,4 +26,26 @@ export function buildNullableUnionAndNullishString<
 		inputSchema,
 		outputSchema,
 	} satisfies Codec<typeof inputSchema, typeof outputSchema>;
+}
+
+// -- Internals --
+
+type NonEmptyStringTuple = readonly [string, ...string[]];
+type MutableTuple<T extends readonly string[]> = [...T];
+type MutableNonEmptyStringTuple<T extends NonEmptyStringTuple> =
+	MutableTuple<T> extends [string, ...string[]] ? MutableTuple<T> : never;
+
+function nullableUnionFromNullishString<TUnion extends string>(
+	v: string | null | undefined,
+	allowedValues: readonly TUnion[],
+): TUnion | null {
+	return mapNullishToNull(v, value =>
+		allowedValues.includes(value as TUnion) ? (value as TUnion) : null,
+	);
+}
+
+function nullishStringFromNullableUnion<TUnion extends string>(
+	v: TUnion | null | undefined,
+): TUnion | undefined {
+	return nullishToUndefined(v);
 }
