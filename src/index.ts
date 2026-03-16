@@ -16,13 +16,18 @@ import {
 	nullishStringAndEmptiableString,
 } from "./field-codecs/molecules/atoms/nullish-string-and-emptiable-string";
 import {
+	numberAndNullableNumericString,
+	numericStringAndNullishNumber,
+} from "./field-codecs/molecules/atoms/numeric-string-and-nullish-number";
+import {
 	booleanAndYesNo,
 	yesNoAndBoolean,
 } from "./field-codecs/molecules/atoms/yes-no-and-boolean";
 import { buildArrayAndNullishArrayCodec } from "./field-codecs/molecules/builders/array-and-nullish-array";
+import { buildArrayOfCodec } from "./field-codecs/molecules/builders/array-of";
 import { buildFilteredNullishArrayCodec } from "./field-codecs/molecules/builders/filtered-nullish-array";
 import { buildNullableUnionAndNullishString } from "./field-codecs/molecules/builders/union-and-string";
-import { withNullishFilteredCodecBuilder } from "./field-codecs/molecules/builders/with-nullish-filtered";
+import { buildWithNullishFiltered } from "./field-codecs/molecules/builders/with-nullish-filtered";
 import {
 	intAndNumericString,
 	numericStringAndInt,
@@ -37,10 +42,8 @@ const fieldCodecs = {
 	nullishStringAndEmptiableString,
 	emptiableStringAndNullishString,
 
-	nullableNumericStringAndNullishNumber,
-	numericNullishStringAndNullishNumber,
-
-	nullishNumberAndNullableNumericString,
+	numericStringAndNullishNumber,
+	numberAndNullableNumericString,
 
 	yesNoAndBoolean,
 	booleanAndYesNo,
@@ -54,11 +57,14 @@ const fieldCodecs = {
 
 export const codecBuilder = {
 	fieldCodec: { ...fieldCodecs, arrayOfCodecShapes },
+	helpers: {
+		buildArrayOfCodec,
+		buildArrayAndNullishArrayCodec,
+		buildNullableUnionAndNullishString,
+		buildFilteredNullishArrayCodec,
+		buildWithNullishFiltered,
+		pipeCodecs,
+	},
 	buildStrictFieldAdapterCodec,
 	buildReshapeCodec,
-	buildArrayAndNullishArrayCodec,
-	buildNullableUnionAndNullishString,
-	buildFilteredNullishArrayCodec,
-	withNullishFilteredCodecBuilder,
-	pipeCodecs,
 } as const;

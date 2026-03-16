@@ -1,87 +1,67 @@
 import { describe, expect, test } from "bun:test";
 import {
-	nullableDateAndNullishIsoStringDate,
-	nullishIsoStringDateAndNullableDate,
+	dateAndIsoStringDate,
+	isoStringDateAndDate,
 } from "../src/field-codecs/molecules/atoms/date-and-iso-string-date";
-import {
-	floatAndInt,
-	intAndFloat,
-} from "../src/field-codecs/molecules/atoms/int-and-float";
 import {
 	emptiableStringAndNullishString,
 	nullishStringAndEmptiableString,
 } from "../src/field-codecs/molecules/atoms/nullish-string-and-emptiable-string";
 import {
-	nullableNumericStringAndNullishNumber,
-	nullishNumberAndNullableNumericString,
+	numberAndNullableNumericString,
+	numericStringAndNullishNumber,
 } from "../src/field-codecs/molecules/atoms/numeric-string-and-nullish-number";
 import {
-	nullableYesNoAndNullishBoolean,
-	nullishBooleanAndNullableYesNo,
+	booleanAndYesNo,
+	yesNoAndBoolean,
 } from "../src/field-codecs/molecules/atoms/yes-no-and-boolean";
 
-describe("nullableNumericStringAndNullishNumber", () => {
+describe("numericStringAndNullishNumber", () => {
 	test("maps nullish input to null and uses a nullable output schema", () => {
-		expect(nullableNumericStringAndNullishNumber.fromInput(undefined)).toBeNull();
-		expect(nullableNumericStringAndNullishNumber.fromInput(null)).toBeNull();
-		expect(nullableNumericStringAndNullishNumber.outputSchema.parse(null)).toBeNull();
+		expect(numericStringAndNullishNumber.fromInput(undefined)).toBeNull();
+		expect(numericStringAndNullishNumber.fromInput(null)).toBeNull();
+		expect(numericStringAndNullishNumber.outputSchema.parse(null)).toBeNull();
 		expect(() =>
-			nullableNumericStringAndNullishNumber.outputSchema.parse(undefined),
+			numericStringAndNullishNumber.outputSchema.parse(undefined),
 		).toThrow();
 	});
 
 	test("keeps the reverse codec nullable-in and nullish-out", () => {
-		expect(
-			nullishNumberAndNullableNumericString.inputSchema.parse(null),
-		).toBeNull();
+		expect(numberAndNullableNumericString.inputSchema.parse(null)).toBeNull();
 		expect(() =>
-			nullishNumberAndNullableNumericString.inputSchema.parse(undefined),
+			numberAndNullableNumericString.inputSchema.parse(undefined),
 		).toThrow();
-		expect(
-			nullishNumberAndNullableNumericString.outputSchema.parse(undefined),
-		).toBeUndefined();
+		expect(numberAndNullableNumericString.outputSchema.parse(undefined)).toBeUndefined();
 	});
 });
 
-describe("nullableDateAndNullishIsoStringDate", () => {
+describe("dateAndIsoStringDate", () => {
 	test("maps nullish input to null and uses a nullable date output schema", () => {
-		expect(nullableDateAndNullishIsoStringDate.fromInput(undefined)).toBeNull();
-		expect(nullableDateAndNullishIsoStringDate.fromInput(null)).toBeNull();
-		expect(nullableDateAndNullishIsoStringDate.outputSchema.parse(null)).toBeNull();
-		expect(() =>
-			nullableDateAndNullishIsoStringDate.outputSchema.parse(undefined),
-		).toThrow();
+		expect(dateAndIsoStringDate.fromInput(undefined)).toBeNull();
+		expect(dateAndIsoStringDate.fromInput(null)).toBeNull();
+		expect(dateAndIsoStringDate.outputSchema.parse(null)).toBeNull();
+		expect(() => dateAndIsoStringDate.outputSchema.parse(undefined)).toThrow();
 	});
 
 	test("keeps the reverse date codec nullable-in and nullish-out", () => {
-		expect(nullishIsoStringDateAndNullableDate.inputSchema.parse(null)).toBeNull();
-		expect(() =>
-			nullishIsoStringDateAndNullableDate.inputSchema.parse(undefined),
-		).toThrow();
-		expect(
-			nullishIsoStringDateAndNullableDate.outputSchema.parse(undefined),
-		).toBeUndefined();
+		expect(isoStringDateAndDate.inputSchema.parse(null)).toBeNull();
+		expect(() => isoStringDateAndDate.inputSchema.parse(undefined)).toThrow();
+		expect(isoStringDateAndDate.outputSchema.parse(undefined)).toBeUndefined();
 	});
 });
 
-describe("nullableYesNoAndNullishBoolean", () => {
+describe("yesNoAndBoolean", () => {
 	test("maps nullish booleans to null and uses a nullable yes/no output schema", () => {
-		expect(nullableYesNoAndNullishBoolean.fromInput(undefined)).toBeNull();
-		expect(nullableYesNoAndNullishBoolean.fromInput(null)).toBeNull();
-		expect(nullableYesNoAndNullishBoolean.outputSchema.parse(null)).toBeNull();
-		expect(() =>
-			nullableYesNoAndNullishBoolean.outputSchema.parse(undefined),
-		).toThrow();
+		expect(yesNoAndBoolean.fromInput(undefined)).toBeNull();
+		expect(yesNoAndBoolean.fromInput(null)).toBeNull();
+		expect(yesNoAndBoolean.outputSchema.parse(null)).toBeNull();
+		expect(() => yesNoAndBoolean.outputSchema.parse(undefined)).toThrow();
 	});
 
 	test("keeps the reverse boolean codec nullable-in and nullish-out", () => {
-		expect(nullishBooleanAndNullableYesNo.inputSchema.parse(null)).toBeNull();
-		expect(() =>
-			nullishBooleanAndNullableYesNo.inputSchema.parse(undefined),
-		).toThrow();
-		expect(
-			nullishBooleanAndNullableYesNo.outputSchema.parse(undefined),
-		).toBeUndefined();
+		expect(booleanAndYesNo.inputSchema.parse(null)).toBeNull();
+		expect(() => booleanAndYesNo.inputSchema.parse(undefined)).toThrow();
+		expect(booleanAndYesNo.outputSchema.parse(undefined)).toBeUndefined();
 	});
 });
 
@@ -91,21 +71,5 @@ describe("nullishStringAndEmptiableString", () => {
 		expect(emptiableStringAndNullishString.fromOutput("")).toBeUndefined();
 		expect(nullishStringAndEmptiableString.fromInput("")).toBeUndefined();
 		expect(nullishStringAndEmptiableString.fromOutput(undefined)).toBe("");
-	});
-});
-
-describe("intAndFloat", () => {
-	test("floors floats and uses an integer output schema", () => {
-		expect(intAndFloat.fromInput(1.9)).toBe(1);
-		expect(intAndFloat.inputSchema.parse(1.5)).toBe(1.5);
-		expect(intAndFloat.outputSchema.parse(1)).toBe(1);
-		expect(() => intAndFloat.outputSchema.parse(1.5)).toThrow();
-	});
-
-	test("keeps the reverse codec int-in and floors on fromOutput", () => {
-		expect(floatAndInt.inputSchema.parse(1)).toBe(1);
-		expect(() => floatAndInt.inputSchema.parse(1.5)).toThrow();
-		expect(floatAndInt.outputSchema.parse(1.5)).toBe(1.5);
-		expect(floatAndInt.fromOutput(1.9)).toBe(1);
 	});
 });

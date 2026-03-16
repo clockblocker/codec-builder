@@ -1,11 +1,11 @@
 import { z } from "zod";
 
 import type { Nullish } from "../../../core/helpers/helper-types";
-import type { Codec } from "../../../core/types";
 import {
 	makeNullableFromNullish,
 	mapNullishToNullable,
 } from "../../../core/helpers/nullish-utils";
+import type { Codec } from "../../../core/types";
 
 export function buildNullableUnionAndNullishString<
 	const TValues extends NonEmptyStringTuple,
@@ -40,7 +40,7 @@ function nullableUnionFromNullishString<TUnion extends string>(
 	v: Nullish<string>,
 	allowedValues: readonly TUnion[],
 ): TUnion | null {
-	return mapNullishToNullable(v, value =>
+	return mapNullishToNullable(v, (value) =>
 		allowedValues.includes(value as TUnion) ? (value as TUnion) : null,
 	);
 }
