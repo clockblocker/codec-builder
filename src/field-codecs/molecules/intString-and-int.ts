@@ -8,7 +8,7 @@ const nullishIntStringSchema = intStringSchema.nullish();
 
 const nullishIntSchema = z.number().int().nullish();
 
-export const intStringAndInt = {
+export const intStringAndNullishInt = {
 	fromInput: v => mapNullishToNullable(v, String),
 	fromOutput: v => mapNullishToNullable(v, value => Number.parseInt(value, 10)),
 	inputSchema: nullishIntSchema,
