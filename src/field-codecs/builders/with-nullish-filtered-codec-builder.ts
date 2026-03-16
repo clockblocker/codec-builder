@@ -6,8 +6,10 @@ import type { Codec } from "../../core/types";
 export function withNullishFilteredCodecBuilder<
 	O,
 	I,
-	TSchema extends z.ZodType<O, z.ZodTypeDef, any>,
->(codec: Codec<O, I, TSchema>) {
+	TInputSchema extends z.ZodType<I, z.ZodTypeDef, any>,
+	TOutputSchema extends z.ZodType<O, z.ZodTypeDef, any>,
+>(codec: Codec<O, I, TInputSchema, TOutputSchema>) {
+	const inputSchema = codec.inputSchema.nullish();
 	const outputSchema = codec.outputSchema.nullish();
 
 	return {
@@ -15,10 +17,12 @@ export function withNullishFilteredCodecBuilder<
 			input == null ? undefined : codec.fromInput(input),
 		fromOutput: (output: O | null | undefined): I | undefined =>
 			output == null ? undefined : codec.fromOutput(output),
+		inputSchema,
 		outputSchema,
 	} as const satisfies Codec<
 		z.output<typeof outputSchema>,
-		I | null | undefined,
+		z.output<typeof inputSchema>,
+		typeof inputSchema,
 		typeof outputSchema
 	>;
 }

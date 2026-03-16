@@ -24,5 +24,11 @@ function booleanFromYesNo(v: NullishYesNo): NullishBoolean {
 export const yesNoAndBoolean = {
 	fromInput: yesNoFromBoolean,
 	fromOutput: booleanFromYesNo,
+	inputSchema: nullishBooleanSchema,
 	outputSchema: nullishYesNoSchema,
-} as const satisfies Codec<NullishYesNo, NullishBoolean, typeof nullishYesNoSchema>;
+} as const satisfies Codec<
+	NullishYesNo,
+	NullishBoolean,
+	typeof nullishBooleanSchema,
+	typeof nullishYesNoSchema
+>;

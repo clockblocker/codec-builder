@@ -31,6 +31,7 @@ export function buildNullableUnionAndNullishString<
 		valuesOrEnum instanceof z.ZodEnum
 			? valuesOrEnum
 			: z.enum(valuesOrEnum as MutableNonEmptyStringTuple<TValues>);
+	const inputSchema = z.string().nullish();
 	const outputSchema = enumSchema.nullable();
 	const allowedValues = enumSchema.options as readonly TValues[number][];
 
@@ -39,10 +40,12 @@ export function buildNullableUnionAndNullishString<
 			nullableUnionFromNullishString(v, allowedValues),
 		fromOutput: (v: TValues[number] | null): TValues[number] | undefined =>
 			nullishStringFromNullableUnion(v),
+		inputSchema,
 		outputSchema,
 	} satisfies Codec<
 		TValues[number] | null,
 		string | null | undefined,
+		typeof inputSchema,
 		typeof outputSchema
 	>;
 }

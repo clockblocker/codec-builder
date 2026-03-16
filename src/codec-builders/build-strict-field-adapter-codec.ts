@@ -10,6 +10,8 @@ import type {
 } from "../core/types";
 import { buildReshapeCodec } from "./build-reshape-codec";
 
+// -- Exports --
+
 export const noOpCodec = { __noOpCodec: true } as const satisfies NoOpCodec;
 
 export type ShapeOfStrictFieldAdapterCodec<TServer extends object> =
@@ -55,10 +57,11 @@ export function buildStrictFieldAdapterCodec<
 	};
 
 	return {
+		inputSchema,
 		outputSchema,
 		fromInput,
 		fromOutput,
-	};
+	} satisfies Codec<OutputType, InputType, TInputSchema, typeof outputSchema>;
 }
 
 // -- Internals --
@@ -83,10 +86,10 @@ interface ArrayCodecShape<
 
 type RuntimeArrayItemShape =
 	| RuntimeCodecShape
-	| Codec<any, any, any>
+	| Codec<any, any, any, any>
 	| NoOpCodec;
 
-type InputCompatibleCodecForValue<TInput> = Codec<any, any, any> & {
+type InputCompatibleCodecForValue<TInput> = Codec<any, any, any, any> & {
 	fromInput: (v: TInput) => unknown;
 };
 
@@ -190,6 +193,7 @@ type FieldInput<TField extends z.ZodTypeAny> = z.input<TField>;
 type InputCompatibleCodecForField<TField extends z.ZodTypeAny> = Codec<
 	any,
 	any,
+	any,
 	any
 > & {
 	fromInput: (v: FieldInput<TField>) => unknown;
@@ -200,7 +204,7 @@ type ArrayItemInput<TField extends z.ZodTypeAny> =
 		: never;
 type InputCompatibleCodecForArrayItem<TField extends z.ZodTypeAny> =
 	ArrayItemSchemaOf<TField> extends z.ZodTypeAny
-		? Codec<any, any, any> & {
+		? Codec<any, any, any, any> & {
 				fromInput: (v: ArrayItemInput<TField>) => unknown;
 			}
 		: never;
@@ -243,7 +247,7 @@ type CodecShapeNodeForField<TField extends z.ZodTypeAny> =
 			: CodecShapeForSchemaShape<NestedSchemaShape<TField>>;
 
 type OutputZodArrayItemFromCodecNode<TItemShape> =
-	TItemShape extends Codec<any, any, infer TSchema>
+	TItemShape extends Codec<any, any, any, infer TSchema>
 		? TSchema
 		: TItemShape extends NoOpCodec
 			? z.ZodUnknown
@@ -252,7 +256,7 @@ type OutputZodArrayItemFromCodecNode<TItemShape> =
 				: never;
 
 type OutputZodArrayItemFromOutputValue<TValue, TItemShape> =
-	TItemShape extends Codec<any, any, infer TSchema>
+	TItemShape extends Codec<any, any, any, infer TSchema>
 		? TSchema
 		: TItemShape extends NoOpCodec
 			? ZodTypeForValue<TValue>
@@ -266,7 +270,7 @@ type OutputZodArrayItemForInputField<
 	TInputField extends z.ZodTypeAny,
 	TItemShape,
 > =
-	TItemShape extends Codec<any, any, infer TSchema>
+	TItemShape extends Codec<any, any, any, infer TSchema>
 		? TSchema
 		: TItemShape extends NoOpCodec
 			? ArrayItemSchemaOf<TInputField>
@@ -297,7 +301,7 @@ type CodecShapeForSchemaShape<TShape extends z.ZodRawShape> = {
 };
 
 type OutputZodShapeFromCodecShape<S extends RuntimeCodecShape> = {
-	[K in KnownKeys<S>]: S[K] extends Codec<any, any, infer TSchema>
+	[K in KnownKeys<S>]: S[K] extends Codec<any, any, any, infer TSchema>
 		? TSchema
 		: S[K] extends NoOpCodec
 			? z.ZodUnknown
@@ -312,7 +316,7 @@ type OutputZodShapeFromOutputObject<
 	TObj extends object,
 	S extends RuntimeCodecShape,
 > = {
-	[K in KnownKeys<S>]: S[K] extends Codec<any, any, infer TSchema>
+	[K in KnownKeys<S>]: S[K] extends Codec<any, any, any, infer TSchema>
 		? TSchema
 		: S[K] extends NoOpCodec
 			? K extends keyof TObj
@@ -339,7 +343,7 @@ type OutputZodShapeFromOutputObject<
 };
 
 type OutputZodNode<TInputField extends z.ZodTypeAny, TShapeNode> =
-	TShapeNode extends Codec<any, any, infer TSchema>
+	TShapeNode extends Codec<any, any, any, infer TSchema>
 		? TSchema
 		: TShapeNode extends NoOpCodec
 			? TInputField
@@ -376,12 +380,13 @@ type OutputZodShapeForSchemaShape<
 		: never;
 };
 
-function isCodec(v: unknown): v is Codec<any, any, any> {
+function isCodec(v: unknown): v is Codec<any, any, any, any> {
 	return (
 		typeof v === "object" &&
 		v !== null &&
 		"fromInput" in v &&
 		"fromOutput" in v &&
+		"inputSchema" in v &&
 		"outputSchema" in v
 	);
 }
@@ -692,8 +697,14 @@ buildStrictFieldAdapterCodec(strict, {
 const numberOrStringInputCodec = {
 	fromInput: (v: number | string) => String(v),
 	fromOutput: (v: string) => Number(v),
+	inputSchema: z.union([z.number(), z.string()]),
 	outputSchema: z.string(),
-} satisfies Codec<string, number | string, z.ZodString>;
+} satisfies Codec<
+	string,
+	number | string,
+	z.ZodUnion<[z.ZodNumber, z.ZodString]>,
+	z.ZodString
+>;
 
 buildStrictFieldAdapterCodec(strict, {
 	id: numberOrStringInputCodec,
@@ -706,17 +717,21 @@ const strictArray = z.object({
 const numberToDateCodec = {
 	fromInput: (v: number) => new Date(v),
 	fromOutput: (v: Date) => v.getTime(),
+	inputSchema: z.number(),
 	outputSchema: z.date(),
-} satisfies Codec<Date, number, z.ZodDate>;
+} satisfies Codec<Date, number, z.ZodNumber, z.ZodDate>;
 
 const dateToIsoCodec = {
 	fromInput: (v: Date) => v.toISOString(),
 	fromOutput: (v: string) => new Date(v),
+	inputSchema: z.date(),
 	outputSchema: z.string(),
-} satisfies Codec<string, Date, z.ZodString>;
+} satisfies Codec<string, Date, z.ZodDate, z.ZodString>;
 
 const pipedDateToIsoCodec = pipeCodecs(numberToDateCodec, dateToIsoCodec);
+type PipedDateToIsoInput = z.infer<typeof pipedDateToIsoCodec.inputSchema>;
 type PipedDateToIsoOutput = z.infer<typeof pipedDateToIsoCodec.outputSchema>;
+const _pipedDateToIsoInput: PipedDateToIsoInput = 1;
 const _pipedDateToIsoOutput: PipedDateToIsoOutput = "2020-01-01T00:00:00.000Z";
 
 const strictArrayMapped = buildStrictFieldAdapterCodec(strictArray, {
@@ -898,6 +913,7 @@ type _addQuestionareVariableDropFieldsIdMatches = Assert<
 
 void _widenedArrayCheck;
 void _strictArrayMappedCheck;
+void _pipedDateToIsoInput;
 void _pipedDateToIsoOutput;
 void _addQuestionareFieldValue;
 void questionnaireAnswersItemShape;

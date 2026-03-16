@@ -28,15 +28,23 @@ function isoStringDateFromDate(v: NullishDate): NullishIsoStringDate {
 export const dateAndIsoStringDate = {
 	fromInput: dateFromIsoStringDate,
 	fromOutput: isoStringDateFromDate,
+	inputSchema: nullishIsoStringDateSchema,
 	outputSchema: nullishDateSchema,
-} as const satisfies Codec<NullishDate, NullishIsoStringDate, typeof nullishDateSchema>;
+} as const satisfies Codec<
+	NullishDate,
+	NullishIsoStringDate,
+	typeof nullishIsoStringDateSchema,
+	typeof nullishDateSchema
+>;
 
 export const isoStringDateAndDate = {
 	fromInput: dateAndIsoStringDate.fromOutput,
 	fromOutput: dateAndIsoStringDate.fromInput,
+	inputSchema: nullishDateSchema,
 	outputSchema: nullishIsoStringDateSchema,
 } as const satisfies Codec<
 	NullishIsoStringDate,
 	NullishDate,
+	typeof nullishDateSchema,
 	typeof nullishIsoStringDateSchema
 >;

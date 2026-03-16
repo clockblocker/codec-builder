@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { SchemaShapeOf } from "../core/types";
+import type { Codec, SchemaShapeOf } from "../core/types";
 
 
 export function buildReshapeCodec<
@@ -80,10 +80,11 @@ export function buildReshapeCodec<
 	};
 
 	return {
+		inputSchema,
 		outputSchema,
 		fromInput,
 		fromOutput,
-	};
+	} satisfies Codec<OutputType, InputType, TInputSchema, typeof outputSchema>;
 }
 
 // -- Internals --

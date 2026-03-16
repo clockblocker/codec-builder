@@ -9,20 +9,14 @@ type NullishIntString = z.infer<typeof nullishIntStringSchema>;
 const nullishIntSchema = z.number().int().nullish();
 type NullishInt = z.infer<typeof nullishIntSchema>;
 
-function intStringFromInt(v: number): string;
-function intStringFromInt(v: NullishInt): NullishIntString;
-function intStringFromInt(v: NullishInt): NullishIntString {
-	return v == null ? undefined : String(v);
-}
-
-function intFromIntString(v: string): number;
-function intFromIntString(v: NullishIntString): NullishInt;
-function intFromIntString(v: NullishIntString): NullishInt {
-	return v == null ? undefined : Number.parseInt(v, 10);
-}
-
 export const intStringAndInt = {
-	fromInput: intStringFromInt,
-	fromOutput: intFromIntString,
+	fromInput: (v) => v == null ? undefined : String(v),
+	fromOutput: (v) => v == null ? undefined : Number.parseInt(v, 10),
+	inputSchema: nullishIntSchema,
 	outputSchema: nullishIntStringSchema,
-} as const satisfies Codec<NullishIntString, NullishInt, typeof nullishIntStringSchema>;
+} as const satisfies Codec<
+	NullishIntString,
+	NullishInt,
+	typeof nullishIntSchema,
+	typeof nullishIntStringSchema
+>;

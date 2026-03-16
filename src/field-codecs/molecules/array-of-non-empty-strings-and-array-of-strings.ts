@@ -3,6 +3,7 @@ import { z } from "zod";
 import type { Codec } from "../../core/types";
 
 const nonEmptyStringSchema = z.string().min(1);
+const arrayOfStringsSchema = z.array(z.string());
 const arrayOfNonEmptyStringsSchema = z.array(nonEmptyStringSchema);
 
 type ArrayOfStrings = string[];
@@ -23,9 +24,11 @@ function arrayOfStringsFromArrayOfNonEmptyStrings(
 export const arrayOfNonEmptyStringsAndArrayOfStrings = {
 	fromInput: arrayOfNonEmptyStringsFromArrayOfStrings,
 	fromOutput: arrayOfStringsFromArrayOfNonEmptyStrings,
+	inputSchema: arrayOfStringsSchema,
 	outputSchema: arrayOfNonEmptyStringsSchema,
 } as const satisfies Codec<
 	ArrayOfNonEmptyStrings,
 	ArrayOfStrings | null | undefined,
+	typeof arrayOfStringsSchema,
 	typeof arrayOfNonEmptyStringsSchema
 >;

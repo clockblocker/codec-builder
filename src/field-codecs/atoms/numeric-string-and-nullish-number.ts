@@ -28,15 +28,23 @@ function nullishNumberFromNumericString(v: NullishNumericString): NullishNumber 
 export const numericStringAndNullishNumber = {
 	fromInput: numericStringFromNullishNumber,
 	fromOutput: nullishNumberFromNumericString,
+	inputSchema: nullishNumberSchema,
 	outputSchema: nullishNumericStringSchema,
 } as const satisfies Codec<
 	NullishNumericString,
 	NullishNumber,
+	typeof nullishNumberSchema,
 	typeof nullishNumericStringSchema
 >;
 
 export const nullishNumberAndNumericString = {
 	fromInput: numericStringAndNullishNumber.fromOutput,
 	fromOutput: numericStringAndNullishNumber.fromInput,
+	inputSchema: nullishNumericStringSchema,
 	outputSchema: nullishNumberSchema,
-} as const satisfies Codec<NullishNumber, NullishNumericString, typeof nullishNumberSchema>;
+} as const satisfies Codec<
+	NullishNumber,
+	NullishNumericString,
+	typeof nullishNumericStringSchema,
+	typeof nullishNumberSchema
+>;
