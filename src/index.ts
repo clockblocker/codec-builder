@@ -10,7 +10,10 @@ import {
 	numericStringAndNullishNumber,
 	nullishNumberAndNumericString,
 } from "./field-codecs/atoms/numeric-string-and-nullish-number";
-import { yesNoAndBoolean } from "./field-codecs/atoms/yes-no-and-boolean";
+import {
+	booleanAndYesNo,
+	yesNoAndBoolean,
+} from "./field-codecs/atoms/yes-no-and-boolean";
 import { buildNullableUnionAndNullishString } from "./field-codecs/builders/union-and-string-codec-builder";
 import { withNullishFilteredCodecBuilder } from "./field-codecs/builders/with-nullish-filtered-codec-builder";
 import { arrayOfNonEmptyStringsAndArrayOfStrings } from "./field-codecs/molecules/array-of-non-empty-strings-and-array-of-strings";
@@ -36,6 +39,7 @@ const fieldCodecs = {
 	numericStringAndNullishNumber,
 	nullishNumberAndNumericString,
 
+	booleanAndYesNo,
 	yesNoAndBoolean,
 	intStringAndInt,
 

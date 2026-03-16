@@ -4,29 +4,19 @@ import type { Codec } from "../../core/types";
 
 const yesNoSchema = z.enum(["Yes", "No"]);
 const nullishYesNoSchema = yesNoSchema.nullish();
-type NullishYesNo = z.infer<typeof nullishYesNoSchema>;
 
 const nullishBooleanSchema = z.boolean().nullish();
-type NullishBoolean = z.infer<typeof nullishBooleanSchema>;
-
-function yesNoFromBoolean(v: boolean): "Yes" | "No";
-function yesNoFromBoolean(v: NullishBoolean): NullishYesNo;
-function yesNoFromBoolean(v: NullishBoolean): NullishYesNo {
-	return v == null ? undefined : v ? "Yes" : "No";
-}
-
-function booleanFromYesNo(v: "Yes" | "No"): boolean;
-function booleanFromYesNo(v: NullishYesNo): NullishBoolean;
-function booleanFromYesNo(v: NullishYesNo): NullishBoolean {
-	return v == null ? undefined : v === "Yes";
-}
 
 export const yesNoAndBoolean = {
-	fromInput: yesNoFromBoolean,
-	fromOutput: booleanFromYesNo,
+	fromInput: v => v == null ? undefined : v ? "Yes" : "No",
+	fromOutput: v => v == null ? undefined : v === "Yes",
 	inputSchema: nullishBooleanSchema,
 	outputSchema: nullishYesNoSchema,
-} as const satisfies Codec<
-	typeof nullishBooleanSchema,
-	typeof nullishYesNoSchema
->;
+} as const satisfies Codec<typeof nullishBooleanSchema, typeof nullishYesNoSchema>;
+
+export const booleanAndYesNo = {
+	fromInput: yesNoAndBoolean.fromOutput,
+	fromOutput: yesNoAndBoolean.fromInput,
+	inputSchema: nullishYesNoSchema,
+	outputSchema: nullishBooleanSchema,
+} as const satisfies Codec<typeof nullishYesNoSchema, typeof nullishBooleanSchema>;
