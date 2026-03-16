@@ -16,7 +16,6 @@ import {
 } from "./field-codecs/molecules/atoms/yes-no-and-boolean";
 import { buildNullableUnionAndNullishString } from "./field-codecs/molecules/builders/union-and-string-codec-builder";
 import { withNullishFilteredCodecBuilder } from "./field-codecs/molecules/builders/with-nullish-filtered-codec-builder";
-import { arrayOfNonEmptyStringsAndArrayOfStrings } from "./field-codecs/molecules/array-of-non-empty-strings-and-array-of-strings";
 import { intStringAndInt } from "./field-codecs/molecules/intString-and-int";
 import {
 	arrayOfCodecShapes,
