@@ -1,7 +1,7 @@
 import { z } from "zod";
 
-import { pipeCodecs } from "../../../../core/pipe-codecs";
-import type { Codec } from "../../../../core/types";
+import { pipeCodecs } from "../../../core/pipe-codecs";
+import type { Codec } from "../../../core/types";
 import { emptiableStringAndNullishString } from "./atoms/nullish-string-and-emptiable-string";
 import { buildArrayAndNullishArrayCodec } from "./builders/array-and-nullish-array";
 import { buildFilteredNullishArrayCodec } from "./builders/filtered-nullish-array";

@@ -6,32 +6,32 @@ import {
 } from "./codec-builders/strict-field-adapter/build-strict-field-adapter-codec";
 import { pipeCodecs } from "./core/pipe-codecs";
 import type { AnyCodec, NoOpCodec } from "./core/types";
-import { arrayOfNonEmptyStringsAndNullishArrayOfNullishStrings } from "./codec-builders/strict-field-adapter/field-codecs/molecules/array-of-non-empty-strings-and-nullish-array-of-nullish-strings";
+import { arrayOfNonEmptyStringsAndNullishArrayOfNullishStrings } from "./codec-builders/strict-field-adapter/field-codecs/array-of-non-empty-strings-and-nullish-array-of-nullish-strings";
 import {
 	dateAndIsoStringDate,
 	isoStringDateAndDate,
-} from "./codec-builders/strict-field-adapter/field-codecs/molecules/atoms/date-and-iso-string-date";
+} from "./codec-builders/strict-field-adapter/field-codecs/atoms/date-and-iso-string-date";
 import {
 	emptiableStringAndNullishString,
 	nullishStringAndEmptiableString,
-} from "./codec-builders/strict-field-adapter/field-codecs/molecules/atoms/nullish-string-and-emptiable-string";
+} from "./codec-builders/strict-field-adapter/field-codecs/atoms/nullish-string-and-emptiable-string";
 import {
 	numberAndNullableNumericString,
 	numericStringAndNullishNumber,
-} from "./codec-builders/strict-field-adapter/field-codecs/molecules/atoms/numeric-string-and-nullish-number";
+} from "./codec-builders/strict-field-adapter/field-codecs/atoms/numeric-string-and-nullish-number";
 import {
 	booleanAndYesNo,
 	yesNoAndBoolean,
-} from "./codec-builders/strict-field-adapter/field-codecs/molecules/atoms/yes-no-and-boolean";
-import { buildArrayAndNullishArrayCodec } from "./codec-builders/strict-field-adapter/field-codecs/molecules/builders/array-and-nullish-array";
-import { buildArrayOfCodec } from "./codec-builders/strict-field-adapter/field-codecs/molecules/builders/array-of";
-import { buildFilteredNullishArrayCodec } from "./codec-builders/strict-field-adapter/field-codecs/molecules/builders/filtered-nullish-array";
-import { buildNullableUnionAndNullishString } from "./codec-builders/strict-field-adapter/field-codecs/molecules/builders/union-and-string";
-import { buildWithNullishFiltered } from "./codec-builders/strict-field-adapter/field-codecs/molecules/builders/with-nullish-filtered";
+} from "./codec-builders/strict-field-adapter/field-codecs/atoms/yes-no-and-boolean";
+import { buildArrayAndNullishArrayCodec } from "./codec-builders/strict-field-adapter/field-codecs/builders/array-and-nullish-array";
+import { buildArrayOfCodec } from "./codec-builders/strict-field-adapter/field-codecs/builders/array-of";
+import { buildFilteredNullishArrayCodec } from "./codec-builders/strict-field-adapter/field-codecs/builders/filtered-nullish-array";
+import { buildNullableUnionAndNullishString } from "./codec-builders/strict-field-adapter/field-codecs/builders/union-and-string";
+import { buildWithNullishFiltered } from "./codec-builders/strict-field-adapter/field-codecs/builders/with-nullish-filtered";
 import {
 	intAndNumericString,
 	numericStringAndInt,
-} from "./codec-builders/strict-field-adapter/field-codecs/molecules/numeric-string-and-int";
+} from "./codec-builders/strict-field-adapter/field-codecs/numeric-string-and-int";
 
 const fieldCodecs = {
 	arrayOfNonEmptyStringsAndNullishArrayOfNullishStrings,
