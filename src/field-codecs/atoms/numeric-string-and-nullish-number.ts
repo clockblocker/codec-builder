@@ -31,8 +31,6 @@ export const numericStringAndNullishNumber = {
 	inputSchema: nullishNumberSchema,
 	outputSchema: nullishNumericStringSchema,
 } as const satisfies Codec<
-	NullishNumericString,
-	NullishNumber,
 	typeof nullishNumberSchema,
 	typeof nullishNumericStringSchema
 >;
@@ -43,8 +41,6 @@ export const nullishNumberAndNumericString = {
 	inputSchema: nullishNumericStringSchema,
 	outputSchema: nullishNumberSchema,
 } as const satisfies Codec<
-	NullishNumber,
-	NullishNumericString,
 	typeof nullishNumericStringSchema,
 	typeof nullishNumberSchema
 >;

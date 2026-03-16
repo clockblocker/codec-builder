@@ -4,15 +4,18 @@ import type { z } from "zod";
 import type { Codec, CodecPair } from "./types";
 
 export function pipeCodecs<
-	A,
-	B,
-	C,
-	TInputSchema extends z.ZodType<A, z.ZodTypeDef, any>,
-	TOutputSchema extends z.ZodType<C, z.ZodTypeDef, any>,
+	TInputSchema extends z.ZodTypeAny,
+	TIntermediateOutputSchema extends z.ZodTypeAny,
+	TIntermediateInputSchema extends z.ZodType<
+		z.output<TIntermediateOutputSchema>,
+		z.ZodTypeDef,
+		any
+	>,
+	TOutputSchema extends z.ZodTypeAny,
 >(
-	ab: Codec<B, A, TInputSchema, z.ZodType<B, z.ZodTypeDef, any>>,
-	bc: Codec<C, B, z.ZodType<B, z.ZodTypeDef, any>, TOutputSchema>,
-): Codec<C, A, TInputSchema, TOutputSchema>;
+	ab: Codec<TInputSchema, TIntermediateOutputSchema>,
+	bc: Codec<TIntermediateInputSchema, TOutputSchema>,
+): Codec<TInputSchema, TOutputSchema>;
 export function pipeCodecs<A, B, C>(
 	ab: CodecPair<A, B>,
 	bc: CodecPair<B, C>,

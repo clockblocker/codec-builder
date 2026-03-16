@@ -27,8 +27,6 @@ export const arrayOfNonEmptyStringsAndArrayOfStrings = {
 	inputSchema: arrayOfStringsSchema,
 	outputSchema: arrayOfNonEmptyStringsSchema,
 } as const satisfies Codec<
-	ArrayOfNonEmptyStrings,
-	ArrayOfStrings | null | undefined,
 	typeof arrayOfStringsSchema,
 	typeof arrayOfNonEmptyStringsSchema
 >;

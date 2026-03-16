@@ -31,8 +31,6 @@ export const dateAndIsoStringDate = {
 	inputSchema: nullishIsoStringDateSchema,
 	outputSchema: nullishDateSchema,
 } as const satisfies Codec<
-	NullishDate,
-	NullishIsoStringDate,
 	typeof nullishIsoStringDateSchema,
 	typeof nullishDateSchema
 >;
@@ -43,8 +41,6 @@ export const isoStringDateAndDate = {
 	inputSchema: nullishDateSchema,
 	outputSchema: nullishIsoStringDateSchema,
 } as const satisfies Codec<
-	NullishIsoStringDate,
-	NullishDate,
 	typeof nullishDateSchema,
 	typeof nullishIsoStringDateSchema
 >;

@@ -42,10 +42,5 @@ export function buildNullableUnionAndNullishString<
 			nullishStringFromNullableUnion(v),
 		inputSchema,
 		outputSchema,
-	} satisfies Codec<
-		TValues[number] | null,
-		string | null | undefined,
-		typeof inputSchema,
-		typeof outputSchema
-	>;
+	} satisfies Codec<typeof inputSchema, typeof outputSchema>;
 }

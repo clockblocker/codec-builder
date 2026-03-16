@@ -84,7 +84,7 @@ export function buildReshapeCodec<
 		outputSchema,
 		fromInput,
 		fromOutput,
-	} satisfies Codec<OutputType, InputType, TInputSchema, typeof outputSchema>;
+	} satisfies Codec<TInputSchema, typeof outputSchema>;
 }
 
 // -- Internals --

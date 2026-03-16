@@ -27,8 +27,6 @@ export const yesNoAndBoolean = {
 	inputSchema: nullishBooleanSchema,
 	outputSchema: nullishYesNoSchema,
 } as const satisfies Codec<
-	NullishYesNo,
-	NullishBoolean,
 	typeof nullishBooleanSchema,
 	typeof nullishYesNoSchema
 >;

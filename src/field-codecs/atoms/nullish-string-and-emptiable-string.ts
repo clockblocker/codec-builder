@@ -21,21 +21,11 @@ export const emptiableStringAndNullishString = {
 	fromOutput: nullishStringFromEmptiableString,
 	inputSchema: nullishStringSchema,
 	outputSchema: emptiableStringSchema,
-} as const satisfies Codec<
-	EmptiableString,
-	NullishString,
-	typeof nullishStringSchema,
-	typeof emptiableStringSchema
->;
+} as const satisfies Codec<typeof nullishStringSchema, typeof emptiableStringSchema>;
 
 export const nullishStringAndEmptiableString = {
 	fromInput: emptiableStringAndNullishString.fromOutput,
 	fromOutput: emptiableStringAndNullishString.fromInput,
 	inputSchema: emptiableStringSchema,
 	outputSchema: nullishStringSchema,
-} as const satisfies Codec<
-	NullishString,
-	EmptiableString,
-	typeof emptiableStringSchema,
-	typeof nullishStringSchema
->;
+} as const satisfies Codec<typeof emptiableStringSchema, typeof nullishStringSchema>;
