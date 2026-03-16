@@ -586,8 +586,6 @@ function convertFromOutput(
 
 const yesNoBool = yesNoAndBoolean;
 const codecArrayOf = arrayOfCodecShapes;
-type ShapeOfStrictFieeldAdapter<TServer extends object> =
-	ShapeOfStrictFieldAdapterCodec<TServer>;
 
 type Properties<T> = {
 	[K in keyof T]-?: z.ZodType<T[K], z.ZodTypeDef, T[K]>;
@@ -727,7 +725,7 @@ const questionnaireServerSchema = z.object({
 	ans_to_q1: z.string(),
 	comment_to_q1_: z.string(),
 	id: z.number(),
-	dateOfConstuction: z.string(),
+	dateOfConstruction: z.string(),
 	answers: z.array(
 		z.object({
 			ans_to_q2: z.string(),
@@ -747,7 +745,7 @@ const questionnaireAnswersItemShapeWithWrongKey = {
 	comment_to_q2_: noOpCodec,
 	// @ts-expect-error typo key should be rejected at declaration site
 	comment_to_q2: noOpCodec,
-} satisfies ShapeOfStrictFieeldAdapter<QuestionnaireServer["answers"][number]>;
+} satisfies ShapeOfStrictFieldAdapter<QuestionnaireServer["answers"][number]>;
 
 void _widenedArrayCheck;
 void _strictArrayMappedCheck;

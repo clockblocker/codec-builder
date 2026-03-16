@@ -1,6 +1,6 @@
 {
   "name": "codec-builder-library",
-  "module": "index.ts",
+  "module": "src/index.ts",
   "type": "module",
   "private": true,
   "devDependencies": {

@@ -51,7 +51,7 @@ export const codecBuilder = {
 	fieldCodec: { ...fieldCodecs, arrayOfCodecShapes },
 	buildStrictFieldAdapterCodec,
 	buildReshapeCodec,
-	nullableUnionAndNullishStringBuilder: buildNullableUnionAndNullishString,
+	buildNullableUnionAndNullishString,
 	withNullishFilteredCodecBuilder,
 	pipeCodecs,
 } as const;
@@ -61,6 +61,14 @@ export {
 	buildStrictFieldAdapterCodec,
 	noOpCodec,
 } from "./codec-builders/build-strict-field-adapter-codec";
+
+export { buildReshapeCodec } from "./codec-builders/build-reshape-codec";
+
+export { pipeCodecs } from "./core/pipe-codecs";
+
+export { buildNullableUnionAndNullishString } from "./field-codecs/molecules/builders/union-and-string-codec-builder";
+
+export { withNullishFilteredCodecBuilder } from "./field-codecs/molecules/builders/with-nullish-filtered-codec-builder";
 
 export type {
 	ShapeOfStrictFieldAdapterCodec,

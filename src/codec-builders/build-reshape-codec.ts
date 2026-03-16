@@ -165,7 +165,7 @@ const questionnaireServerSchema = z.object({
 	ans_to_q1: z.string(),
 	comment_to_q1_: z.string(),
 	id: z.number(),
-	dateOfConstuction: z.string(),
+	dateOfConstruction: z.string(),
 	answers: z.array(
 		z.object({
 			ans_to_q2: z.string(),
@@ -174,7 +174,7 @@ const questionnaireServerSchema = z.object({
 	),
 });
 
-const addQuestionareFieldCodec = buildReshapeCodec(questionnaireServerSchema, {
+const addQuestionnaireFieldCodec = buildReshapeCodec(questionnaireServerSchema, {
 	fieldName: "questionnaire",
 	fieldSchema: z.object({
 		q1: z.object({ answer: z.string(), comment: z.string() }),
@@ -227,27 +227,27 @@ buildReshapeCodec(questionnaireServerSchema, {
 	}),
 });
 
-type AddQuestionareFieldOutput = z.infer<
-	typeof addQuestionareFieldCodec.outputSchema
+type AddQuestionnaireFieldOutput = z.infer<
+	typeof addQuestionnaireFieldCodec.outputSchema
 >;
-const _addQuestionareFieldValue: AddQuestionareFieldOutput["questionnaire"] = {
+const _addQuestionnaireFieldValue: AddQuestionnaireFieldOutput["questionnaire"] = {
 	q1: { answer: "Yes", comment: "ok" },
 	q2: { answer: "No", comment: "ok" },
 };
-type _addQuestionareFieldIdIsNotUnknown = AssertFalse<
-	IsUnknown<AddQuestionareFieldOutput["id"]>
+type _addQuestionnaireFieldIdIsNotUnknown = AssertFalse<
+	IsUnknown<AddQuestionnaireFieldOutput["id"]>
 >;
-type _addQuestionareFieldIdMatches = Assert<
-	AddQuestionareFieldOutput["id"] extends number ? true : false
+type _addQuestionnaireFieldIdMatches = Assert<
+	AddQuestionnaireFieldOutput["id"] extends number ? true : false
 >;
 // @ts-expect-error dropped source key should not be present in output
-const _addQuestionareDroppedAnsToQ1: AddQuestionareFieldOutput["ans_to_q1"] =
+const _addQuestionnaireDroppedAnsToQ1: AddQuestionnaireFieldOutput["ans_to_q1"] =
 	"Yes";
 
 const dropQuestionnaireFieldsFromVariable: Array<
 	keyof z.infer<typeof questionnaireServerSchema>
 > = ["ans_to_q1", "comment_to_q1_", "answers"];
-const addQuestionareFieldCodecFromVariableDropFields = buildReshapeCodec(
+const addQuestionnaireFieldCodecFromVariableDropFields = buildReshapeCodec(
 	questionnaireServerSchema,
 	{
 		fieldName: "questionnaire",
@@ -278,18 +278,18 @@ const addQuestionareFieldCodecFromVariableDropFields = buildReshapeCodec(
 		}),
 	},
 );
-type AddQuestionareFieldOutputFromVariableDropFields = z.infer<
-	typeof addQuestionareFieldCodecFromVariableDropFields.outputSchema
+type AddQuestionnaireFieldOutputFromVariableDropFields = z.infer<
+	typeof addQuestionnaireFieldCodecFromVariableDropFields.outputSchema
 >;
-type _addQuestionareVariableDropFieldsIdIsNotUnknown = AssertFalse<
-	IsUnknown<AddQuestionareFieldOutputFromVariableDropFields["id"]>
+type _addQuestionnaireVariableDropFieldsIdIsNotUnknown = AssertFalse<
+	IsUnknown<AddQuestionnaireFieldOutputFromVariableDropFields["id"]>
 >;
-type _addQuestionareVariableDropFieldsIdMatches = Assert<
-	AddQuestionareFieldOutputFromVariableDropFields["id"] extends
-		| number
-		| undefined
-		? true
-		: false
+type _addQuestionnaireVariableDropFieldsIdMatches = Assert<
+	AddQuestionnaireFieldOutputFromVariableDropFields["id"] extends
+			| number
+			| undefined
+			? true
+			: false
 >;
 
-void _addQuestionareFieldValue;
+void _addQuestionnaireFieldValue;

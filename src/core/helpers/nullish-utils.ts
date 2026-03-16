@@ -7,8 +7,8 @@ export function mapNullishToNullable<TInput, TOutput>(
 	return value == null ? null : map(value);
 }
 
-export function nullishToUndefined<T>(
+export function makeNullableFromNullish<T>(
 	value: Nullish<T>,
-): T | undefined {
-	return value ?? undefined;
+): T | null {
+	return value ?? null;
 }

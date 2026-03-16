@@ -3,8 +3,8 @@ import { z } from "zod";
 import type { Nullish } from "../../../core/helpers/helper-types";
 import type { Codec } from "../../../core/types";
 import {
+	makeNullableFromNullish,
 	mapNullishToNullable,
-	nullishToUndefined,
 } from "../../../core/helpers/nullish-utils";
 
 export function buildNullableUnionAndNullishString<
@@ -22,8 +22,8 @@ export function buildNullableUnionAndNullishString<
 	return {
 		fromInput: (v: Nullish<string>): TValues[number] | null =>
 			nullableUnionFromNullishString(v, allowedValues),
-		fromOutput: (v: TValues[number] | null): TValues[number] | undefined =>
-			nullishStringFromNullableUnion(v),
+		fromOutput: (v: TValues[number] | null): TValues[number] | null =>
+			nullableStringFromNullableUnion(v),
 		inputSchema,
 		outputSchema,
 	} satisfies Codec<typeof inputSchema, typeof outputSchema>;
@@ -45,8 +45,8 @@ function nullableUnionFromNullishString<TUnion extends string>(
 	);
 }
 
-function nullishStringFromNullableUnion<TUnion extends string>(
+function nullableStringFromNullableUnion<TUnion extends string>(
 	v: Nullish<TUnion>,
-): TUnion | undefined {
-	return nullishToUndefined(v);
+): TUnion | null {
+	return makeNullableFromNullish(v);
 }
