@@ -4,10 +4,10 @@ import {
 	buildStrictFieldAdapterCodec,
 	noOpCodec,
 	type ShapeOfStrictFieldAdapterCodec,
-} from "../src/codec-builders/build-strict-field-adapter-codec";
+} from "../src/codec-builders/strict-field-adapter/build-strict-field-adapter-codec";
 import { pipeCodecs } from "../src/core/pipe-codecs";
 import type { Codec } from "../src/core/types";
-import { yesNoAndBoolean } from "../src/field-codecs/molecules/atoms/yes-no-and-boolean";
+import { yesNoAndBoolean } from "../src/codec-builders/strict-field-adapter/field-codecs/molecules/atoms/yes-no-and-boolean";
 
 const yesNoBool = yesNoAndBoolean;
 const codecArrayOf = arrayOfCodecShapes;

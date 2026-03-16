@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { reverseCodecDirections } from "../../../core/helpers/reverse-codec-directions";
-import type { Codec } from "../../../core/types";
+import { reverseCodecDirections } from "../../../../../core/helpers/reverse-codec-directions";
+import type { Codec } from "../../../../../core/types";
 
 const emptiableStringSchema = z.string();
 

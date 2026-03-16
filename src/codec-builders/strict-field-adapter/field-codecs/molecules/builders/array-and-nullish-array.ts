@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import type { Codec } from "../../../core/types";
+import type { Codec } from "../../../../../core/types";
 
 export function buildArrayAndNullishArrayCodec<
 	TInputSchema extends z.ZodTypeAny,
