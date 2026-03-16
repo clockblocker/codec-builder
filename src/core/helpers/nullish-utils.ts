@@ -1,13 +1,6 @@
-import type { Nullish } from "./types";
+import type { Nullish } from "./helper-types";
 
-export function mapNullishToUndefined<TInput, TOutput>(
-	value: Nullish<TInput>,
-	map: (value: TInput) => TOutput,
-): TOutput | undefined {
-	return value == null ? undefined : map(value);
-}
-
-export function mapNullishToNull<TInput, TOutput>(
+export function mapNullishToNullable<TInput, TOutput>(
 	value: Nullish<TInput>,
 	map: (value: TInput) => TOutput,
 ): TOutput | null {

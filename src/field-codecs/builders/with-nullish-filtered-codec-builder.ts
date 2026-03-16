@@ -2,7 +2,7 @@
 import type { z } from "zod";
 
 import type { Codec } from "../../core/types";
-import { mapNullishToUndefined } from "../../core/helpers/nullish-utils";
+import { mapNullishToNullable } from "../../core/helpers/nullish-utils";
 
 export function withNullishFilteredCodecBuilder<
 	TInputSchema extends z.ZodTypeAny,
@@ -12,8 +12,8 @@ export function withNullishFilteredCodecBuilder<
 	const outputSchema = codec.outputSchema.nullish();
 
 	return {
-		fromInput: input => mapNullishToUndefined(input, codec.fromInput),
-		fromOutput: output => mapNullishToUndefined(output, codec.fromOutput),
+		fromInput: input => mapNullishToNullable(input, codec.fromInput),
+		fromOutput: output => mapNullishToNullable(output, codec.fromOutput),
 		inputSchema,
 		outputSchema,
 	} as const satisfies Codec<typeof inputSchema, typeof outputSchema>;

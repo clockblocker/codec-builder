@@ -1,9 +1,9 @@
 import { z } from "zod";
 
-import type { Nullish } from "../../core/helpers/types";
+import type { Nullish } from "../../core/helpers/helper-types";
 import type { Codec } from "../../core/types";
 import {
-	mapNullishToNull,
+	mapNullishToNullable,
 	nullishToUndefined,
 } from "../../core/helpers/nullish-utils";
 
@@ -40,7 +40,7 @@ function nullableUnionFromNullishString<TUnion extends string>(
 	v: Nullish<string>,
 	allowedValues: readonly TUnion[],
 ): TUnion | null {
-	return mapNullishToNull(v, value =>
+	return mapNullishToNullable(v, value =>
 		allowedValues.includes(value as TUnion) ? (value as TUnion) : null,
 	);
 }

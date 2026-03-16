@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import type { Nullish } from "../../core/helpers/types";
+import type { Nullish } from "../../core/helpers/helper-types";
 import type { Codec } from "../../core/types";
 
 const nonEmptyStringSchema = z.string().min(1);
