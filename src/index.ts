@@ -1,3 +1,12 @@
+import { buildReshapeCodec } from "./codec-builders/build-reshape-codec";
+import {
+	arrayOfCodecShapes,
+	buildStrictFieldAdapterCodec,
+	noOpCodec,
+} from "./codec-builders/build-strict-field-adapter-codec";
+import { pipeCodecs } from "./core/pipe-codecs";
+import type { AnyCodec, NoOpCodec } from "./core/types";
+import { arrayOfNonEmptyStringsAndNullishArrayOfNullishStrings } from "./field-codecs/molecules/array-of-non-empty-strings-and-nullish-array-of-nullish-strings";
 import {
 	dateAndIsoStringDate,
 	isoStringDateAndDate,
@@ -5,13 +14,13 @@ import {
 	nullishIsoStringDateAndNullableDate,
 } from "./field-codecs/molecules/atoms/date-and-iso-string-date";
 import {
-	nullishStringAndEmptiableString,
 	emptiableStringAndNullishString,
+	nullishStringAndEmptiableString,
 } from "./field-codecs/molecules/atoms/nullish-string-and-emptiable-string";
 import {
 	nullableNumericStringAndNullishNumber,
-	numericNullishStringAndNullishNumber,
 	nullishNumberAndNullableNumericString,
+	numericNullishStringAndNullishNumber,
 } from "./field-codecs/molecules/atoms/numeric-string-and-nullish-number";
 import {
 	booleanAndYesNo,
@@ -19,22 +28,10 @@ import {
 	nullishBooleanAndNullableYesNo,
 	yesNoAndBoolean,
 } from "./field-codecs/molecules/atoms/yes-no-and-boolean";
-import {
-	arrayOfNonEmptyStringsAndNullishArrayOfNullishStrings,
-} from "./field-codecs/molecules/array-of-non-empty-strings-and-nullish-array-of-nullish-strings";
 import { buildArrayAndNullishArrayCodec } from "./field-codecs/molecules/builders/array-and-nullish-array";
 import { buildFilteredNullishArrayCodec } from "./field-codecs/molecules/builders/filtered-nullish-array";
 import { buildNullableUnionAndNullishString } from "./field-codecs/molecules/builders/union-and-string";
 import { withNullishFilteredCodecBuilder } from "./field-codecs/molecules/builders/with-nullish-filtered";
-import { intStringAndNullishInt } from "./field-codecs/molecules/intString-and-int";
-import {
-	arrayOfCodecShapes,
-	buildStrictFieldAdapterCodec,
-	noOpCodec,
-} from "./codec-builders/build-strict-field-adapter-codec";
-import { buildReshapeCodec } from "./codec-builders/build-reshape-codec";
-import { pipeCodecs } from "./core/pipe-codecs";
-import type { AnyCodec, NoOpCodec } from "./core/types";
 
 const fieldCodecs = {
 	arrayOfNonEmptyStringsAndNullishArrayOfNullishStrings,
@@ -58,8 +55,6 @@ const fieldCodecs = {
 
 	nullishBooleanAndNullableYesNo,
 	booleanAndYesNo,
-
-	intStringAndInt: intStringAndNullishInt,
 
 	// Returns the same type as the original field.
 	noOp: noOpCodec,

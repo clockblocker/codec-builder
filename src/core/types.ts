@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any -- Library generic shape */
+/** biome-ignore-all lint/suspicious/noExplicitAny: Library generic shape */
 import type { z } from "zod";
-import type { Prettify } from './helpers/helper-types'
+import type { Prettify } from "./helpers/helper-types";
 
 // Prefer naming codecs like: OutputAndInput for readability.
 export type CodecPair<I, O> = {

@@ -1,4 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any -- zod schema generics are intentionally unconstrained */
+/** biome-ignore-all lint/suspicious/noExplicitAny: Library generic shape */
+
 import type { z } from "zod";
 
 import type { Codec, CodecPair } from "./types";
