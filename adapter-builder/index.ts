@@ -9,50 +9,35 @@ import { stringNumber } from "./atomic/string-and-number";
 import { yesNoBool } from "./atomic/yesNo-and-bool";
 import {
 	arrayOf,
+	arrayOfCodecShapes,
 	buildAddaptersAndOutputSchema,
 	buildAddFieldAdapterAndOutputSchema,
-	buildEvenLooserAddaptersAndOutputSchema,
 	buildLooseAddaptersAndOutputSchema,
 	codecArrayOf,
-	type Codec,
-	fromPath,
-	fromPaths,
 	noOpCodec,
 	type ShapeOfStrictFieeldAdapter,
 	type ShapeOfStrictFieldAdapter,
-	type ReshapeShapeFor,
-	removeField,
-	reshapeFor,
-	type SchemaPathTuple,
 } from "./build-codec";
-import {
-	type CodecPair,
-	codec,
-	pipeCodecs,
-	withOutputSchema,
-} from "./codec-pair";
+import { type CodecPair, codec, pipeCodecs, withOutputSchema } from "./codec-pair";
 
-export type { Codec };
+export type { Codec } from "../types";
 export type { CodecPair };
-export type { ReshapeShapeFor, SchemaPathTuple };
 export type { ShapeOfStrictFieldAdapter, ShapeOfStrictFieeldAdapter };
 export {
 	arrayOf,
+	arrayOfCodecShapes,
 	codecArrayOf,
-	fromPath,
-	fromPaths,
-	removeField,
-	reshapeFor,
-	buildEvenLooserAddaptersAndOutputSchema,
 	buildLooseAddaptersAndOutputSchema,
 	buildAddaptersAndOutputSchema,
 	buildAddFieldAdapterAndOutputSchema,
 };
 
 export { codec, pipeCodecs, withOutputSchema };
+export * from "../index";
 
 export const atomicCodecs = {
 	arrayOf,
+	arrayOfCodecShapes,
 	codecArrayOf,
 	noOpCodec,
 	dateIso,

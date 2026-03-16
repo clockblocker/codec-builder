@@ -1,23 +1,15 @@
-export { buildAddFieldAdapterAndOutputSchema } from "./add-field-adapter-builder";
-export {
-	buildEvenLooserAddaptersAndOutputSchema,
-	fromPath,
-	fromPaths,
-	type ReshapeShapeFor,
-	removeField,
-	reshapeFor,
-	type SchemaPathTuple,
-} from "./even-looser-adapter-builder";
+export { buildReshapeCodec as buildAddFieldAdapterAndOutputSchema } from "../build-reshape-codec";
 export { buildLooseAddaptersAndOutputSchema } from "./loose-adapter-builder";
 export {
 	type ArrayCodecShape,
 	arrayOf,
-	buildAddaptersAndOutputSchema,
+	arrayOfCodecShapes,
+	buildStrictFieldAdapterCodec as buildAddaptersAndOutputSchema,
 	codecArrayOf,
-	type Codec,
 	noOpCodec,
-	type ShapeOfStrictFieeldAdapter,
-	type ShapeOfStrictFieldAdapter,
 	type RuntimeArrayItemShape,
 	type RuntimeCodecShape,
-} from "./strict-adapter-builder";
+	type ShapeOfStrictFieeldAdapter,
+	type ShapeOfStrictFieldAdapter,
+} from "../build-strict-field-adapter-codec";
+export type { Codec } from "../types";

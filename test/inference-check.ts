@@ -1,21 +1,16 @@
 import { z } from "zod";
-import { yesNoBool } from "./atomic/yesNo-and-bool";
+import { yesNoAndBoolean as yesNoBool } from "../field-codecs/common/atoms/yes-no-and-boolean";
 import {
 	buildAddaptersAndOutputSchema,
 	buildAddFieldAdapterAndOutputSchema,
-	buildEvenLooserAddaptersAndOutputSchema,
 	buildLooseAddaptersAndOutputSchema,
 	type Codec,
 	codecArrayOf,
-	fromPath,
-	fromPaths,
 	noOpCodec,
-	removeField,
-	reshapeFor,
 	type ShapeOfStrictFieeldAdapter,
 	type ShapeOfStrictFieldAdapter,
-} from "./build-codec";
-import { pipeCodecs } from "./codec-pair";
+} from "../adapter-builder/build-codec";
+import { pipeCodecs } from "../pipe-codecs";
 
 type Properties<T> = {
 	[K in keyof T]-?: z.ZodType<T[K], z.ZodTypeDef, T[K]>;
@@ -211,99 +206,6 @@ const questionnaireAnswersItemShapeWithWrongKey = {
 	comment_to_q2: noOpCodec,
 } satisfies ShapeOfStrictFieeldAdapter<QuestionnaireServer["answers"][number]>;
 
-const qCodec = {
-	fromInput: (pair: readonly [string, string]) => ({
-		answer: pair[0],
-		comment: pair[1],
-	}),
-	fromOutput: (q: QuestionnaireOutputQ): readonly [string, string] => [
-		q.answer,
-		q.comment,
-	],
-	outputSchema: z.object({
-		answer: z.string(),
-		comment: z.string(),
-	}),
-} satisfies Codec<
-	QuestionnaireOutputQ,
-	readonly [string, string],
-	z.ZodObject<{
-		answer: z.ZodString;
-		comment: z.ZodString;
-	}>
->;
-
-const evenLooserQuestionnaire = buildEvenLooserAddaptersAndOutputSchema(
-	questionnaireServerSchema,
-	{
-		ans_to_q1: removeField,
-		comment_to_q1_: removeField,
-		answers: removeField,
-		questionnaire: {
-			q1: fromPaths(["ans_to_q1", "comment_to_q1_"], qCodec),
-			q2: fromPaths(
-				["answers[0].ans_to_q2", "answers[0].comment_to_q2_"],
-				qCodec,
-			),
-		},
-		firstQAnswer: fromPath("ans_to_q1"),
-	},
-);
-
-type EvenLooserQuestionnaireOutput = z.infer<
-	typeof evenLooserQuestionnaire.outputSchema
->;
-const _evenLooserQuestionareQ1: EvenLooserQuestionnaireOutput["questionnaire"]["q1"] =
-	{
-		answer: "Yes",
-		comment: "Because",
-	};
-const _evenLooserQuestionareQ2: EvenLooserQuestionnaireOutput["questionnaire"]["q2"] =
-	{
-		answer: "No",
-		comment: "N/A",
-	};
-const _evenLooserQuestionareFirstQAnswer: EvenLooserQuestionnaireOutput["firstQAnswer"] =
-	"Yes";
-const _evenLooserQuestionareId: EvenLooserQuestionnaireOutput["id"] = 1;
-const _evenLooserQuestionareDate: EvenLooserQuestionnaireOutput["dateOfConstuction"] =
-	"2020-01-01";
-// @ts-expect-error removed source key should not be present in form output
-const _evenLooserQuestionareRemovedField: EvenLooserQuestionnaireOutput["ans_to_q1"] =
-	"Yes";
-
-const evenLooserSchemaBoundHelpers = reshapeFor(questionnaireServerSchema);
-const evenLooserQuestionnaireWithTuplePaths =
-	buildEvenLooserAddaptersAndOutputSchema(questionnaireServerSchema, {
-		ans_to_q1: evenLooserSchemaBoundHelpers.removeField,
-		comment_to_q1_: evenLooserSchemaBoundHelpers.removeField,
-		answers: evenLooserSchemaBoundHelpers.removeField,
-		questionnaire: {
-			q1: evenLooserSchemaBoundHelpers.fromPaths(
-				[["ans_to_q1"], ["comment_to_q1_"]],
-				qCodec,
-			),
-			q2: evenLooserSchemaBoundHelpers.fromPaths(
-				[
-					["answers", "0", "ans_to_q2"],
-					["answers", "0", "comment_to_q2_"],
-				],
-				qCodec,
-			),
-		},
-		firstQAnswer: evenLooserSchemaBoundHelpers.fromPath(["ans_to_q1"]),
-	});
-
-evenLooserSchemaBoundHelpers.fromPath(["answers", "0", "ans_to_q2"]);
-// @ts-expect-error second token under answers must be an array index
-evenLooserSchemaBoundHelpers.fromPath(["answers", "city"]);
-
-type EvenLooserQuestionnaireWithTuplePathsOutput = z.infer<
-	typeof evenLooserQuestionnaireWithTuplePaths.outputSchema
->;
-const _evenLooserTuplePathFirstQAnswer: EvenLooserQuestionnaireWithTuplePathsOutput["firstQAnswer"] =
-	"Yes";
-
 const addQuestionareFieldCodec = buildAddFieldAdapterAndOutputSchema(
 	questionnaireServerSchema,
 	{
@@ -429,12 +331,6 @@ void _pipedDateToIsoOutput;
 void _looseNestedPacked;
 void _looseNestedDefaultB;
 void _looseNestedDefaultC;
-void _evenLooserQuestionareQ1;
-void _evenLooserQuestionareQ2;
-void _evenLooserQuestionareFirstQAnswer;
-void _evenLooserQuestionareId;
-void _evenLooserQuestionareDate;
-void _evenLooserTuplePathFirstQAnswer;
 void _addQuestionareFieldValue;
 void questionnaireAnswersItemShape;
 void questionnaireAnswersItemShapeWithWrongKey;
