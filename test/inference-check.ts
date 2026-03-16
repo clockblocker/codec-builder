@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { yesNoAndBoolean as yesNoBool } from "../field-codecs/common/atoms/yes-no-and-boolean";
+import { yesNoAndBoolean as yesNoBool } from "../src/field-codecs/atoms/yes-no-and-boolean";
 import {
 	buildReshapeCodec,
 	buildStrictFieldAdapterCodec,
@@ -8,8 +8,8 @@ import {
 	noOpCodec,
 	type ShapeOfStrictFieeldAdapter,
 	type ShapeOfStrictFieldAdapter,
-} from "../index";
-import { pipeCodecs } from "../pipe-codecs";
+} from "../src/index";
+import { pipeCodecs } from "../src/core/pipe-codecs";
 
 type Properties<T> = {
 	[K in keyof T]-?: z.ZodType<T[K], z.ZodTypeDef, T[K]>;

@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any -- Library typecasts */
 import { z } from "zod";
 
-import type { Codec, NoOpCodec, SchemaShapeOf as SharedSchemaShapeOf } from "./types";
+import type { Codec, NoOpCodec, SchemaShapeOf as SharedSchemaShapeOf } from "../core/types";
 
 export const noOpCodec = { __noOpCodec: true } as const satisfies NoOpCodec;
 
-export type RuntimeCodecShape = Record<string, unknown>;
-export type KnownKeys<T> = {
+type RuntimeCodecShape = Record<string, unknown>;
+type KnownKeys<T> = {
 	[K in keyof T]: string extends K
 		? never
 		: number extends K
@@ -16,14 +16,14 @@ export type KnownKeys<T> = {
 				: K;
 }[keyof T];
 
-export interface ArrayCodecShape<
+interface ArrayCodecShape<
 	TItemShape extends RuntimeArrayItemShape = RuntimeCodecShape,
 > {
 	readonly __arrayCodecShape: true;
 	readonly itemShape: TItemShape;
 }
 
-export type RuntimeArrayItemShape =
+type RuntimeArrayItemShape =
 	| RuntimeCodecShape
 	| Codec<any, any, any>
 	| NoOpCodec;
@@ -74,9 +74,6 @@ export type ShapeOfStrictFieldAdapter<TServer extends object> = {
 export type ShapeOfStrictFieeldAdapter<TServer extends object> =
 	ShapeOfStrictFieldAdapter<TServer>;
 
-export type ShapeOfStrictFieldAdapterCodec<TServer extends object> =
-	ShapeOfStrictFieldAdapter<TServer>;
-
 export function arrayOfCodecShapes<const TItemShape extends RuntimeArrayItemShape>(
 	itemShape: TItemShape,
 ): ArrayCodecShape<TItemShape> {
@@ -111,22 +108,22 @@ type ShapeOfObjectSchema<TSchema extends z.AnyZodObject> =
 		? TShape
 		: never;
 
-export type NestedSchemaShape<TSchema extends z.ZodTypeAny> =
+type NestedSchemaShape<TSchema extends z.ZodTypeAny> =
 	ObjectSchemaOf<TSchema> extends z.AnyZodObject
 		? ShapeOfObjectSchema<ObjectSchemaOf<TSchema>>
 		: never;
 
-export type ArrayItemSchemaOf<TSchema extends z.ZodTypeAny> =
+type ArrayItemSchemaOf<TSchema extends z.ZodTypeAny> =
 	UnwrapOptionalNullableSchema<TSchema> extends z.ZodArray<infer TItem, any>
 		? TItem
 		: never;
 
-export type ArrayItemSchemaShape<TSchema extends z.ZodTypeAny> =
+type ArrayItemSchemaShape<TSchema extends z.ZodTypeAny> =
 	ArrayItemSchemaOf<TSchema> extends z.ZodTypeAny
 		? NestedSchemaShape<ArrayItemSchemaOf<TSchema>>
 		: never;
 
-export type IsWideZodType<TSchema extends z.ZodTypeAny> =
+type IsWideZodType<TSchema extends z.ZodTypeAny> =
 	z.ZodTypeAny extends TSchema ? true : false;
 
 type FieldOutput<TSchema extends z.ZodTypeAny> = NonNullable<
@@ -137,10 +134,10 @@ type ArrayItemOutput<TSchema extends z.ZodTypeAny> = ArrayItemOfValue<
 	FieldOutput<TSchema>
 >;
 
-export type ArrayItemObjectOutput<TSchema extends z.ZodTypeAny> =
+type ArrayItemObjectOutput<TSchema extends z.ZodTypeAny> =
 	ArrayItemOutput<TSchema> extends object ? ArrayItemOutput<TSchema> : never;
 
-export type ObjectOutput<TSchema extends z.ZodTypeAny> =
+type ObjectOutput<TSchema extends z.ZodTypeAny> =
 	FieldOutput<TSchema> extends readonly unknown[]
 		? never
 		: FieldOutput<TSchema> extends object
@@ -204,7 +201,7 @@ type CodecShapeNodeForField<TField extends z.ZodTypeAny> =
 				: InputCompatibleCodecForField<TField> | NoOpCodec
 			: CodecShapeForSchemaShape<NestedSchemaShape<TField>>;
 
-export type OutputZodArrayItemFromCodecNode<TItemShape> =
+type OutputZodArrayItemFromCodecNode<TItemShape> =
 	TItemShape extends Codec<any, any, infer TSchema>
 		? TSchema
 		: TItemShape extends NoOpCodec
@@ -258,7 +255,7 @@ type CodecShapeForSchemaShape<TShape extends z.ZodRawShape> = {
 		: never;
 };
 
-export type OutputZodShapeFromCodecShape<S extends RuntimeCodecShape> = {
+type OutputZodShapeFromCodecShape<S extends RuntimeCodecShape> = {
 	[K in KnownKeys<S>]: S[K] extends Codec<any, any, infer TSchema>
 		? TSchema
 		: S[K] extends NoOpCodec
@@ -270,7 +267,7 @@ export type OutputZodShapeFromCodecShape<S extends RuntimeCodecShape> = {
 					: never;
 };
 
-export type OutputZodShapeFromOutputObject<
+type OutputZodShapeFromOutputObject<
 	TObj extends object,
 	S extends RuntimeCodecShape,
 > = {
@@ -338,7 +335,7 @@ type OutputZodShapeForSchemaShape<
 		: never;
 };
 
-export function isCodec(v: unknown): v is Codec<any, any, any> {
+function isCodec(v: unknown): v is Codec<any, any, any> {
 	return (
 		typeof v === "object" &&
 		v !== null &&
@@ -348,7 +345,7 @@ export function isCodec(v: unknown): v is Codec<any, any, any> {
 	);
 }
 
-export function isNoOpCodec(v: unknown): v is NoOpCodec {
+function isNoOpCodec(v: unknown): v is NoOpCodec {
 	return (
 		typeof v === "object" &&
 		v !== null &&
@@ -357,7 +354,7 @@ export function isNoOpCodec(v: unknown): v is NoOpCodec {
 	);
 }
 
-export function isArrayCodecShape(v: unknown): v is ArrayCodecShape {
+function isArrayCodecShape(v: unknown): v is ArrayCodecShape {
 	return (
 		typeof v === "object" &&
 		v !== null &&
@@ -367,7 +364,7 @@ export function isArrayCodecShape(v: unknown): v is ArrayCodecShape {
 	);
 }
 
-export function unwrapOptionalNullableSchema(
+function unwrapOptionalNullableSchema(
 	schema: z.ZodTypeAny,
 ): z.ZodTypeAny {
 	let current: z.ZodTypeAny = schema;
@@ -397,7 +394,7 @@ function getArrayItemSchema(schema: z.ZodTypeAny): z.ZodTypeAny {
 	return current.element;
 }
 
-export function tryGetNestedObjectSchema(
+function tryGetNestedObjectSchema(
 	schema: z.ZodTypeAny | undefined,
 ): z.AnyZodObject | null {
 	if (!schema) {
@@ -411,7 +408,7 @@ export function tryGetNestedObjectSchema(
 	}
 }
 
-export function tryGetArrayItemSchema(
+function tryGetArrayItemSchema(
 	schema: z.ZodTypeAny | undefined,
 ): z.ZodTypeAny | null {
 	if (!schema) {
@@ -425,7 +422,7 @@ export function tryGetArrayItemSchema(
 	}
 }
 
-export function asRecord(v: unknown): Record<string, unknown> {
+function asRecord(v: unknown): Record<string, unknown> {
 	return typeof v === "object" && v !== null
 		? (v as Record<string, unknown>)
 		: {};

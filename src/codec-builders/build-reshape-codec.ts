@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { SchemaShapeOf } from "./types";
+import type { SchemaShapeOf } from "../core/types";
 
 type IsTuple<T extends readonly unknown[]> = number extends T["length"]
 	? false
