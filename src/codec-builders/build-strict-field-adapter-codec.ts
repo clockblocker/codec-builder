@@ -1,4 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any -- Library typecasts */
+/** biome-ignore-all lint/suspicious/noExplicitAny: Library generic shape */
+
 import { z } from "zod";
 import { pipeCodecs } from "../core/pipe-codecs";
 import type {
@@ -6,7 +8,7 @@ import type {
 	NoOpCodec,
 	SchemaShapeOf as SharedSchemaShapeOf,
 } from "../core/types";
-import { yesNoAndBoolean } from "../field-codecs/molecules/atoms/yes-no-and-boolean";
+import { nullableYesNoAndNullishBoolean } from "../field-codecs/molecules/atoms/yes-no-and-boolean";
 
 // -- Exports --
 
@@ -585,7 +587,7 @@ function convertFromOutput(
 
 // --- Inference check ---
 
-const yesNoBool = yesNoAndBoolean;
+const yesNoBool = nullableYesNoAndNullishBoolean;
 const codecArrayOf = arrayOfCodecShapes;
 
 type Properties<T> = {

@@ -1,17 +1,22 @@
 import {
 	dateAndIsoStringDate,
 	isoStringDateAndDate,
+	nullableDateAndNullishIsoStringDate,
+	nullishIsoStringDateAndNullableDate,
 } from "./field-codecs/molecules/atoms/date-and-iso-string-date";
 import {
 	nullishStringAndEmptiableString,
 	emptiableStringAndNullishString,
 } from "./field-codecs/molecules/atoms/nullish-string-and-emptiable-string";
 import {
+	nullableNumericStringAndNullishNumber,
 	numericNullishStringAndNullishNumber,
-	nullishNumberAndNumericString,
+	nullishNumberAndNullableNumericString,
 } from "./field-codecs/molecules/atoms/numeric-string-and-nullish-number";
 import {
 	booleanAndYesNo,
+	nullableYesNoAndNullishBoolean,
+	nullishBooleanAndNullableYesNo,
 	yesNoAndBoolean,
 } from "./field-codecs/molecules/atoms/yes-no-and-boolean";
 import {
@@ -34,17 +39,25 @@ import type { AnyCodec, NoOpCodec } from "./core/types";
 const fieldCodecs = {
 	arrayOfNonEmptyStringsAndNullishArrayOfNullishStrings,
 
+	nullableDateAndNullishIsoStringDate,
 	dateAndIsoStringDate,
+
+	nullishIsoStringDateAndNullableDate,
 	isoStringDateAndDate,
 
 	nullishStringAndEmptiableString,
 	emptiableStringAndNullishString,
 
+	nullableNumericStringAndNullishNumber,
 	numericNullishStringAndNullishNumber,
-	nullishNumberAndNumericString,
+	nullishNumberAndNullableNumericString,
+	nullishNumberAndNumericString: nullishNumberAndNullableNumericString,
 
-	booleanAndYesNo,
+	nullableYesNoAndNullishBoolean,
 	yesNoAndBoolean,
+
+	nullishBooleanAndNullableYesNo,
+	booleanAndYesNo,
 
 	intStringAndInt: intStringAndNullishInt,
 

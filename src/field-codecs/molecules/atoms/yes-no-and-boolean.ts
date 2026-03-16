@@ -1,19 +1,26 @@
 import { z } from "zod";
-
-import type { Codec } from "../../../core/types";
 import { mapNullishToNullable } from "../../../core/helpers/nullish-utils";
 import { reverseCodecDirections } from "../../../core/helpers/reverse-codec-directions";
+import type { Codec } from "../../../core/types";
 
 const yesNoSchema = z.enum(["Yes", "No"]);
-const nullishYesNoSchema = yesNoSchema.nullish();
+const nullableYesNoSchema = yesNoSchema.nullable();
 
 const nullishBooleanSchema = z.boolean().nullish();
 
-export const yesNoAndBoolean = {
-	fromInput: v => mapNullishToNullable(v, value => value ? "Yes" : "No"),
-	fromOutput: v => mapNullishToNullable(v, value => value === "Yes"),
+export const nullableYesNoAndNullishBoolean = {
+	fromInput: (v) => mapNullishToNullable(v, (value) => (value ? "Yes" : "No")),
+	fromOutput: (v) => mapNullishToNullable(v, (value) => value === "Yes"),
 	inputSchema: nullishBooleanSchema,
-	outputSchema: nullishYesNoSchema,
-} as const satisfies Codec<typeof nullishBooleanSchema, typeof nullishYesNoSchema>;
+	outputSchema: nullableYesNoSchema,
+} as const satisfies Codec<
+	typeof nullishBooleanSchema,
+	typeof nullableYesNoSchema
+>;
 
-export const booleanAndYesNo = reverseCodecDirections(yesNoAndBoolean);
+export const nullishBooleanAndNullableYesNo = reverseCodecDirections(
+	nullableYesNoAndNullishBoolean,
+);
+
+export const yesNoAndBoolean = nullableYesNoAndNullishBoolean;
+export const booleanAndYesNo = nullishBooleanAndNullableYesNo;
