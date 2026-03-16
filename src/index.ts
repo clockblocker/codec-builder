@@ -10,58 +10,39 @@ import { arrayOfNonEmptyStringsAndNullishArrayOfNullishStrings } from "./field-c
 import {
 	dateAndIsoStringDate,
 	isoStringDateAndDate,
-	nullableDateAndNullishIsoStringDate,
-	nullishIsoStringDateAndNullableDate,
 } from "./field-codecs/molecules/atoms/date-and-iso-string-date";
-import { floatAndInt, intAndFloat } from "./field-codecs/molecules/atoms/int-and-float";
 import {
 	emptiableStringAndNullishString,
 	nullishStringAndEmptiableString,
 } from "./field-codecs/molecules/atoms/nullish-string-and-emptiable-string";
 import {
-	nullableNumericStringAndNullishNumber,
-	nullishNumberAndNullableNumericString,
-	numericNullishStringAndNullishNumber,
-} from "./field-codecs/molecules/atoms/numeric-string-and-nullish-number";
-import {
 	booleanAndYesNo,
-	nullableYesNoAndNullishBoolean,
-	nullishBooleanAndNullableYesNo,
 	yesNoAndBoolean,
 } from "./field-codecs/molecules/atoms/yes-no-and-boolean";
-import {
-	intAndNumericString,
-	numericStringAndInt,
-} from "./field-codecs/molecules/numeric-string-and-int";
 import { buildArrayAndNullishArrayCodec } from "./field-codecs/molecules/builders/array-and-nullish-array";
 import { buildFilteredNullishArrayCodec } from "./field-codecs/molecules/builders/filtered-nullish-array";
 import { buildNullableUnionAndNullishString } from "./field-codecs/molecules/builders/union-and-string";
 import { withNullishFilteredCodecBuilder } from "./field-codecs/molecules/builders/with-nullish-filtered";
+import {
+	intAndNumericString,
+	numericStringAndInt,
+} from "./field-codecs/molecules/numeric-string-and-int";
 
 const fieldCodecs = {
 	arrayOfNonEmptyStringsAndNullishArrayOfNullishStrings,
 
-	nullableDateAndNullishIsoStringDate,
 	dateAndIsoStringDate,
-
-	nullishIsoStringDateAndNullableDate,
 	isoStringDateAndDate,
 
 	nullishStringAndEmptiableString,
 	emptiableStringAndNullishString,
 
-	intAndFloat,
-	floatAndInt,
-
 	nullableNumericStringAndNullishNumber,
 	numericNullishStringAndNullishNumber,
+
 	nullishNumberAndNullableNumericString,
-	nullishNumberAndNumericString: nullishNumberAndNullableNumericString,
 
-	nullableYesNoAndNullishBoolean,
 	yesNoAndBoolean,
-
-	nullishBooleanAndNullableYesNo,
 	booleanAndYesNo,
 
 	numericStringAndInt,

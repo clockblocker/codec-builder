@@ -8,7 +8,7 @@ const isoStringDateSchema = z.string().date();
 const nullishIsoStringDateSchema = isoStringDateSchema.nullish();
 const nullableDateSchema = z.date().nullable();
 
-export const nullableDateAndNullishIsoStringDate = {
+const nullableDateAndNullishIsoStringDate = {
 	fromInput: (v) => mapNullishToNullable(v, (value) => new Date(value)),
 	fromOutput: (v) =>
 		mapNullishToNullable(v, (value) => value.toISOString().slice(0, 10)),
@@ -19,10 +19,9 @@ export const nullableDateAndNullishIsoStringDate = {
 	typeof nullableDateSchema
 >;
 
-export const nullishIsoStringDateAndNullableDate = reverseCodecDirections(
+const nullishIsoStringDateAndNullableDate = reverseCodecDirections(
 	nullableDateAndNullishIsoStringDate,
 );
 
 export const dateAndIsoStringDate = nullableDateAndNullishIsoStringDate;
-
 export const isoStringDateAndDate = nullishIsoStringDateAndNullableDate;
