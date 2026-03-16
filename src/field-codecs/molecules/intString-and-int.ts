@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 import type { Codec } from "../../core/types";
-import { mapNullishToUndefined } from "../helpers/nullish-utils";
+import { mapNullishToUndefined } from "../../core/helpers/nullish-utils";
 
 const intStringSchema = z.string().regex(/^-?\d+$/);
 const nullishIntStringSchema = intStringSchema.nullish();

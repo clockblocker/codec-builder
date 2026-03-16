@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import type { Nullish } from "../../core/helpers/types";
 import type { Codec } from "../../core/types";
 
 const nonEmptyStringSchema = z.string().min(1);
@@ -10,13 +11,13 @@ type ArrayOfStrings = string[];
 type ArrayOfNonEmptyStrings = z.infer<typeof arrayOfNonEmptyStringsSchema>;
 
 function arrayOfNonEmptyStringsFromArrayOfStrings(
-	v: ArrayOfStrings | null | undefined,
+	v: Nullish<ArrayOfStrings>,
 ): ArrayOfNonEmptyStrings {
 	return (v ?? []).filter((item) => item.length > 0);
 }
 
 function arrayOfStringsFromArrayOfNonEmptyStrings(
-	v: ArrayOfNonEmptyStrings | null | undefined,
+	v: Nullish<ArrayOfNonEmptyStrings>,
 ): ArrayOfStrings {
 	return [...(v ?? [])];
 }

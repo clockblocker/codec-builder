@@ -2,7 +2,7 @@
 import type { z } from "zod";
 
 import type { Codec } from "../../core/types";
-import { mapNullishToUndefined } from "../helpers/nullish-utils";
+import { mapNullishToUndefined } from "../../core/helpers/nullish-utils";
 
 export function withNullishFilteredCodecBuilder<
 	TInputSchema extends z.ZodTypeAny,

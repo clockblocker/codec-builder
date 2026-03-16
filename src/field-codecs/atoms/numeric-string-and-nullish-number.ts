@@ -1,8 +1,8 @@
 import { z } from "zod";
 
 import type { Codec } from "../../core/types";
-import { mapNullishToUndefined } from "../helpers/nullish-utils";
-import { reverseCodecDirections } from "../helpers/reverse-codec-directions";
+import { mapNullishToUndefined } from "../../core/helpers/nullish-utils";
+import { reverseCodecDirections } from "../../core/helpers/reverse-codec-directions";
 
 const numericStringSchema = z
 	.string()

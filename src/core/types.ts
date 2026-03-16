@@ -1,9 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any -- Library generic shape */
 import type { z } from "zod";
-
-type Prettify<T> = {
-	[K in keyof T]: T[K];
-} & {};
+import type { Prettify } from './helpers/types'
 
 // Prefer naming codecs like: OutputAndInput for readability.
 export type CodecPair<I, O> = {

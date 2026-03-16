@@ -1,19 +1,21 @@
+import type { Nullish } from "./types";
+
 export function mapNullishToUndefined<TInput, TOutput>(
-	value: TInput | null | undefined,
+	value: Nullish<TInput>,
 	map: (value: TInput) => TOutput,
 ): TOutput | undefined {
 	return value == null ? undefined : map(value);
 }
 
 export function mapNullishToNull<TInput, TOutput>(
-	value: TInput | null | undefined,
+	value: Nullish<TInput>,
 	map: (value: TInput) => TOutput,
 ): TOutput | null {
 	return value == null ? null : map(value);
 }
 
 export function nullishToUndefined<T>(
-	value: T | null | undefined,
+	value: Nullish<T>,
 ): T | undefined {
 	return value ?? undefined;
 }

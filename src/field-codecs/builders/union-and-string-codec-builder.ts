@@ -1,10 +1,11 @@
 import { z } from "zod";
 
+import type { Nullish } from "../../core/helpers/types";
 import type { Codec } from "../../core/types";
 import {
 	mapNullishToNull,
 	nullishToUndefined,
-} from "../helpers/nullish-utils";
+} from "../../core/helpers/nullish-utils";
 
 export function buildNullableUnionAndNullishString<
 	const TValues extends NonEmptyStringTuple,
@@ -19,7 +20,7 @@ export function buildNullableUnionAndNullishString<
 	const allowedValues = enumSchema.options as readonly TValues[number][];
 
 	return {
-		fromInput: (v: string | null | undefined): TValues[number] | null =>
+		fromInput: (v: Nullish<string>): TValues[number] | null =>
 			nullableUnionFromNullishString(v, allowedValues),
 		fromOutput: (v: TValues[number] | null): TValues[number] | undefined =>
 			nullishStringFromNullableUnion(v),
@@ -36,7 +37,7 @@ type MutableNonEmptyStringTuple<T extends NonEmptyStringTuple> =
 	MutableTuple<T> extends [string, ...string[]] ? MutableTuple<T> : never;
 
 function nullableUnionFromNullishString<TUnion extends string>(
-	v: string | null | undefined,
+	v: Nullish<string>,
 	allowedValues: readonly TUnion[],
 ): TUnion | null {
 	return mapNullishToNull(v, value =>
@@ -45,7 +46,7 @@ function nullableUnionFromNullishString<TUnion extends string>(
 }
 
 function nullishStringFromNullableUnion<TUnion extends string>(
-	v: TUnion | null | undefined,
+	v: Nullish<TUnion>,
 ): TUnion | undefined {
 	return nullishToUndefined(v);
 }
