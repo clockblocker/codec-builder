@@ -1,68 +1,6 @@
 import { z } from "zod";
 import type { SchemaShapeOf } from "../core/types";
 
-type IsTuple<T extends readonly unknown[]> = number extends T["length"]
-	? false
-	: true;
-
-type SchemaKeys<TInputSchema extends z.AnyZodObject> = Extract<
-	keyof SchemaShapeOf<TInputSchema>,
-	string
->;
-
-type OutputSchemaShape<
-	TInputSchema extends z.AnyZodObject,
-	TFieldName extends string,
-	TFieldSchema extends z.ZodTypeAny,
-	TDropFields extends readonly SchemaKeys<TInputSchema>[],
-> =
-	IsTuple<TDropFields> extends true
-		? Omit<SchemaShapeOf<TInputSchema>, TDropFields[number]> &
-				Record<TFieldName, TFieldSchema>
-		: SchemaShapeOf<TInputSchema> & Record<TFieldName, TFieldSchema>;
-
-type OutputWithAddedField<
-	TInputSchema extends z.AnyZodObject,
-	TFieldName extends string,
-	TFieldSchema extends z.ZodTypeAny,
-	TDropFields extends readonly SchemaKeys<TInputSchema>[],
-> =
-	IsTuple<TDropFields> extends true
-		? Omit<z.infer<TInputSchema>, TDropFields[number]> &
-				Record<TFieldName, z.output<TFieldSchema>>
-		: Partial<Pick<z.infer<TInputSchema>, TDropFields[number]>> &
-				Partial<Omit<z.infer<TInputSchema>, TDropFields[number]>> &
-				Record<TFieldName, z.output<TFieldSchema>>;
-
-type ReconstructedInputWithDroppedFields<
-	TInputSchema extends z.AnyZodObject,
-	TDropFields extends readonly SchemaKeys<TInputSchema>[],
-> =
-	IsTuple<TDropFields> extends true
-		? Required<Pick<z.infer<TInputSchema>, TDropFields[number]>> &
-				Partial<Omit<z.infer<TInputSchema>, TDropFields[number]>>
-		: Partial<z.infer<TInputSchema>>;
-
-type ReshapeCodecConfig<
-	TInputSchema extends z.AnyZodObject,
-	TFieldName extends string,
-	TFieldSchema extends z.ZodTypeAny,
-	TDropFields extends readonly SchemaKeys<TInputSchema>[],
-> = {
-	fieldName: TFieldName;
-	fieldSchema: TFieldSchema;
-	dropFields?: TDropFields;
-	construct: (input: z.infer<TInputSchema>) => z.output<TFieldSchema>;
-	reconstruct: (
-		fieldValue: z.output<TFieldSchema>,
-		output: OutputWithAddedField<
-			TInputSchema,
-			TFieldName,
-			TFieldSchema,
-			TDropFields
-		>,
-	) => ReconstructedInputWithDroppedFields<TInputSchema, TDropFields>;
-};
 
 export function buildReshapeCodec<
 	TInputSchema extends z.AnyZodObject,
@@ -147,3 +85,68 @@ export function buildReshapeCodec<
 		fromOutput,
 	};
 }
+
+// -- Internals --
+
+type IsTuple<T extends readonly unknown[]> = number extends T["length"]
+	? false
+	: true;
+
+type SchemaKeys<TInputSchema extends z.AnyZodObject> = Extract<
+	keyof SchemaShapeOf<TInputSchema>,
+	string
+>;
+
+type OutputSchemaShape<
+	TInputSchema extends z.AnyZodObject,
+	TFieldName extends string,
+	TFieldSchema extends z.ZodTypeAny,
+	TDropFields extends readonly SchemaKeys<TInputSchema>[],
+> =
+	IsTuple<TDropFields> extends true
+		? Omit<SchemaShapeOf<TInputSchema>, TDropFields[number]> &
+				Record<TFieldName, TFieldSchema>
+		: SchemaShapeOf<TInputSchema> & Record<TFieldName, TFieldSchema>;
+
+type OutputWithAddedField<
+	TInputSchema extends z.AnyZodObject,
+	TFieldName extends string,
+	TFieldSchema extends z.ZodTypeAny,
+	TDropFields extends readonly SchemaKeys<TInputSchema>[],
+> =
+	IsTuple<TDropFields> extends true
+		? Omit<z.infer<TInputSchema>, TDropFields[number]> &
+				Record<TFieldName, z.output<TFieldSchema>>
+		: Partial<Pick<z.infer<TInputSchema>, TDropFields[number]>> &
+				Partial<Omit<z.infer<TInputSchema>, TDropFields[number]>> &
+				Record<TFieldName, z.output<TFieldSchema>>;
+
+type ReconstructedInputWithDroppedFields<
+	TInputSchema extends z.AnyZodObject,
+	TDropFields extends readonly SchemaKeys<TInputSchema>[],
+> =
+	IsTuple<TDropFields> extends true
+		? Required<Pick<z.infer<TInputSchema>, TDropFields[number]>> &
+				Partial<Omit<z.infer<TInputSchema>, TDropFields[number]>>
+		: Partial<z.infer<TInputSchema>>;
+
+type ReshapeCodecConfig<
+	TInputSchema extends z.AnyZodObject,
+	TFieldName extends string,
+	TFieldSchema extends z.ZodTypeAny,
+	TDropFields extends readonly SchemaKeys<TInputSchema>[],
+> = {
+	fieldName: TFieldName;
+	fieldSchema: TFieldSchema;
+	dropFields?: TDropFields;
+	construct: (input: z.infer<TInputSchema>) => z.output<TFieldSchema>;
+	reconstruct: (
+		fieldValue: z.output<TFieldSchema>,
+		output: OutputWithAddedField<
+			TInputSchema,
+			TFieldName,
+			TFieldSchema,
+			TDropFields
+		>,
+	) => ReconstructedInputWithDroppedFields<TInputSchema, TDropFields>;
+};

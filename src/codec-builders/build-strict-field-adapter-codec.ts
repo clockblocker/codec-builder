@@ -1,9 +1,67 @@
 /* eslint-disable @typescript-eslint/no-explicit-any -- Library typecasts */
 import { z } from "zod";
 
-import type { Codec, NoOpCodec, SchemaShapeOf as SharedSchemaShapeOf } from "../core/types";
+import { yesNoAndBoolean } from "../field-codecs/atoms/yes-no-and-boolean";
+import { pipeCodecs } from "../core/pipe-codecs";
+import type {
+	Codec,
+	NoOpCodec,
+	SchemaShapeOf as SharedSchemaShapeOf,
+} from "../core/types";
+import { buildReshapeCodec } from "./build-reshape-codec";
 
 export const noOpCodec = { __noOpCodec: true } as const satisfies NoOpCodec;
+
+export type ShapeOfStrictFieldAdapterCodec<TServer extends object> =
+	ShapeOfStrictFieldAdapter<TServer>;
+
+export function arrayOfCodecShapes<const TItemShape extends RuntimeArrayItemShape>(
+	itemShape: TItemShape,
+): ArrayCodecShape<TItemShape> {
+	return { __arrayCodecShape: true, itemShape };
+}
+
+export function buildStrictFieldAdapterCodec<
+	TInputSchema extends z.AnyZodObject,
+	const S extends RuntimeCodecShape,
+>(
+	inputSchema: TInputSchema,
+	shape: S & CodecShapeForSchemaShape<SchemaShapeOf<TInputSchema>>,
+) {
+	const outputSchema = z.object(
+		buildOutputZodShape(
+			shape as RuntimeCodecShape,
+			inputSchema.shape as z.ZodRawShape,
+		),
+	) as z.ZodObject<
+		OutputZodShapeForSchemaShape<SchemaShapeOf<TInputSchema>, S>
+	>;
+
+	type InputType = z.infer<TInputSchema>;
+	type OutputType = z.infer<typeof outputSchema>;
+
+	const fromInput = (data: InputType): OutputType => {
+		return convertFromInput(
+			shape as RuntimeCodecShape,
+			data as Record<string, unknown>,
+		) as OutputType;
+	};
+
+	const fromOutput = (data: OutputType): InputType => {
+		return convertFromOutput(
+			shape as RuntimeCodecShape,
+			data as Record<string, unknown>,
+		) as InputType;
+	};
+
+	return {
+		outputSchema,
+		fromInput,
+		fromOutput,
+	};
+}
+
+// -- Internals --
 
 type RuntimeCodecShape = Record<string, unknown>;
 type KnownKeys<T> = {
@@ -67,26 +125,9 @@ type StrictFieldAdapterNodeForValue<TValue> =
 			? ShapeOfStrictFieldAdapter<NonNullable<TValue>>
 			: InputCompatibleCodecForValue<TValue> | NoOpCodec;
 
-export type ShapeOfStrictFieldAdapter<TServer extends object> = {
+type ShapeOfStrictFieldAdapter<TServer extends object> = {
 	[K in KnownKeys<TServer>]-?: StrictFieldAdapterNodeForValue<TServer[K]>;
 };
-
-export type ShapeOfStrictFieeldAdapter<TServer extends object> =
-	ShapeOfStrictFieldAdapter<TServer>;
-
-export function arrayOfCodecShapes<const TItemShape extends RuntimeArrayItemShape>(
-	itemShape: TItemShape,
-): ArrayCodecShape<TItemShape> {
-	return { __arrayCodecShape: true, itemShape };
-}
-
-export const arrayOf = arrayOfCodecShapes;
-
-export function codecArrayOf<const TItemShape extends RuntimeArrayItemShape>(
-	itemShape: TItemShape,
-): ArrayCodecShape<TItemShape> {
-	return arrayOfCodecShapes(itemShape);
-}
 
 type SchemaShapeOf<TSchema extends z.AnyZodObject> =
 	SharedSchemaShapeOf<TSchema>;
@@ -563,42 +604,301 @@ function convertFromOutput(
 
 	return result;
 }
-export function buildStrictFieldAdapterCodec<
-	TInputSchema extends z.AnyZodObject,
-	const S extends RuntimeCodecShape,
->(
-	inputSchema: TInputSchema,
-	shape: S & CodecShapeForSchemaShape<SchemaShapeOf<TInputSchema>>,
-) {
-	const outputSchema = z.object(
-		buildOutputZodShape(
-			shape as RuntimeCodecShape,
-			inputSchema.shape as z.ZodRawShape,
-		),
-	) as z.ZodObject<
-		OutputZodShapeForSchemaShape<SchemaShapeOf<TInputSchema>, S>
-	>;
 
-	type InputType = z.infer<TInputSchema>;
-	type OutputType = z.infer<typeof outputSchema>;
+// --- Inference check ---
 
-	const fromInput = (data: InputType): OutputType => {
-		return convertFromInput(
-			shape as RuntimeCodecShape,
-			data as Record<string, unknown>,
-		) as OutputType;
-	};
+const yesNoBool = yesNoAndBoolean;
+const codecArrayOf = arrayOfCodecShapes;
+type ShapeOfStrictFieeldAdapter<TServer extends object> =
+	ShapeOfStrictFieldAdapterCodec<TServer>;
 
-	const fromOutput = (data: OutputType): InputType => {
-		return convertFromOutput(
-			shape as RuntimeCodecShape,
-			data as Record<string, unknown>,
-		) as InputType;
-	};
+type Properties<T> = {
+	[K in keyof T]-?: z.ZodType<T[K], z.ZodTypeDef, T[K]>;
+};
 
-	return {
-		outputSchema,
-		fromInput,
-		fromOutput,
-	};
+interface Counterparty {
+	id: number | null;
 }
+
+interface Client {
+	id: number;
+	counterparties: Counterparty[];
+}
+
+function ClientSchemaWidened(): z.ZodObject<Properties<Client>> {
+	return z.object({
+		id: z.number(),
+		counterparties: z.array(
+			z.object({
+				id: z.number().nullable(),
+			}),
+		),
+	}) as z.ZodObject<Properties<Client>>;
+}
+
+const counterpartyCodec = {
+	id: noOpCodec,
+};
+
+const widened = buildStrictFieldAdapterCodec(ClientSchemaWidened(), {
+	id: noOpCodec,
+	counterparties: codecArrayOf(counterpartyCodec),
+});
+
+buildStrictFieldAdapterCodec(ClientSchemaWidened(), {
+	// @ts-expect-error widened scalar number field cannot use yes/no codec
+	id: yesNoBool,
+	counterparties: codecArrayOf(counterpartyCodec),
+});
+
+buildStrictFieldAdapterCodec(ClientSchemaWidened(), {
+	// @ts-expect-error widened scalar number field cannot use array shape
+	id: codecArrayOf(counterpartyCodec),
+	counterparties: codecArrayOf(counterpartyCodec),
+});
+
+type WidenedOutput = z.infer<typeof widened.outputSchema>;
+const _widenedArrayCheck: WidenedOutput["counterparties"] = [{ id: 1 }];
+type CounterpartyId = WidenedOutput["counterparties"][number]["id"];
+
+type IsAny<T> = 0 extends 1 & T ? true : false;
+type IsUnknown<T> = unknown extends T
+	? [T] extends [unknown]
+		? true
+		: false
+	: false;
+type Assert<T extends true> = T;
+type AssertFalse<T extends false> = T;
+
+type _counterpartyIdIsNotAny = AssertFalse<IsAny<CounterpartyId>>;
+type _counterpartyIdMatches = Assert<
+	CounterpartyId extends number | null ? true : false
+>;
+
+const strict = z.object({
+	id: z.number(),
+});
+
+buildStrictFieldAdapterCodec(strict, {
+	// @ts-expect-error number field cannot use yes/no codec
+	id: yesNoBool,
+});
+
+buildStrictFieldAdapterCodec(strict, {
+	// @ts-expect-error scalar field cannot use array shape
+	id: codecArrayOf(counterpartyCodec),
+});
+
+const numberOrStringInputCodec = {
+	fromInput: (v: number | string) => String(v),
+	fromOutput: (v: string) => Number(v),
+	outputSchema: z.string(),
+} satisfies Codec<string, number | string, z.ZodString>;
+
+buildStrictFieldAdapterCodec(strict, {
+	id: numberOrStringInputCodec,
+});
+
+const strictArray = z.object({
+	dates: z.array(z.number()),
+});
+
+const numberToDateCodec = {
+	fromInput: (v: number) => new Date(v),
+	fromOutput: (v: Date) => v.getTime(),
+	outputSchema: z.date(),
+} satisfies Codec<Date, number, z.ZodDate>;
+
+const dateToIsoCodec = {
+	fromInput: (v: Date) => v.toISOString(),
+	fromOutput: (v: string) => new Date(v),
+	outputSchema: z.string(),
+} satisfies Codec<string, Date, z.ZodString>;
+
+const pipedDateToIsoCodec = pipeCodecs(numberToDateCodec, dateToIsoCodec);
+type PipedDateToIsoOutput = z.infer<typeof pipedDateToIsoCodec.outputSchema>;
+const _pipedDateToIsoOutput: PipedDateToIsoOutput = "2020-01-01T00:00:00.000Z";
+
+const strictArrayMapped = buildStrictFieldAdapterCodec(strictArray, {
+	dates: codecArrayOf(numberToDateCodec),
+});
+
+type StrictArrayMappedOutput = z.infer<typeof strictArrayMapped.outputSchema>;
+const _strictArrayMappedCheck: StrictArrayMappedOutput["dates"] = [new Date()];
+
+buildStrictFieldAdapterCodec(strictArray, {
+	// @ts-expect-error number[] item cannot use yes/no codec
+	dates: codecArrayOf(yesNoBool),
+});
+
+const strictNested = z.object({
+	a: z.object({
+		b: z.number(),
+		c: z.string(),
+	}),
+});
+
+buildStrictFieldAdapterCodec(strictNested, {
+	a: {
+		b: noOpCodec,
+		c: noOpCodec,
+		packed: noOpCodec,
+	},
+});
+
+const questionnaireServerSchema = z.object({
+	ans_to_q1: z.string(),
+	comment_to_q1_: z.string(),
+	id: z.number(),
+	dateOfConstuction: z.string(),
+	answers: z.array(
+		z.object({
+			ans_to_q2: z.string(),
+			comment_to_q2_: z.string(),
+		}),
+	),
+});
+
+type QuestionnaireOutputQ = {
+	answer: string;
+	comment: string;
+};
+
+type QuestionnaireServer = z.infer<typeof questionnaireServerSchema>;
+const questionnaireAnswersItemShape = {
+	ans_to_q2: noOpCodec,
+	comment_to_q2_: noOpCodec,
+} satisfies ShapeOfStrictFieldAdapter<QuestionnaireServer["answers"][number]>;
+
+const questionnaireAnswersItemShapeWithWrongKey = {
+	ans_to_q2: noOpCodec,
+	comment_to_q2_: noOpCodec,
+	// @ts-expect-error typo key should be rejected at declaration site
+	comment_to_q2: noOpCodec,
+} satisfies ShapeOfStrictFieeldAdapter<QuestionnaireServer["answers"][number]>;
+
+const addQuestionareFieldCodec = buildReshapeCodec(
+	questionnaireServerSchema,
+	{
+		fieldName: "questionnaire",
+		fieldSchema: z.object({
+			q1: z.object({ answer: z.string(), comment: z.string() }),
+			q2: z.object({ answer: z.string(), comment: z.string() }),
+		}),
+		dropFields: ["ans_to_q1", "comment_to_q1_", "answers"],
+		construct: (input) => ({
+			q1: {
+				answer: input.ans_to_q1,
+				comment: input.comment_to_q1_,
+			},
+			q2: {
+				answer: input.answers[0]?.ans_to_q2 ?? "",
+				comment: input.answers[0]?.comment_to_q2_ ?? "",
+			},
+		}),
+		reconstruct: (questionnaire) => ({
+			ans_to_q1: questionnaire.q1.answer,
+			comment_to_q1_: questionnaire.q1.comment,
+			answers: [
+				{
+					ans_to_q2: questionnaire.q2.answer,
+					comment_to_q2_: questionnaire.q2.comment,
+				},
+			],
+		}),
+	},
+);
+
+buildReshapeCodec(questionnaireServerSchema, {
+	fieldName: "questionnaire",
+	fieldSchema: z.object({
+		q1: z.object({ answer: z.string(), comment: z.string() }),
+		q2: z.object({ answer: z.string(), comment: z.string() }),
+	}),
+	dropFields: ["ans_to_q1", "comment_to_q1_", "answers"],
+	construct: (input) => ({
+		q1: {
+			answer: input.ans_to_q1,
+			comment: input.comment_to_q1_,
+		},
+		q2: {
+			answer: input.answers[0]?.ans_to_q2 ?? "",
+			comment: input.answers[0]?.comment_to_q2_ ?? "",
+		},
+	}),
+	// @ts-expect-error reconstruct must return every dropped source field
+	reconstruct: (questionnaire) => ({
+		ans_to_q1: questionnaire.q1.answer,
+		comment_to_q1_: questionnaire.q1.comment,
+	}),
+});
+
+type AddQuestionareFieldOutput = z.infer<
+	typeof addQuestionareFieldCodec.outputSchema
+>;
+const _addQuestionareFieldValue: AddQuestionareFieldOutput["questionnaire"] = {
+	q1: { answer: "Yes", comment: "ok" },
+	q2: { answer: "No", comment: "ok" },
+};
+type _addQuestionareFieldIdIsNotUnknown = AssertFalse<
+	IsUnknown<AddQuestionareFieldOutput["id"]>
+>;
+type _addQuestionareFieldIdMatches = Assert<
+	AddQuestionareFieldOutput["id"] extends number ? true : false
+>;
+// @ts-expect-error dropped source key should not be present in output
+const _addQuestionareDroppedAnsToQ1: AddQuestionareFieldOutput["ans_to_q1"] =
+	"Yes";
+
+const dropQuestionnaireFieldsFromVariable: Array<
+	keyof z.infer<typeof questionnaireServerSchema>
+> = ["ans_to_q1", "comment_to_q1_", "answers"];
+const addQuestionareFieldCodecFromVariableDropFields =
+	buildReshapeCodec(questionnaireServerSchema, {
+		fieldName: "questionnaire",
+		fieldSchema: z.object({
+			q1: z.object({ answer: z.string(), comment: z.string() }),
+			q2: z.object({ answer: z.string(), comment: z.string() }),
+		}),
+		dropFields: dropQuestionnaireFieldsFromVariable,
+		construct: (input) => ({
+			q1: {
+				answer: input.ans_to_q1,
+				comment: input.comment_to_q1_,
+			},
+			q2: {
+				answer: input.answers[0]?.ans_to_q2 ?? "",
+				comment: input.answers[0]?.comment_to_q2_ ?? "",
+			},
+		}),
+		reconstruct: (questionnaire) => ({
+			ans_to_q1: questionnaire.q1.answer,
+			comment_to_q1_: questionnaire.q1.comment,
+			answers: [
+				{
+					ans_to_q2: questionnaire.q2.answer,
+					comment_to_q2_: questionnaire.q2.comment,
+				},
+			],
+		}),
+	});
+type AddQuestionareFieldOutputFromVariableDropFields = z.infer<
+	typeof addQuestionareFieldCodecFromVariableDropFields.outputSchema
+>;
+type _addQuestionareVariableDropFieldsIdIsNotUnknown = AssertFalse<
+	IsUnknown<AddQuestionareFieldOutputFromVariableDropFields["id"]>
+>;
+type _addQuestionareVariableDropFieldsIdMatches = Assert<
+	AddQuestionareFieldOutputFromVariableDropFields["id"] extends
+		| number
+		| undefined
+		? true
+		: false
+>;
+
+void _widenedArrayCheck;
+void _strictArrayMappedCheck;
+void _pipedDateToIsoOutput;
+void _addQuestionareFieldValue;
+void questionnaireAnswersItemShape;
+void questionnaireAnswersItemShapeWithWrongKey;

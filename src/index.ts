@@ -52,26 +52,12 @@ export const codecBuilder = {
 	pipeCodecs,
 } as const;
 
-export * from "./core/types";
-export * from "./core/pipe-codecs";
-export * from "./codec-builders/build-reshape-codec";
-export * from "./field-codecs/atoms/date-and-iso-string-date";
-export * from "./field-codecs/atoms/nullish-string-and-emptiable-string";
-export * from "./field-codecs/atoms/numeric-string-and-nullish-number";
-export * from "./field-codecs/atoms/yes-no-and-boolean";
-export * from "./field-codecs/builders/union-and-string-codec-builder";
-export * from "./field-codecs/builders/with-nullish-filtered-codec-builder";
-export * from "./field-codecs/molecules/array-of-non-empty-strings-and-array-of-strings";
-export * from "./field-codecs/molecules/intString-and-int";
 export {
-	arrayOf,
 	arrayOfCodecShapes,
 	buildStrictFieldAdapterCodec,
-	codecArrayOf,
 	noOpCodec,
 } from "./codec-builders/build-strict-field-adapter-codec";
 
 export type {
-	ShapeOfStrictFieeldAdapter,
-	ShapeOfStrictFieldAdapter,
+	ShapeOfStrictFieldAdapterCodec,
 } from "./codec-builders/build-strict-field-adapter-codec";
