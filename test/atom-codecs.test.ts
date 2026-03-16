@@ -4,6 +4,10 @@ import {
 	nullishIsoStringDateAndNullableDate,
 } from "../src/field-codecs/molecules/atoms/date-and-iso-string-date";
 import {
+	floatAndInt,
+	intAndFloat,
+} from "../src/field-codecs/molecules/atoms/int-and-float";
+import {
 	emptiableStringAndNullishString,
 	nullishStringAndEmptiableString,
 } from "../src/field-codecs/molecules/atoms/nullish-string-and-emptiable-string";
@@ -87,5 +91,21 @@ describe("nullishStringAndEmptiableString", () => {
 		expect(emptiableStringAndNullishString.fromOutput("")).toBeUndefined();
 		expect(nullishStringAndEmptiableString.fromInput("")).toBeUndefined();
 		expect(nullishStringAndEmptiableString.fromOutput(undefined)).toBe("");
+	});
+});
+
+describe("intAndFloat", () => {
+	test("floors floats and uses an integer output schema", () => {
+		expect(intAndFloat.fromInput(1.9)).toBe(1);
+		expect(intAndFloat.inputSchema.parse(1.5)).toBe(1.5);
+		expect(intAndFloat.outputSchema.parse(1)).toBe(1);
+		expect(() => intAndFloat.outputSchema.parse(1.5)).toThrow();
+	});
+
+	test("keeps the reverse codec int-in and floors on fromOutput", () => {
+		expect(floatAndInt.inputSchema.parse(1)).toBe(1);
+		expect(() => floatAndInt.inputSchema.parse(1.5)).toThrow();
+		expect(floatAndInt.outputSchema.parse(1.5)).toBe(1.5);
+		expect(floatAndInt.fromOutput(1.9)).toBe(1);
 	});
 });

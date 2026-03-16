@@ -13,6 +13,7 @@ import {
 	nullableDateAndNullishIsoStringDate,
 	nullishIsoStringDateAndNullableDate,
 } from "./field-codecs/molecules/atoms/date-and-iso-string-date";
+import { floatAndInt, intAndFloat } from "./field-codecs/molecules/atoms/int-and-float";
 import {
 	emptiableStringAndNullishString,
 	nullishStringAndEmptiableString,
@@ -28,6 +29,10 @@ import {
 	nullishBooleanAndNullableYesNo,
 	yesNoAndBoolean,
 } from "./field-codecs/molecules/atoms/yes-no-and-boolean";
+import {
+	intAndNumericString,
+	numericStringAndInt,
+} from "./field-codecs/molecules/numeric-string-and-int";
 import { buildArrayAndNullishArrayCodec } from "./field-codecs/molecules/builders/array-and-nullish-array";
 import { buildFilteredNullishArrayCodec } from "./field-codecs/molecules/builders/filtered-nullish-array";
 import { buildNullableUnionAndNullishString } from "./field-codecs/molecules/builders/union-and-string";
@@ -45,6 +50,9 @@ const fieldCodecs = {
 	nullishStringAndEmptiableString,
 	emptiableStringAndNullishString,
 
+	intAndFloat,
+	floatAndInt,
+
 	nullableNumericStringAndNullishNumber,
 	numericNullishStringAndNullishNumber,
 	nullishNumberAndNullableNumericString,
@@ -55,6 +63,9 @@ const fieldCodecs = {
 
 	nullishBooleanAndNullableYesNo,
 	booleanAndYesNo,
+
+	numericStringAndInt,
+	intAndNumericString,
 
 	// Returns the same type as the original field.
 	noOp: noOpCodec,
