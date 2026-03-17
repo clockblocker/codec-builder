@@ -2,21 +2,22 @@ import { describe, expect, test } from "bun:test";
 import { z } from "zod";
 import { codecBuilder } from "../src/index";
 
-const c = codecBuilder.fieldCodec;
 
 describe("codecBuilder.helpers", () => {
+	const c = codecBuilder.fieldCodec;
+
 	test("namespaces field codecs by value family and nullability", () => {
-		expect(codecBuilder.fieldCodec.string.emptiable.and.nullish).toBeDefined();
+		expect(c.emptiableString.and.nullish).toBeDefined();
 		expect(
-			codecBuilder.fieldCodec.numericString.nullable.and.nullishInt,
+			c.numericString.nullable.and.nullishInt,
 		).toBeDefined();
 		expect(
-			codecBuilder.fieldCodec.date.nullable.and.nullishIsoString,
+			c.date.nullable.and.nullishIsoString,
 		).toBeDefined();
 		expect(
-			"emptiableStringAndNullishString" in codecBuilder.fieldCodec,
+			"emptiableStringAndNullishString" in c,
 		).toBeFalse();
-		expect("numericStringAndInt" in codecBuilder.fieldCodec).toBeFalse();
+		expect("numericStringAndInt" in c).toBeFalse();
 	});
 
 	test("namespaces helper builders under helpers", () => {
@@ -39,7 +40,7 @@ describe("codecBuilder.helpers", () => {
 
 	test("exposes working helper builders through the nested helpers object", () => {
 		const arrayOfCodec = codecBuilder.helpers.buildArrayOfCodec(
-			codecBuilder.fieldCodec.string.emptiable.and.nullish,
+			c.emptiableString.and.nullish,
 		);
 		expect(arrayOfCodec.fromInput([undefined, "a", null])).toEqual([
 			"",
@@ -50,7 +51,7 @@ describe("codecBuilder.helpers", () => {
 
 		const arrayAndNullishArrayCodec =
 			codecBuilder.helpers.buildArrayAndNullishArrayCodec(
-				codecBuilder.fieldCodec.string.emptiable.and.nullish,
+				c.emptiableString.and.nullish,
 			);
 		expect(arrayAndNullishArrayCodec.fromInput(undefined)).toEqual([]);
 		expect(arrayAndNullishArrayCodec.fromInput(["a", null])).toEqual(["a", ""]);
@@ -74,7 +75,7 @@ describe("codecBuilder.helpers", () => {
 		).toEqual(["a", "b"]);
 
 		const nullishWrappedCodec = codecBuilder.helpers.buildWithNullishFiltered(
-			codecBuilder.fieldCodec.numericString.nullable.and.nullishInt,
+			c.numericString.nullable.and.nullishInt,
 		);
 		expect(nullishWrappedCodec.fromInput(undefined)).toBeNull();
 		expect(nullishWrappedCodec.fromOutput(undefined)).toBeNull();

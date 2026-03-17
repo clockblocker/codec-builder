@@ -247,16 +247,13 @@ type CodecShapeNodeForField<TField extends z.ZodTypeAny> =
 			: CodecShapeForSchemaShape<NestedSchemaShape<TField>>;
 
 type OutputZodArrayItemFromCodecNode<TItemShape> =
-	TItemShape extends SchemaCodec<
-	z.ZodTypeAny,
-	infer TSchema
->
-	? TSchema
-	: TItemShape extends NoOpCodec
-		? z.ZodUnknown
-		: TItemShape extends RuntimeCodecShape
-			? z.ZodObject<OutputZodShapeFromCodecShape<TItemShape>>
-			: never;
+	TItemShape extends SchemaCodec<z.ZodTypeAny, infer TSchema>
+		? TSchema
+		: TItemShape extends NoOpCodec
+			? z.ZodUnknown
+			: TItemShape extends RuntimeCodecShape
+				? z.ZodObject<OutputZodShapeFromCodecShape<TItemShape>>
+				: never;
 
 type OutputZodArrayItemFromOutputValue<TValue, TItemShape> =
 	TItemShape extends SchemaCodec<z.ZodTypeAny, infer TSchema>
@@ -384,9 +381,7 @@ type OutputZodShapeForSchemaShape<
 		: never;
 };
 
-function isCodec(
-	v: unknown,
-): v is SchemaCodec<z.ZodTypeAny, z.ZodTypeAny> {
+function isCodec(v: unknown): v is SchemaCodec<z.ZodTypeAny, z.ZodTypeAny> {
 	return (
 		typeof v === "object" &&
 		v !== null &&

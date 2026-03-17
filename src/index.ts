@@ -60,11 +60,9 @@ const fieldCodecs = {
 			},
 		},
 	},
-	string: {
-		emptiable: {
-			and: {
-				nullish: emptiableStringAndNullishString,
-			},
+	emptiableString: {
+		and: {
+			nullish: emptiableStringAndNullishString,
 		},
 		nullish: {
 			and: {
