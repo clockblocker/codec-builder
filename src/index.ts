@@ -13,7 +13,7 @@ import { toNullable } from "./codec-builders/strict-field-adapter/helpers/to-nul
 import { pipeCodecs } from "./core/pipe-codecs";
 
 export const codecBuilder = {
-	fieldCodec: { ...fieldCodecs, arrayOfCodecShapes: arrayOf },
+	fieldCodec: { ...fieldCodecs, arrayOf: arrayOfCodecShapes },
 	helpers: {
 		toArrayOf,
 		toNullable,
