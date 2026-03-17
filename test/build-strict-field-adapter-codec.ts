@@ -5,7 +5,7 @@ import {
 	noOpCodec,
 	type ShapeOfStrictFieldAdapterCodec,
 } from "../src/codec-builders/strict-field-adapter/build-strict-field-adapter-codec";
-import { yesNoAndBoolean } from "../src/codec-builders/strict-field-adapter/field-codecs/molecules/atoms/yes-no-and-boolean";
+import { yesNoAndBoolean } from "../src/codec-builders/strict-field-adapter/field-codecs/atoms/yes-no-and-boolean";
 import { pipeCodecs } from "../src/core/pipe-codecs";
 import type { Codec, SchemaCodec } from "../src/core/types";
 

@@ -1,6 +1,6 @@
 import { z } from "zod";
-import type { Codec } from "../../../../../core/types";
-import { reverseCodecDirections } from "../../helpers/reverse-codec-directions";
+import type { Codec } from "../../../../core/types";
+import { reverseCodecDirections } from "../helpers/reverse-codec-directions";
 
 const yesNoSchema = z.enum(["Yes", "No"]);
 const booleanSchema = z.boolean();

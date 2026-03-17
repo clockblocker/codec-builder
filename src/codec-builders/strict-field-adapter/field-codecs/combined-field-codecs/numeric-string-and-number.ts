@@ -5,7 +5,7 @@ import { toNullable } from "../helpers/to-nullable";
 import {
 	numberAndNumericString,
 	numericStringAndNumber,
-} from "./atoms/numeric-string-and-nullish-number";
+} from "../atoms/numeric-string-and-nullish-number";
 
 export { numberAndNumericString, numericStringAndNumber };
 

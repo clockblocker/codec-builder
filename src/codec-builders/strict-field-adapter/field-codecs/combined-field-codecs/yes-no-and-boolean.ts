@@ -3,7 +3,7 @@ import { toNullable } from "../helpers/to-nullable";
 import {
 	booleanAndYesNo,
 	yesNoAndBoolean,
-} from "./atoms/yes-no-and-boolean";
+} from "../atoms/yes-no-and-boolean";
 
 export { booleanAndYesNo, yesNoAndBoolean };
 

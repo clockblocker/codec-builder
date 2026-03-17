@@ -2,32 +2,32 @@ import { describe, expect, test } from "bun:test";
 import {
 	dateAndIsoString,
 	isoStringAndDate,
-} from "../src/codec-builders/strict-field-adapter/field-codecs/molecules/atoms/date-and-iso-string-date";
+} from "../src/codec-builders/strict-field-adapter/field-codecs/atoms/date-and-iso-string-date";
 import {
 	nullableDateAndNullishIsoString,
 	nullishIsoStringAndNullableDate,
-} from "../src/codec-builders/strict-field-adapter/field-codecs/molecules/date-and-iso-string-date";
+} from "../src/codec-builders/strict-field-adapter/field-codecs/combined-field-codecs/date-and-iso-string-date";
 import {
 	nullishStringAndString,
 	stringAndNullish,
-} from "../src/codec-builders/strict-field-adapter/field-codecs/molecules/nullish-string-and-emptiable-string";
+} from "../src/codec-builders/strict-field-adapter/field-codecs/combined-field-codecs/nullish-string-and-emptiable-string";
 import {
 	numberAndNumericString,
 	numericStringAndNumber,
-} from "../src/codec-builders/strict-field-adapter/field-codecs/molecules/atoms/numeric-string-and-nullish-number";
+} from "../src/codec-builders/strict-field-adapter/field-codecs/atoms/numeric-string-and-nullish-number";
 import {
 	nullableNumericStringAndNullishNumber,
 	nullishNumberAndNullableNumericString,
 	numberAndNullishNumericString,
-} from "../src/codec-builders/strict-field-adapter/field-codecs/molecules/numeric-string-and-number";
+} from "../src/codec-builders/strict-field-adapter/field-codecs/combined-field-codecs/numeric-string-and-number";
 import {
 	booleanAndYesNo,
 	yesNoAndBoolean,
-} from "../src/codec-builders/strict-field-adapter/field-codecs/molecules/atoms/yes-no-and-boolean";
+} from "../src/codec-builders/strict-field-adapter/field-codecs/atoms/yes-no-and-boolean";
 import {
 	nullableYesNoAndNullishBoolean,
 	nullishBooleanAndNullableYesNo,
-} from "../src/codec-builders/strict-field-adapter/field-codecs/molecules/yes-no-and-boolean";
+} from "../src/codec-builders/strict-field-adapter/field-codecs/combined-field-codecs/yes-no-and-boolean";
 
 describe("numericStringAndNumber", () => {
 	test("uses strict non-nullable schemas in both directions", () => {
