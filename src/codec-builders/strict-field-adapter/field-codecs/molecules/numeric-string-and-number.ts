@@ -1,7 +1,7 @@
 import type { Nullish } from "../../../../core/helpers/nullish-utils";
 import type { Codec } from "../../../../core/types";
-import { reverseCodecDirections } from "../helpers/reverse-codec-directions";
-import { toNullable } from "../helpers/to-nullable";
+import { reverseCodecDirections } from "../../helpers/reverse-codec-directions";
+import { toNullable } from "../../helpers/to-nullable";
 import {
 	numberAndNumericString,
 	numericStringAndNumber,

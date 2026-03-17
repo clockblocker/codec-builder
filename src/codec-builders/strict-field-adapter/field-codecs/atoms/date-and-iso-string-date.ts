@@ -1,6 +1,6 @@
 import { z } from "zod";
 import type { Codec } from "../../../../core/types";
-import { reverseCodecDirections } from "../helpers/reverse-codec-directions";
+import { reverseCodecDirections } from "../../helpers/reverse-codec-directions";
 
 const isoStringSchema = z.string().date();
 const dateSchema = z.date();

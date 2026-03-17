@@ -1,5 +1,5 @@
-import { reverseCodecDirections } from "../helpers/reverse-codec-directions";
-import { toNullable } from "../helpers/to-nullable";
+import { reverseCodecDirections } from "../../helpers/reverse-codec-directions";
+import { toNullable } from "../../helpers/to-nullable";
 import {
 	booleanAndYesNo,
 	yesNoAndBoolean,

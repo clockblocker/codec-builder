@@ -1,6 +1,6 @@
 import type { z } from "zod";
 
-import type { SchemaCodec } from "../../../../core/types";
+import type { SchemaCodec } from "../../../core/types";
 
 export function reverseCodecDirections<
 	TInputSchema extends z.ZodTypeAny,

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any -- helper keeps codec generics broad */
 import type { z } from "zod";
-import { mapNullishToNullable } from "../../../../core/helpers/nullish-utils";
-import type { SchemaCodec } from "../../../../core/types";
+import { mapNullishToNullable } from "../../../core/helpers/nullish-utils";
+import type { SchemaCodec } from "../../../core/types";
 
 export function toNullable<
 	TInputSchema extends z.ZodTypeAny,

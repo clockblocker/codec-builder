@@ -1,25 +1,25 @@
 import type { AnyCodec, NoOpCodec } from "../../../core/types";
 import { noOpCodec } from "../build-strict-field-adapter-codec";
-import { toNonNullableWithDefault } from "./helpers/to-non-nullable-with-default";
-import { toNullable } from "./helpers/to-nullable";
-import { arrayOfNonEmptyStringsAndNullishArrayOfNullishStrings } from "./combined-field-codecs/array-of-non-empty-strings-and-nullish-array-of-nullish-strings";
+import { toNonNullableWithDefault } from "../helpers/to-non-nullable-with-default";
+import { toNullable } from "../helpers/to-nullable";
+import { arrayOfNonEmptyStringsAndNullishArrayOfNullishStrings } from "./molecules/array-of-non-empty-strings-and-nullish-array-of-nullish-strings";
 import {
 	dateAndIsoString,
 	isoStringAndDate,
-} from "./combined-field-codecs/date-and-iso-string-date";
-import { stringAndNullish } from "./combined-field-codecs/nullish-string-and-emptiable-string";
+} from "./molecules/date-and-iso-string-date";
+import { stringAndNullish } from "./molecules/nullish-string-and-emptiable-string";
 import {
 	intAndNumericString,
 	numericStringAndInt,
-} from "./combined-field-codecs/numeric-string-and-int";
+} from "./molecules/numeric-string-and-int";
 import {
 	numberAndNumericString,
 	numericStringAndNumber,
-} from "./combined-field-codecs/numeric-string-and-number";
+} from "./molecules/numeric-string-and-number";
 import {
 	booleanAndYesNo,
 	yesNoAndBoolean,
-} from "./combined-field-codecs/yes-no-and-boolean";
+} from "./molecules/yes-no-and-boolean";
 
 type FieldCodecNamespace = {
 	readonly [key: string]: AnyCodec | NoOpCodec | FieldCodecNamespace;

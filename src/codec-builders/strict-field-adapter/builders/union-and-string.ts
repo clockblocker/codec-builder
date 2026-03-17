@@ -4,8 +4,8 @@ import {
 	makeNullableFromNullish,
 	mapNullishToNullable,
 	type Nullish,
-} from "../../../../core/helpers/nullish-utils";
-import type { SchemaCodec } from "../../../../core/types";
+} from "../../../core/helpers/nullish-utils";
+import type { SchemaCodec } from "../../../core/types";
 
 export function buildNullableUnionAndNullishString<
 	const TValues extends NonEmptyStringTuple,

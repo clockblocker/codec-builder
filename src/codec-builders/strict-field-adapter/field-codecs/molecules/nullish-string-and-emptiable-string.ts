@@ -1,7 +1,7 @@
 import { z } from "zod";
 import type { Nullish } from "../../../../core/helpers/nullish-utils";
 import type { Codec } from "../../../../core/types";
-import { reverseCodecDirections } from "../helpers/reverse-codec-directions";
+import { reverseCodecDirections } from "../../helpers/reverse-codec-directions";
 
 const stringSchema = z.string();
 const nullishStringSchema = stringSchema.nullish();

@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import type { SchemaCodec } from "../../../../core/types";
+import type { SchemaCodec } from "../../../core/types";
 
 export function buildFilteredNullishArrayCodec<
 	TInputItemSchema extends z.ZodTypeAny,
