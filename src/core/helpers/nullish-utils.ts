@@ -1,4 +1,4 @@
-import type { Nullish } from "./helper-types";
+export type Nullish<T> = T | null | undefined;
 
 export function mapNullishToNullable<TInput, TOutput>(
 	value: Nullish<TInput>,
@@ -7,8 +7,6 @@ export function mapNullishToNullable<TInput, TOutput>(
 	return value == null ? null : map(value);
 }
 
-export function makeNullableFromNullish<T>(
-	value: Nullish<T>,
-): T | null {
+export function makeNullableFromNullish<T>(value: Nullish<T>): T | null {
 	return value ?? null;
 }

@@ -13,8 +13,9 @@ export function buildFilteredNullishArrayCodec<
 	const outputSchema = z.array(outputItemSchema);
 
 	return {
-		fromInput: input => input.filter(Boolean) as z.output<TOutputItemSchema>[],
-		fromOutput: output => output as z.output<TInputItemSchema>[],
+		fromInput: (input) =>
+			input.filter(Boolean) as z.output<TOutputItemSchema>[],
+		fromOutput: (output) => output as z.output<TInputItemSchema>[],
 		inputSchema,
 		outputSchema,
 	} as const satisfies SchemaCodec<typeof inputSchema, typeof outputSchema>;

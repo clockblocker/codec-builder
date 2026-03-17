@@ -22,34 +22,37 @@ const questionnaireServerSchema = z.object({
 	),
 });
 
-const addQuestionnaireFieldCodec = buildReshapeCodec(questionnaireServerSchema, {
-	fieldName: "questionnaire",
-	fieldSchema: z.object({
-		q1: z.object({ answer: z.string(), comment: z.string() }),
-		q2: z.object({ answer: z.string(), comment: z.string() }),
-	}),
-	dropFields: ["ans_to_q1", "comment_to_q1_", "answers"],
-	construct: (input) => ({
-		q1: {
-			answer: input.ans_to_q1,
-			comment: input.comment_to_q1_,
-		},
-		q2: {
-			answer: input.answers[0]?.ans_to_q2 ?? "",
-			comment: input.answers[0]?.comment_to_q2_ ?? "",
-		},
-	}),
-	reconstruct: (questionnaire) => ({
-		ans_to_q1: questionnaire.q1.answer,
-		comment_to_q1_: questionnaire.q1.comment,
-		answers: [
-			{
-				ans_to_q2: questionnaire.q2.answer,
-				comment_to_q2_: questionnaire.q2.comment,
+const addQuestionnaireFieldCodec = buildReshapeCodec(
+	questionnaireServerSchema,
+	{
+		fieldName: "questionnaire",
+		fieldSchema: z.object({
+			q1: z.object({ answer: z.string(), comment: z.string() }),
+			q2: z.object({ answer: z.string(), comment: z.string() }),
+		}),
+		dropFields: ["ans_to_q1", "comment_to_q1_", "answers"],
+		construct: (input) => ({
+			q1: {
+				answer: input.ans_to_q1,
+				comment: input.comment_to_q1_,
 			},
-		],
-	}),
-});
+			q2: {
+				answer: input.answers[0]?.ans_to_q2 ?? "",
+				comment: input.answers[0]?.comment_to_q2_ ?? "",
+			},
+		}),
+		reconstruct: (questionnaire) => ({
+			ans_to_q1: questionnaire.q1.answer,
+			comment_to_q1_: questionnaire.q1.comment,
+			answers: [
+				{
+					ans_to_q2: questionnaire.q2.answer,
+					comment_to_q2_: questionnaire.q2.comment,
+				},
+			],
+		}),
+	},
+);
 
 buildReshapeCodec(questionnaireServerSchema, {
 	fieldName: "questionnaire",
@@ -78,10 +81,11 @@ buildReshapeCodec(questionnaireServerSchema, {
 type AddQuestionnaireFieldOutput = z.infer<
 	typeof addQuestionnaireFieldCodec.outputSchema
 >;
-const addQuestionnaireFieldValue: AddQuestionnaireFieldOutput["questionnaire"] = {
-	q1: { answer: "Yes", comment: "ok" },
-	q2: { answer: "No", comment: "ok" },
-};
+const addQuestionnaireFieldValue: AddQuestionnaireFieldOutput["questionnaire"] =
+	{
+		q1: { answer: "Yes", comment: "ok" },
+		q2: { answer: "No", comment: "ok" },
+	};
 type _addQuestionnaireFieldIdIsNotUnknown = AssertFalse<
 	IsUnknown<AddQuestionnaireFieldOutput["id"]>
 >;
@@ -134,10 +138,10 @@ type _addQuestionnaireVariableDropFieldsIdIsNotUnknown = AssertFalse<
 >;
 type _addQuestionnaireVariableDropFieldsIdMatches = Assert<
 	AddQuestionnaireFieldOutputFromVariableDropFields["id"] extends
-			| number
-			| undefined
-			? true
-			: false
+		| number
+		| undefined
+		? true
+		: false
 >;
 
 void addQuestionnaireFieldValue;

@@ -10,11 +10,11 @@ import {
 	stringAndNullish,
 } from "../src/codec-builders/strict-field-adapter/field-codecs/molecules/atoms/nullish-string-and-emptiable-string";
 import {
-	numericStringAndNumber,
 	nullableNumericStringAndNullishNumber,
 	nullishNumberAndNullableNumericString,
 	numberAndNullishNumericString,
 	numberAndNumericString,
+	numericStringAndNumber,
 } from "../src/codec-builders/strict-field-adapter/field-codecs/molecules/atoms/numeric-string-and-nullish-number";
 import {
 	booleanAndYesNo,
@@ -40,16 +40,22 @@ describe("numericStringAndNumber", () => {
 
 describe("nullableNumericStringAndNullishNumber", () => {
 	test("maps nullish input to null and uses a nullable output schema", () => {
-		expect(nullableNumericStringAndNullishNumber.fromInput(undefined)).toBeNull();
+		expect(
+			nullableNumericStringAndNullishNumber.fromInput(undefined),
+		).toBeNull();
 		expect(nullableNumericStringAndNullishNumber.fromInput(null)).toBeNull();
-		expect(nullableNumericStringAndNullishNumber.outputSchema.parse(null)).toBeNull();
+		expect(
+			nullableNumericStringAndNullishNumber.outputSchema.parse(null),
+		).toBeNull();
 		expect(() =>
 			nullableNumericStringAndNullishNumber.outputSchema.parse(undefined),
 		).toThrow();
 	});
 
 	test("keeps the reverse codec nullable-in and nullish-out", () => {
-		expect(nullishNumberAndNullableNumericString.inputSchema.parse(null)).toBeNull();
+		expect(
+			nullishNumberAndNullableNumericString.inputSchema.parse(null),
+		).toBeNull();
 		expect(() =>
 			nullishNumberAndNullableNumericString.inputSchema.parse(undefined),
 		).toThrow();

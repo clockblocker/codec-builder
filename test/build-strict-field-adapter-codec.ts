@@ -5,9 +5,9 @@ import {
 	noOpCodec,
 	type ShapeOfStrictFieldAdapterCodec,
 } from "../src/codec-builders/strict-field-adapter/build-strict-field-adapter-codec";
+import { yesNoAndBoolean } from "../src/codec-builders/strict-field-adapter/field-codecs/molecules/atoms/yes-no-and-boolean";
 import { pipeCodecs } from "../src/core/pipe-codecs";
 import type { Codec, SchemaCodec } from "../src/core/types";
-import { yesNoAndBoolean } from "../src/codec-builders/strict-field-adapter/field-codecs/molecules/atoms/yes-no-and-boolean";
 
 const yesNoBool = yesNoAndBoolean;
 const codecArrayOf = arrayOfCodecShapes;
@@ -170,14 +170,18 @@ type QuestionnaireServer = z.infer<typeof questionnaireServerSchema>;
 const questionnaireAnswersItemShape = {
 	ans_to_q2: noOpCodec,
 	comment_to_q2_: noOpCodec,
-} satisfies ShapeOfStrictFieldAdapterCodec<QuestionnaireServer["answers"][number]>;
+} satisfies ShapeOfStrictFieldAdapterCodec<
+	QuestionnaireServer["answers"][number]
+>;
 
 const questionnaireAnswersItemShapeWithWrongKey = {
 	ans_to_q2: noOpCodec,
 	comment_to_q2_: noOpCodec,
 	// @ts-expect-error typo key should be rejected at declaration site
 	comment_to_q2: noOpCodec,
-} satisfies ShapeOfStrictFieldAdapterCodec<QuestionnaireServer["answers"][number]>;
+} satisfies ShapeOfStrictFieldAdapterCodec<
+	QuestionnaireServer["answers"][number]
+>;
 
 void widenedArrayCheck;
 void strictArrayMappedCheck;

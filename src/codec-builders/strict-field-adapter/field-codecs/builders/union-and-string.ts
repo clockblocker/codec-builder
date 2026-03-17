@@ -1,9 +1,9 @@
 import { z } from "zod";
 
-import type { Nullish } from "../../../../core/helpers/helper-types";
 import {
 	makeNullableFromNullish,
 	mapNullishToNullable,
+	type Nullish,
 } from "../../../../core/helpers/nullish-utils";
 import type { SchemaCodec } from "../../../../core/types";
 

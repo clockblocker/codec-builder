@@ -10,8 +10,8 @@ export function buildArrayOfCodec<
 	const outputSchema = z.array(itemCodec.outputSchema);
 
 	return {
-		fromInput: input => input.map(itemCodec.fromInput),
-		fromOutput: output => output.map(itemCodec.fromOutput),
+		fromInput: (input) => input.map(itemCodec.fromInput),
+		fromOutput: (output) => output.map(itemCodec.fromOutput),
 		inputSchema,
 		outputSchema,
 	} as const satisfies SchemaCodec<typeof inputSchema, typeof outputSchema>;

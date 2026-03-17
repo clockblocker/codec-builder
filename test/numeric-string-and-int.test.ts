@@ -1,9 +1,9 @@
 import { describe, expect, test } from "bun:test";
 import {
-	numericStringAndInt,
-	nullableNumericStringAndNullishInt,
 	intAndNumericString,
+	nullableNumericStringAndNullishInt,
 	nullishIntAndNullableNumericString,
+	numericStringAndInt,
 } from "../src/codec-builders/strict-field-adapter/field-codecs/molecules/numeric-string-and-int";
 
 describe("numericStringAndInt", () => {

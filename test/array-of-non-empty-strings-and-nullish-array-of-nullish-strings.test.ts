@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
+import { reverseCodecDirections } from "../src/codec-builders/strict-field-adapter/field-codecs/builders/reverse-codec-directions";
 import { arrayOfNonEmptyStringsAndNullishArrayOfNullishStrings } from "../src/codec-builders/strict-field-adapter/field-codecs/molecules/array-of-non-empty-strings-and-nullish-array-of-nullish-strings";
-import { reverseCodecDirections } from "../src/core/helpers/reverse-codec-directions";
 
 describe("arrayOfNonEmptyStringsAndNullishArrayOfNullishStrings", () => {
 	test("normalizes nullish arrays to an empty array", () => {
