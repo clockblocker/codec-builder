@@ -1,6 +1,5 @@
 import { z } from "zod";
-import type { Codec } from "../../../../core/types";
-import { reverseCodecDirections } from "../../helpers/reverse-codec-directions";
+import type { Codec } from "../../../../../core/types";
 
 const numericStringSchema = z
 	.string()
@@ -17,6 +16,9 @@ export const numericStringAndNumber = {
 	outputSchema: numericStringSchema,
 } as const satisfies Codec<string, number>;
 
-export const numberAndNumericString = reverseCodecDirections(
-	numericStringAndNumber,
-);
+export const numberAndNumericString = {
+	fromInput: (v) => Number(v),
+	fromOutput: (v) => String(v),
+	inputSchema: numericStringSchema,
+	outputSchema: numberSchema,
+} as const satisfies Codec<number, string>;

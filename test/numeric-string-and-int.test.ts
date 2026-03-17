@@ -4,7 +4,7 @@ import {
 	nullableNumericStringAndNullishInt,
 	nullishIntAndNullableNumericString,
 	numericStringAndInt,
-} from "../src/codec-builders/strict-field-adapter/field-codecs/molecules/numeric-string-and-int";
+} from "../src/codec-builders/strict-field-adapter/field-codecs/molecules/int-and-numeric-string";
 
 describe("numericStringAndInt", () => {
 	test("serializes ints to numeric strings with strict schemas", () => {

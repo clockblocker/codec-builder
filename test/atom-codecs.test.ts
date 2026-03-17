@@ -2,32 +2,32 @@ import { describe, expect, test } from "bun:test";
 import {
 	dateAndIsoString,
 	isoStringAndDate,
-} from "../src/codec-builders/strict-field-adapter/field-codecs/atoms/date-and-iso-string-date";
+} from "../src/codec-builders/strict-field-adapter/field-codecs/atoms/core-non-nullable-codecs/date-and-iso-string";
 import {
-	nullableDateAndNullishIsoString,
-	nullishIsoStringAndNullableDate,
-} from "../src/codec-builders/strict-field-adapter/field-codecs/molecules/date-and-iso-string-date";
+	nullableDateAndIsoString,
+	nullableIsoStringAndDate,
+} from "../src/codec-builders/strict-field-adapter/field-codecs/atoms/derived/date";
 import {
 	nullishStringAndString,
 	stringAndNullish,
-} from "../src/codec-builders/strict-field-adapter/field-codecs/molecules/nullish-string-and-emptiable-string";
+} from "../src/codec-builders/strict-field-adapter/field-codecs/atoms/derived/string";
 import {
 	numberAndNumericString,
 	numericStringAndNumber,
-} from "../src/codec-builders/strict-field-adapter/field-codecs/atoms/numeric-string-and-nullish-number";
+} from "../src/codec-builders/strict-field-adapter/field-codecs/atoms/core-non-nullable-codecs/numeric-string-and-number";
 import {
-	nullableNumericStringAndNullishNumber,
-	nullishNumberAndNullableNumericString,
+	nullableNumericStringAndNumber,
+	nullableNumberAndNumericString,
 	numberAndNullishNumericString,
-} from "../src/codec-builders/strict-field-adapter/field-codecs/molecules/numeric-string-and-number";
+} from "../src/codec-builders/strict-field-adapter/field-codecs/atoms/derived/number";
 import {
 	booleanAndYesNo,
 	yesNoAndBoolean,
-} from "../src/codec-builders/strict-field-adapter/field-codecs/atoms/yes-no-and-boolean";
+} from "../src/codec-builders/strict-field-adapter/field-codecs/atoms/core-non-nullable-codecs/yes-no-and-boolean";
 import {
-	nullableYesNoAndNullishBoolean,
-	nullishBooleanAndNullableYesNo,
-} from "../src/codec-builders/strict-field-adapter/field-codecs/molecules/yes-no-and-boolean";
+	nullableBooleanAndYesNo,
+	nullableYesNoAndBoolean,
+} from "../src/codec-builders/strict-field-adapter/field-codecs/atoms/derived/yes-no";
 
 describe("numericStringAndNumber", () => {
 	test("uses strict non-nullable schemas in both directions", () => {
@@ -44,30 +44,26 @@ describe("numericStringAndNumber", () => {
 	});
 });
 
-describe("nullableNumericStringAndNullishNumber", () => {
+describe("nullableNumericStringAndNumber", () => {
 	test("maps nullish input to null and uses a nullable output schema", () => {
 		expect(
-			nullableNumericStringAndNullishNumber.fromInput(undefined),
+			nullableNumericStringAndNumber.fromInput(undefined),
 		).toBeNull();
-		expect(nullableNumericStringAndNullishNumber.fromInput(null)).toBeNull();
+		expect(nullableNumericStringAndNumber.fromInput(null)).toBeNull();
 		expect(
-			nullableNumericStringAndNullishNumber.outputSchema.parse(null),
+			nullableNumericStringAndNumber.outputSchema.parse(null),
 		).toBeNull();
 		expect(() =>
-			nullableNumericStringAndNullishNumber.outputSchema.parse(undefined),
+			nullableNumericStringAndNumber.outputSchema.parse(undefined),
 		).toThrow();
 	});
 
 	test("keeps the reverse codec nullable-in and nullish-out", () => {
-		expect(
-			nullishNumberAndNullableNumericString.inputSchema.parse(null),
-		).toBeNull();
+		expect(nullableNumberAndNumericString.inputSchema.parse(null)).toBeNull();
 		expect(() =>
-			nullishNumberAndNullableNumericString.inputSchema.parse(undefined),
+			nullableNumberAndNumericString.inputSchema.parse(undefined),
 		).toThrow();
-		expect(
-			nullishNumberAndNullableNumericString.outputSchema.parse(undefined),
-		).toBeUndefined();
+		expect(nullableNumberAndNumericString.outputSchema.parse(undefined)).toBeUndefined();
 	});
 });
 
@@ -81,24 +77,18 @@ describe("dateAndIsoString", () => {
 	});
 });
 
-describe("nullableDateAndNullishIsoString", () => {
+describe("nullableDateAndIsoString", () => {
 	test("maps nullish input to null and uses a nullable date output schema", () => {
-		expect(nullableDateAndNullishIsoString.fromInput(undefined)).toBeNull();
-		expect(nullableDateAndNullishIsoString.fromInput(null)).toBeNull();
-		expect(nullableDateAndNullishIsoString.outputSchema.parse(null)).toBeNull();
-		expect(() =>
-			nullableDateAndNullishIsoString.outputSchema.parse(undefined),
-		).toThrow();
+		expect(nullableDateAndIsoString.fromInput(undefined)).toBeNull();
+		expect(nullableDateAndIsoString.fromInput(null)).toBeNull();
+		expect(nullableDateAndIsoString.outputSchema.parse(null)).toBeNull();
+		expect(() => nullableDateAndIsoString.outputSchema.parse(undefined)).toThrow();
 	});
 
 	test("keeps the reverse date codec nullable-in and nullish-out", () => {
-		expect(nullishIsoStringAndNullableDate.inputSchema.parse(null)).toBeNull();
-		expect(() =>
-			nullishIsoStringAndNullableDate.inputSchema.parse(undefined),
-		).toThrow();
-		expect(
-			nullishIsoStringAndNullableDate.outputSchema.parse(undefined),
-		).toBeUndefined();
+		expect(nullableIsoStringAndDate.inputSchema.parse(null)).toBeNull();
+		expect(() => nullableIsoStringAndDate.inputSchema.parse(undefined)).toThrow();
+		expect(nullableIsoStringAndDate.outputSchema.parse(undefined)).toBeUndefined();
 	});
 });
 
@@ -111,24 +101,18 @@ describe("yesNoAndBoolean", () => {
 	});
 });
 
-describe("nullableYesNoAndNullishBoolean", () => {
+describe("nullableYesNoAndBoolean", () => {
 	test("maps nullish booleans to null and uses a nullable yes/no output schema", () => {
-		expect(nullableYesNoAndNullishBoolean.fromInput(undefined)).toBeNull();
-		expect(nullableYesNoAndNullishBoolean.fromInput(null)).toBeNull();
-		expect(nullableYesNoAndNullishBoolean.outputSchema.parse(null)).toBeNull();
-		expect(() =>
-			nullableYesNoAndNullishBoolean.outputSchema.parse(undefined),
-		).toThrow();
+		expect(nullableYesNoAndBoolean.fromInput(undefined)).toBeNull();
+		expect(nullableYesNoAndBoolean.fromInput(null)).toBeNull();
+		expect(nullableYesNoAndBoolean.outputSchema.parse(null)).toBeNull();
+		expect(() => nullableYesNoAndBoolean.outputSchema.parse(undefined)).toThrow();
 	});
 
 	test("keeps the reverse boolean codec nullable-in and nullish-out", () => {
-		expect(nullishBooleanAndNullableYesNo.inputSchema.parse(null)).toBeNull();
-		expect(() =>
-			nullishBooleanAndNullableYesNo.inputSchema.parse(undefined),
-		).toThrow();
-		expect(
-			nullishBooleanAndNullableYesNo.outputSchema.parse(undefined),
-		).toBeUndefined();
+		expect(nullableBooleanAndYesNo.inputSchema.parse(null)).toBeNull();
+		expect(() => nullableBooleanAndYesNo.inputSchema.parse(undefined)).toThrow();
+		expect(nullableBooleanAndYesNo.outputSchema.parse(undefined)).toBeUndefined();
 	});
 });
 

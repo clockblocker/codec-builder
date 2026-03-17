@@ -1,75 +1,46 @@
 import type { AnyCodec, NoOpCodec } from "../../../core/types";
 import { noOpCodec } from "../build-strict-field-adapter-codec";
-import { toNonNullableWithDefault } from "../helpers/to-non-nullable-with-default";
-import { toNullable } from "../helpers/to-nullable";
-import { arrayOfNonEmptyStringsAndNullishArrayOfNullishStrings } from "./molecules/array-of-non-empty-strings-and-nullish-array-of-nullish-strings";
 import {
 	dateAndIsoString,
+	dateAndNullishIsoString,
 	isoStringAndDate,
-} from "./molecules/date-and-iso-string-date";
-import { stringAndNullish } from "./molecules/nullish-string-and-emptiable-string";
+	isoStringAndNullishDate,
+	nullableDateAndIsoString,
+	nullableIsoStringAndDate,
+} from "./atoms/derived/date";
+import {
+	nullableNumericStringAndNumber,
+	nullableNumberAndNumericString,
+	numberAndNullishNumericString,
+	numberAndNumericString,
+	numericStringAndNullishNumber,
+	numericStringAndNumber,
+} from "./atoms/derived/number";
+import {
+	booleanAndNullishYesNo,
+	booleanAndYesNo,
+	nullableBooleanAndYesNo,
+	nullableYesNoAndBoolean,
+	yesNoAndBoolean,
+	yesNoAndNullishBoolean,
+} from "./atoms/derived/yes-no";
+import {
+	nullableStringAndString,
+	stringAndNullishString,
+} from "./atoms/derived/string";
+import { arrayOfNonEmptyStringsAndNullishArrayOfNullishStrings } from "./molecules/array-of-non-empty-strings-and-nullish-array-of-nullish-strings";
 import {
 	intAndNumericString,
 	numericStringAndInt,
-} from "./molecules/numeric-string-and-int";
-import {
-	numberAndNumericString,
-	numericStringAndNumber,
-} from "./molecules/numeric-string-and-number";
-import {
-	booleanAndYesNo,
-	yesNoAndBoolean,
-} from "./molecules/yes-no-and-boolean";
+	numericStringAndNullishInt,
+	intAndNullishNumericString,
+	nullableIntAndNumericString,
+	nullableNumericStringAndInt,
+} from "./molecules/int-and-numeric-string";
 
 type FieldCodecNamespace = {
 	readonly [key: string]: AnyCodec | NoOpCodec | FieldCodecNamespace;
 };
-
-const nullableDateAndIsoString = toNullable(dateAndIsoString);
-const dateAndNullishIsoString = toNonNullableWithDefault(
-	nullableDateAndIsoString,
-	new Date(),
-);
-const nullableIsoStringAndDate = toNullable(isoStringAndDate);
-const isoStringAndNullishDate = toNonNullableWithDefault(
-	nullableIsoStringAndDate,
-	new Date().toISOString(),
-);
-const nullableStringAndString = toNullable(stringAndNullish);
-const stringAndNullishString = toNonNullableWithDefault(
-	nullableStringAndString,
-	"",
-);
-const nullableNumericStringAndNumber = toNullable(numericStringAndNumber);
-const numericStringAndNullishNumber = toNonNullableWithDefault(
-	nullableNumericStringAndNumber,
-	"0",
-);
-const nullableNumericStringAndInt = toNullable(numericStringAndInt);
-const numericStringAndNullishInt = toNonNullableWithDefault(
-	nullableNumericStringAndInt,
-	"0",
-);
-const nullableNumberAndNumericString = toNullable(numberAndNumericString);
-const numberAndNullishNumericString = toNonNullableWithDefault(
-	nullableNumberAndNumericString,
-	0,
-);
-const nullableYesNoAndBoolean = toNullable(yesNoAndBoolean);
-const yesNoAndNullishBoolean = toNonNullableWithDefault(
-	nullableYesNoAndBoolean,
-	"No",
-);
-const nullableBooleanAndYesNo = toNullable(booleanAndYesNo);
-const booleanAndNullishYesNo = toNonNullableWithDefault(
-	nullableBooleanAndYesNo,
-	false,
-);
-const nullableIntAndNumericString = toNullable(intAndNumericString);
-const intAndNullishNumericString = toNonNullableWithDefault(
-	nullableIntAndNumericString,
-	0,
-);
 
 export const fieldCodecs = {
 	array: {
@@ -112,18 +83,18 @@ export const fieldCodecs = {
 				boolean: nullableYesNoAndBoolean,
 			},
 		},
-		boolean: {
-			and: {
-				yesNo: nullableBooleanAndYesNo,
+			boolean: {
+				and: {
+					yesNo: nullableBooleanAndYesNo,
+				},
+			},
+			int: {
+				and: {
+					numericString: nullableIntAndNumericString,
+				},
 			},
 		},
-		int: {
-			and: {
-				numericString: nullableIntAndNumericString,
-			},
-		},
-	},
-	nonNullable: {
+		nonNullable: {
 		date: {
 			and: {
 				isoString: dateAndIsoString,
