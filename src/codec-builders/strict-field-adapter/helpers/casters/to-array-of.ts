@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import type { SchemaCodec } from "../../../core/types";
+import type { SchemaCodec } from "../../../../core/types";
 
 export function toArrayOf<
 	TInputSchema extends z.ZodTypeAny,
