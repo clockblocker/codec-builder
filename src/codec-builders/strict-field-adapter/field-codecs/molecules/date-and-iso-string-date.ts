@@ -1,5 +1,5 @@
-import { buildNullableOutputAndNullishInputCodec } from "../builders/nullable-output-and-nullish-input";
 import { reverseCodecDirections } from "../helpers/reverse-codec-directions";
+import { toNullableOutputAndNullishInput } from "../helpers/to-nullable-output-and-nullish-input";
 import {
 	dateAndIsoString,
 	dateAndIsoStringDate,
@@ -15,7 +15,7 @@ export {
 };
 
 export const nullableDateAndNullishIsoString =
-	buildNullableOutputAndNullishInputCodec(dateAndIsoString);
+	toNullableOutputAndNullishInput(dateAndIsoString);
 
 export const nullishIsoStringAndNullableDate = reverseCodecDirections(
 	nullableDateAndNullishIsoString,

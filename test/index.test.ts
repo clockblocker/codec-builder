@@ -19,7 +19,7 @@ describe("codecBuilder.helpers", () => {
 	test("namespaces helper builders under helpers", () => {
 		expect(codecBuilder.helpers.buildArrayOfCodec).toBeDefined();
 		expect(
-			codecBuilder.helpers.buildNullableOutputAndNullishInputCodec,
+			codecBuilder.helpers.toNullableOutputAndNullishInput,
 		).toBeDefined();
 		expect(
 			codecBuilder.helpers.toNonNullishWithDefault,
@@ -31,7 +31,7 @@ describe("codecBuilder.helpers", () => {
 		expect(codecBuilder.helpers.pipeCodecs).toBeDefined();
 
 		expect("buildArrayOfCodec" in codecBuilder).toBeFalse();
-		expect("buildNullableOutputAndNullishInputCodec" in codecBuilder).toBeFalse();
+		expect("toNullableOutputAndNullishInput" in codecBuilder).toBeFalse();
 		expect(
 			"toNonNullishWithDefault" in codecBuilder,
 		).toBeFalse();
@@ -70,7 +70,7 @@ describe("codecBuilder.helpers", () => {
 		).toEqual(["a", "b"]);
 
 		const nullableWrappedCodec =
-			codecBuilder.helpers.buildNullableOutputAndNullishInputCodec(
+			codecBuilder.helpers.toNullableOutputAndNullishInput(
 				c.numericString.and.int,
 			);
 		expect(nullableWrappedCodec.fromInput(undefined)).toBeNull();
@@ -85,7 +85,7 @@ describe("codecBuilder.helpers", () => {
 		expect(defaultedWrappedCodec.fromInput(4)).toBe("4");
 
 		const liftedNumericStringCodec =
-			codecBuilder.helpers.buildNullableOutputAndNullishInputCodec(
+			codecBuilder.helpers.toNullableOutputAndNullishInput(
 				c.numericString.and.number,
 			);
 		expect(liftedNumericStringCodec.fromInput(undefined)).toBeNull();
