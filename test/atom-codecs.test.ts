@@ -126,8 +126,8 @@ describe("nullableYesNoAndBoolean", () => {
 describe("stringAndNullish", () => {
 	test("preserves the default-empty-string behavior", () => {
 		expect(stringAndNullish.fromInput(undefined)).toBe("");
-		expect(stringAndNullish.fromOutput("")).toBeUndefined();
-		expect(nullishStringAndString.fromInput("")).toBeUndefined();
+		expect(stringAndNullish.fromOutput("")).toBe("");
+		expect(nullishStringAndString.fromInput("")).toBe("");
 		expect(nullishStringAndString.fromOutput(undefined)).toBe("");
 	});
 });

@@ -178,7 +178,7 @@ describe("codecBuilder.helpers", () => {
 			"a",
 			"",
 		]);
-		expect(arrayOfCodec.fromOutput(["", "a"])).toEqual([undefined, "a"]);
+		expect(arrayOfCodec.fromOutput(["", "a"])).toEqual(["", "a"]);
 
 		const nullableUnionCodec =
 			codecBuilder.helpers.buildNullableUnionAndNullishString([

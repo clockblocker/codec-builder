@@ -10,7 +10,7 @@ const nullishStringSchema = stringSchema.nullish();
 
 export const stringAndNullish = {
 	fromInput: (v) => v ?? "",
-	fromOutput: (v) => (v === "" ? undefined : v),
+	fromOutput: (v) => v,
 	inputSchema: nullishStringSchema,
 	outputSchema: stringSchema,
 } as const satisfies Codec<string, Nullish<string>>;
