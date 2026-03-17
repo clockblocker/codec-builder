@@ -3,6 +3,7 @@
 
 import { z } from "zod";
 import type {
+	CodecPair,
 	NoOpCodec,
 	SchemaCodec,
 	SchemaShapeOf as SharedSchemaShapeOf,
@@ -11,6 +12,10 @@ import type {
 // -- Exports --
 
 export const noOpCodec = { __noOpCodec: true } as const satisfies NoOpCodec;
+
+export type ShapeOfStrictFieldAdapter<TServer extends object> = {
+	[K in KnownKeys<TServer>]-?: StrictFieldAdapterNodeForValue<TServer[K]>;
+};
 
 export type ShapeOfStrictFieldAdapterCodec<TServer extends object> =
 	ShapeOfStrictFieldAdapter<TServer>;
@@ -60,6 +65,53 @@ export function buildStrictFieldAdapterCodec<
 		fromInput,
 		fromOutput,
 	} satisfies SchemaCodec<TInputSchema, typeof outputSchema>;
+}
+
+export function buildStrictFieldAdapter<InputType extends object>(): <
+	const S extends RuntimeCodecShape,
+>(
+	shape: S & ShapeOfStrictFieldAdapter<InputType>,
+) => CodecPair<InputType, OutputOfStrictFieldAdapter<InputType, S>>;
+
+export function buildStrictFieldAdapter<
+	InputType extends object,
+	const S extends RuntimeCodecShape,
+>(
+	shape: S & ShapeOfStrictFieldAdapter<InputType>,
+): CodecPair<InputType, OutputOfStrictFieldAdapter<InputType, S>>;
+
+export function buildStrictFieldAdapter<
+	InputType extends object,
+	const S extends RuntimeCodecShape,
+>(
+	shape?: S & ShapeOfStrictFieldAdapter<InputType>,
+) {
+	if (shape === undefined) {
+		return <const TShape extends RuntimeCodecShape>(
+			deferredShape: TShape & ShapeOfStrictFieldAdapter<InputType>,
+		) => buildStrictFieldAdapter<InputType, TShape>(deferredShape);
+	}
+
+	type OutputType = OutputOfStrictFieldAdapter<InputType, S>;
+
+	const fromInput = (data: InputType): OutputType => {
+		return convertFromInput(
+			shape as RuntimeCodecShape,
+			data as Record<string, unknown>,
+		) as OutputType;
+	};
+
+	const fromOutput = (data: OutputType): InputType => {
+		return convertFromOutput(
+			shape as RuntimeCodecShape,
+			data as Record<string, unknown>,
+		) as InputType;
+	};
+
+	return {
+		fromInput,
+		fromOutput,
+	} satisfies CodecPair<InputType, OutputType>;
 }
 
 // -- Internals --
@@ -129,8 +181,42 @@ type StrictFieldAdapterNodeForValue<TValue> = IsArrayValue<TValue> extends true
 		? ShapeOfStrictFieldAdapter<NonNullable<TValue>>
 		: InputCompatibleCodecForValue<TValue> | NoOpCodec;
 
-type ShapeOfStrictFieldAdapter<TServer extends object> = {
-	[K in KnownKeys<TServer>]-?: StrictFieldAdapterNodeForValue<TServer[K]>;
+type OutputOfStrictFieldAdapterArrayItem<TInputItem, TShapeNode> =
+	TShapeNode extends SchemaCodec<z.ZodTypeAny, infer TSchema>
+		? z.output<TSchema>
+		: TShapeNode extends NoOpCodec
+			? TInputItem
+			: TShapeNode extends RuntimeCodecShape
+				? IsPlainObjectValue<TInputItem> extends true
+					? OutputOfStrictFieldAdapter<NonNullable<TInputItem>, TShapeNode>
+					: never
+				: never;
+
+type OutputOfStrictFieldAdapterNode<TInputValue, TShapeNode> =
+	TShapeNode extends SchemaCodec<z.ZodTypeAny, infer TSchema>
+		? z.output<TSchema>
+		: TShapeNode extends NoOpCodec
+			? TInputValue
+			: TShapeNode extends ArrayCodecShape<infer TItemShape>
+				? Array<
+						OutputOfStrictFieldAdapterArrayItem<
+							ArrayItemOfValue<TInputValue>,
+							TItemShape
+						>
+					>
+				: TShapeNode extends RuntimeCodecShape
+					? IsPlainObjectValue<TInputValue> extends true
+						? OutputOfStrictFieldAdapter<NonNullable<TInputValue>, TShapeNode>
+						: never
+					: never;
+
+type OutputOfStrictFieldAdapter<
+	TInput extends object,
+	S extends RuntimeCodecShape,
+> = {
+	[K in KnownKeys<S>]: K extends keyof TInput
+		? OutputOfStrictFieldAdapterNode<TInput[K], S[K]>
+		: never;
 };
 
 type SchemaShapeOf<TSchema extends z.AnyZodObject> =

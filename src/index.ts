@@ -1,6 +1,7 @@
 import { buildReshapeCodec } from "./codec-builders/build-reshape-codec";
 import {
 	arrayOfCodecShapes,
+	buildStrictFieldAdapter,
 	buildStrictFieldAdapterCodec,
 } from "./codec-builders/strict-field-adapter/build-strict-field-adapter-codec";
 
@@ -24,8 +25,13 @@ export const codecBuilder = {
 		buildFilteredNullishArrayCodec,
 		pipeCodecs,
 	},
+	buildStrictFieldAdapter,
 	buildStrictFieldAdapterCodec,
 	buildReshapeCodec,
 } as const;
 
 export type { Codec } from "./core/types";
+export type {
+	ShapeOfStrictFieldAdapter,
+	ShapeOfStrictFieldAdapterCodec,
+} from "./codec-builders/strict-field-adapter/build-strict-field-adapter-codec";

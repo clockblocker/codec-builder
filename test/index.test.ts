@@ -111,6 +111,7 @@ describe("codecBuilder.helpers", () => {
 	});
 
 	test("namespaces helper builders under helpers", () => {
+		expect(codecBuilder.buildStrictFieldAdapter).toBeDefined();
 		expect(codecBuilder.helpers.toArrayOf).toBeDefined();
 		expect(codecBuilder.helpers.toNullable).toBeDefined();
 		expect(codecBuilder.helpers.toNonNullableWithDefault).toBeDefined();
@@ -126,6 +127,46 @@ describe("codecBuilder.helpers", () => {
 		expect("buildNullableUnionAndNullishString" in codecBuilder).toBeFalse();
 		expect("buildFilteredNullishArrayCodec" in codecBuilder).toBeFalse();
 		expect("pipeCodecs" in codecBuilder).toBeFalse();
+	});
+
+	test("builds a strict field adapter without schemas", () => {
+		const adapter = codecBuilder.buildStrictFieldAdapter<{
+			id: number;
+			dates: string[];
+			nested: { enabled: "Yes" | "No" };
+		}>()({
+			id: codecBuilder.fieldCodec.nonNullable.numericString.and.number,
+			dates: codecBuilder.fieldCodec.arrayOf(
+				codecBuilder.fieldCodec.nonNullable.date.and.isoString,
+			),
+			nested: {
+				enabled: codecBuilder.fieldCodec.nonNullable.boolean.and.yesNo,
+			},
+		});
+
+		expect(
+			adapter.fromInput({
+				id: 42,
+				dates: ["2024-01-02T03:04:05.000Z"],
+				nested: { enabled: "Yes" },
+			}),
+		).toEqual({
+			id: "42",
+			dates: [new Date("2024-01-02T03:04:05.000Z")],
+			nested: { enabled: true },
+		});
+
+		expect(
+			adapter.fromOutput({
+				id: "42",
+				dates: [new Date("2024-01-02T03:04:05.000Z")],
+				nested: { enabled: true },
+			}),
+		).toEqual({
+			id: 42,
+			dates: ["2024-01-02T03:04:05.000Z"],
+			nested: { enabled: "Yes" },
+		});
 	});
 
 	test("exposes working helper builders through the nested helpers object", () => {

@@ -1,7 +1,9 @@
 import { z } from "zod";
 import {
 	arrayOfCodecShapes,
+	buildStrictFieldAdapter,
 	buildStrictFieldAdapterCodec,
+	type ShapeOfStrictFieldAdapter,
 	noOpCodec,
 	type ShapeOfStrictFieldAdapterCodec,
 } from "../src/codec-builders/strict-field-adapter/build-strict-field-adapter-codec";
@@ -45,6 +47,11 @@ const widened = buildStrictFieldAdapterCodec(ClientSchemaWidened(), {
 	counterparties: codecArrayOf(counterpartyCodec),
 });
 
+const widenedAdapter = buildStrictFieldAdapter<Client>()({
+	id: noOpCodec,
+	counterparties: codecArrayOf(counterpartyCodec),
+});
+
 buildStrictFieldAdapterCodec(ClientSchemaWidened(), {
 	// @ts-expect-error widened scalar number field cannot use yes/no codec
 	id: yesNoBool,
@@ -60,6 +67,9 @@ buildStrictFieldAdapterCodec(ClientSchemaWidened(), {
 type WidenedOutput = z.infer<typeof widened.outputSchema>;
 const widenedArrayCheck: WidenedOutput["counterparties"] = [{ id: 1 }];
 type CounterpartyId = WidenedOutput["counterparties"][number]["id"];
+type WidenedAdapterOutput = ReturnType<typeof widenedAdapter.fromInput>;
+type AdapterCounterpartyId =
+	WidenedAdapterOutput["counterparties"][number]["id"];
 
 type IsAny<T> = 0 extends 1 & T ? true : false;
 type Assert<T extends true> = T;
@@ -68,6 +78,10 @@ type AssertFalse<T extends false> = T;
 type _counterpartyIdIsNotAny = AssertFalse<IsAny<CounterpartyId>>;
 type _counterpartyIdMatches = Assert<
 	CounterpartyId extends number | null ? true : false
+>;
+type _adapterCounterpartyIdIsNotAny = AssertFalse<IsAny<AdapterCounterpartyId>>;
+type _adapterCounterpartyIdMatches = Assert<
+	AdapterCounterpartyId extends number | null ? true : false
 >;
 
 const strict = z.object({
@@ -80,6 +94,16 @@ buildStrictFieldAdapterCodec(strict, {
 });
 
 buildStrictFieldAdapterCodec(strict, {
+	// @ts-expect-error scalar field cannot use array shape
+	id: codecArrayOf(counterpartyCodec),
+});
+
+buildStrictFieldAdapter<{ id: number }>()({
+	// @ts-expect-error number field cannot use yes/no codec
+	id: yesNoBool,
+});
+
+buildStrictFieldAdapter<{ id: number }>()({
 	// @ts-expect-error scalar field cannot use array shape
 	id: codecArrayOf(counterpartyCodec),
 });
@@ -138,6 +162,11 @@ buildStrictFieldAdapterCodec(strictArray, {
 	dates: codecArrayOf(yesNoBool),
 });
 
+buildStrictFieldAdapter<{ dates: number[] }>()({
+	// @ts-expect-error number[] item cannot use yes/no codec
+	dates: codecArrayOf(yesNoBool),
+});
+
 const strictNested = z.object({
 	a: z.object({
 		b: z.number(),
@@ -174,6 +203,11 @@ const questionnaireAnswersItemShape = {
 	QuestionnaireServer["answers"][number]
 >;
 
+const questionnaireAnswersItemAdapterShape = {
+	ans_to_q2: noOpCodec,
+	comment_to_q2_: noOpCodec,
+} satisfies ShapeOfStrictFieldAdapter<QuestionnaireServer["answers"][number]>;
+
 const questionnaireAnswersItemShapeWithWrongKey = {
 	ans_to_q2: noOpCodec,
 	comment_to_q2_: noOpCodec,
@@ -188,5 +222,6 @@ void strictArrayMappedCheck;
 void pipedDateToIsoInput;
 void pipedDateToIsoOutput;
 void questionnaireAnswersItemShape;
+void questionnaireAnswersItemAdapterShape;
 void questionnaireAnswersItemShapeWithWrongKey;
 void publicCodec;
