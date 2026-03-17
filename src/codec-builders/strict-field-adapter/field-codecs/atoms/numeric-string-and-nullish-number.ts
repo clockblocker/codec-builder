@@ -1,7 +1,8 @@
 import { z } from "zod";
-import { mapNullishToNullable } from "../../../../../core/helpers/nullish-utils";
-import { reverseCodecDirections } from "../../../../../core/helpers/reverse-codec-directions";
-import type { Codec } from "../../../../../core/types";
+import type { Nullish } from "../../../../core/helpers/helper-types";
+import { mapNullishToNullable } from "../../../../core/helpers/nullish-utils";
+import { reverseCodecDirections } from "../../../../core/helpers/reverse-codec-directions";
+import type { Codec } from "../../../../core/types";
 
 const numericStringSchema = z
 	.string()
@@ -17,10 +18,7 @@ const nullableNumericStringAndNullishNumber = {
 	fromOutput: (v) => mapNullishToNullable(v, Number),
 	inputSchema: nullishNumberSchema,
 	outputSchema: nullableNumericStringSchema,
-} as const satisfies Codec<
-	typeof nullishNumberSchema,
-	typeof nullableNumericStringSchema
->;
+} as const satisfies Codec<Nullish<number>, string | null>;
 
 export const numericStringAndNullishNumber =
 	nullableNumericStringAndNullishNumber;

@@ -68,3 +68,6 @@ export const codecBuilder = {
 	buildStrictFieldAdapterCodec,
 	buildReshapeCodec,
 } as const;
+
+export type { Nullish } from "./core/helpers/helper-types";
+export type { AnyCodec, Codec, NoOpCodec, SchemaCodec } from "./core/types";

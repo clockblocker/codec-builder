@@ -1,7 +1,8 @@
 import { z } from "zod";
-import { mapNullishToNullable } from "../../../../../core/helpers/nullish-utils";
-import { reverseCodecDirections } from "../../../../../core/helpers/reverse-codec-directions";
-import type { Codec } from "../../../../../core/types";
+import type { Nullish } from "../../../../core/helpers/helper-types";
+import { mapNullishToNullable } from "../../../../core/helpers/nullish-utils";
+import { reverseCodecDirections } from "../../../../core/helpers/reverse-codec-directions";
+import type { Codec } from "../../../../core/types";
 
 const isoStringDateSchema = z.string().date();
 
@@ -14,10 +15,7 @@ const nullableDateAndNullishIsoStringDate = {
 		mapNullishToNullable(v, (value) => value.toISOString().slice(0, 10)),
 	inputSchema: nullishIsoStringDateSchema,
 	outputSchema: nullableDateSchema,
-} as const satisfies Codec<
-	typeof nullishIsoStringDateSchema,
-	typeof nullableDateSchema
->;
+} as const satisfies Codec<Nullish<string>, Date | null>;
 
 const nullishIsoStringDateAndNullableDate = reverseCodecDirections(
 	nullableDateAndNullishIsoStringDate,

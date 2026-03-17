@@ -6,7 +6,7 @@ import {
 	type ShapeOfStrictFieldAdapterCodec,
 } from "../src/codec-builders/strict-field-adapter/build-strict-field-adapter-codec";
 import { pipeCodecs } from "../src/core/pipe-codecs";
-import type { Codec } from "../src/core/types";
+import type { Codec, SchemaCodec } from "../src/core/types";
 import { yesNoAndBoolean } from "../src/codec-builders/strict-field-adapter/field-codecs/atoms/yes-no-and-boolean";
 
 const yesNoBool = yesNoAndBoolean;
@@ -89,7 +89,7 @@ const numberOrStringInputCodec = {
 	fromOutput: (v: string) => Number(v),
 	inputSchema: z.union([z.number(), z.string()]),
 	outputSchema: z.string(),
-} satisfies Codec<z.ZodUnion<[z.ZodNumber, z.ZodString]>, z.ZodString>;
+} satisfies SchemaCodec<z.ZodUnion<[z.ZodNumber, z.ZodString]>, z.ZodString>;
 
 buildStrictFieldAdapterCodec(strict, {
 	id: numberOrStringInputCodec,
@@ -104,14 +104,21 @@ const numberToDateCodec = {
 	fromOutput: (v: Date) => v.getTime(),
 	inputSchema: z.number(),
 	outputSchema: z.date(),
-} satisfies Codec<z.ZodNumber, z.ZodDate>;
+} satisfies SchemaCodec<z.ZodNumber, z.ZodDate>;
 
 const dateToIsoCodec = {
 	fromInput: (v: Date) => v.toISOString(),
 	fromOutput: (v: string) => new Date(v),
 	inputSchema: z.date(),
 	outputSchema: z.string(),
-} satisfies Codec<z.ZodDate, z.ZodString>;
+} satisfies SchemaCodec<z.ZodDate, z.ZodString>;
+
+const publicCodec = {
+	fromInput: (v: number) => String(v),
+	fromOutput: (v: string) => Number(v),
+	inputSchema: z.number(),
+	outputSchema: z.string(),
+} satisfies Codec<number, string>;
 
 const pipedDateToIsoCodec = pipeCodecs(numberToDateCodec, dateToIsoCodec);
 type PipedDateToIsoInput = z.infer<typeof pipedDateToIsoCodec.inputSchema>;
@@ -178,3 +185,4 @@ void pipedDateToIsoInput;
 void pipedDateToIsoOutput;
 void questionnaireAnswersItemShape;
 void questionnaireAnswersItemShapeWithWrongKey;
+void publicCodec;

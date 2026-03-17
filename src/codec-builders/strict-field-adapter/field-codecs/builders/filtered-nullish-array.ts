@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import type { Codec } from "../../../../../core/types";
+import type { SchemaCodec } from "../../../../core/types";
 
 export function buildFilteredNullishArrayCodec<
 	TInputItemSchema extends z.ZodTypeAny,
@@ -17,5 +17,5 @@ export function buildFilteredNullishArrayCodec<
 		fromOutput: output => output as z.output<TInputItemSchema>[],
 		inputSchema,
 		outputSchema,
-	} as const satisfies Codec<typeof inputSchema, typeof outputSchema>;
+	} as const satisfies SchemaCodec<typeof inputSchema, typeof outputSchema>;
 }

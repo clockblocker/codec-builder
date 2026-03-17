@@ -11,13 +11,33 @@ export type CodecPair<I, O> = {
 
 // Prefer naming codecs like: OutputAndInput for consistent readability.
 export type Codec<
-	TInputSchema extends z.ZodTypeAny = z.ZodTypeAny,
-	TOutputSchema extends z.ZodTypeAny = z.ZodTypeAny,
+	I = unknown,
+	O = unknown,
+	TInputSchema extends z.ZodType<I, z.ZodTypeDef, any> = z.ZodType<
+		I,
+		z.ZodTypeDef,
+		any
+	>,
+	TOutputSchema extends z.ZodType<O, z.ZodTypeDef, any> = z.ZodType<
+		O,
+		z.ZodTypeDef,
+		any
+	>,
 > = Prettify<
-	CodecPair<z.output<TInputSchema>, z.output<TOutputSchema>> & {
+	CodecPair<I, O> & {
 		inputSchema: TInputSchema;
 		outputSchema: TOutputSchema;
 	}
+>;
+
+export type SchemaCodec<
+	TInputSchema extends z.ZodTypeAny = z.ZodTypeAny,
+	TOutputSchema extends z.ZodTypeAny = z.ZodTypeAny,
+> = Codec<
+	z.output<TInputSchema>,
+	z.output<TOutputSchema>,
+	TInputSchema,
+	TOutputSchema
 >;
 
 export type NoOpCodec = {
@@ -29,4 +49,4 @@ export type SchemaShapeOf<TSchema extends z.AnyZodObject> =
 		? TShape
 		: never;
 
-export type AnyCodec = Codec<z.ZodTypeAny, z.ZodTypeAny>;
+export type AnyCodec = Codec<any, any>;

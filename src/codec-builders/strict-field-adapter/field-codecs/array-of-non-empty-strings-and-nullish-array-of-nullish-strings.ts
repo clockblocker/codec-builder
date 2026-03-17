@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import type { Nullish } from "../../../core/helpers/helper-types";
 import { pipeCodecs } from "../../../core/pipe-codecs";
 import type { Codec } from "../../../core/types";
 import { emptiableStringAndNullishString } from "./atoms/nullish-string-and-emptiable-string";
@@ -23,4 +24,4 @@ export const arrayOfNonEmptyStringsAndNullishArrayOfNullishStrings = {
 	fromOutput: fromArrayOfNullishStrings,
 	inputSchema,
 	outputSchema,
-} as const satisfies Codec<typeof inputSchema, typeof outputSchema>;
+} as const satisfies Codec<Nullish<Nullish<string>[]>, string[]>;

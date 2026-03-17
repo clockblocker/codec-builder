@@ -3,7 +3,7 @@
 
 import type { z } from "zod";
 
-import type { Codec, CodecPair } from "./types";
+import type { CodecPair, SchemaCodec } from "./types";
 
 export function pipeCodecs<
 	TInputSchema extends z.ZodTypeAny,
@@ -15,9 +15,9 @@ export function pipeCodecs<
 	>,
 	TOutputSchema extends z.ZodTypeAny,
 >(
-	ab: Codec<TInputSchema, TIntermediateOutputSchema>,
-	bc: Codec<TIntermediateInputSchema, TOutputSchema>,
-): Codec<TInputSchema, TOutputSchema>;
+	ab: SchemaCodec<TInputSchema, TIntermediateOutputSchema>,
+	bc: SchemaCodec<TIntermediateInputSchema, TOutputSchema>,
+): SchemaCodec<TInputSchema, TOutputSchema>;
 export function pipeCodecs<A, B, C>(
 	ab: CodecPair<A, B>,
 	bc: CodecPair<B, C>,

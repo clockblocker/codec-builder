@@ -1,11 +1,11 @@
 import { z } from "zod";
 
-import type { Nullish } from "../../../../../core/helpers/helper-types";
+import type { Nullish } from "../../../../core/helpers/helper-types";
 import {
 	makeNullableFromNullish,
 	mapNullishToNullable,
-} from "../../../../../core/helpers/nullish-utils";
-import type { Codec } from "../../../../../core/types";
+} from "../../../../core/helpers/nullish-utils";
+import type { SchemaCodec } from "../../../../core/types";
 
 export function buildNullableUnionAndNullishString<
 	const TValues extends NonEmptyStringTuple,
@@ -26,7 +26,7 @@ export function buildNullableUnionAndNullishString<
 			nullableStringFromNullableUnion(v),
 		inputSchema,
 		outputSchema,
-	} satisfies Codec<typeof inputSchema, typeof outputSchema>;
+	} satisfies SchemaCodec<typeof inputSchema, typeof outputSchema>;
 }
 
 // -- Internals --

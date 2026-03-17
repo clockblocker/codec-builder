@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { Codec, SchemaShapeOf } from "../core/types";
+import type { SchemaCodec, SchemaShapeOf } from "../core/types";
 
 export function buildReshapeCodec<
 	TInputSchema extends z.AnyZodObject,
@@ -83,7 +83,7 @@ export function buildReshapeCodec<
 		outputSchema,
 		fromInput,
 		fromOutput,
-	} satisfies Codec<TInputSchema, typeof outputSchema>;
+	} satisfies SchemaCodec<TInputSchema, typeof outputSchema>;
 }
 
 // -- Internals --
