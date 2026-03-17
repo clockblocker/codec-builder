@@ -5,9 +5,18 @@ import { reverseCodecDirections } from "../../../../../core/helpers/reverse-code
 import type { Codec } from "../../../../../core/types";
 
 const yesNoSchema = z.enum(["Yes", "No"]);
+const booleanSchema = z.boolean();
 const nullableYesNoSchema = yesNoSchema.nullable();
+const nullishBooleanSchema = booleanSchema.nullish();
 
-const nullishBooleanSchema = z.boolean().nullish();
+export const yesNoAndBoolean = {
+	fromInput: (v) => (v ? "Yes" : "No"),
+	fromOutput: (v) => v === "Yes",
+	inputSchema: booleanSchema,
+	outputSchema: yesNoSchema,
+} as const satisfies Codec<"Yes" | "No", boolean>;
+
+export const booleanAndYesNo = reverseCodecDirections(yesNoAndBoolean);
 
 export const nullableYesNoAndNullishBoolean = {
 	fromInput: (v) => mapNullishToNullable(v, (value) => (value ? "Yes" : "No")),
@@ -20,5 +29,5 @@ export const nullishBooleanAndNullableYesNo = reverseCodecDirections(
 	nullableYesNoAndNullishBoolean,
 );
 
-export const yesNoAndBoolean = nullableYesNoAndNullishBoolean;
-export const booleanAndYesNo = nullishBooleanAndNullableYesNo;
+export const yesNoAndNullishBoolean = nullableYesNoAndNullishBoolean;
+export const booleanAndNullableYesNo = nullishBooleanAndNullableYesNo;

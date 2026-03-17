@@ -1,20 +1,42 @@
 import { describe, expect, test } from "bun:test";
 import {
+	dateAndIsoString,
+	isoStringAndDate,
 	nullableDateAndNullishIsoString,
 	nullishIsoStringAndNullableDate,
 } from "../src/codec-builders/strict-field-adapter/field-codecs/molecules/atoms/date-and-iso-string-date";
 import {
-	emptiableStringAndNullishString,
-	nullishStringAndEmptiableString,
+	nullishStringAndString,
+	stringAndNullish,
 } from "../src/codec-builders/strict-field-adapter/field-codecs/molecules/atoms/nullish-string-and-emptiable-string";
 import {
+	numericStringAndNumber,
 	nullableNumericStringAndNullishNumber,
 	nullishNumberAndNullableNumericString,
+	numberAndNullishNumericString,
+	numberAndNumericString,
 } from "../src/codec-builders/strict-field-adapter/field-codecs/molecules/atoms/numeric-string-and-nullish-number";
 import {
+	booleanAndYesNo,
 	nullableYesNoAndNullishBoolean,
 	nullishBooleanAndNullableYesNo,
+	yesNoAndBoolean,
 } from "../src/codec-builders/strict-field-adapter/field-codecs/molecules/atoms/yes-no-and-boolean";
+
+describe("numericStringAndNumber", () => {
+	test("uses strict non-nullable schemas in both directions", () => {
+		expect(numericStringAndNumber.fromInput(42)).toBe("42");
+		expect(numberAndNumericString.fromInput("42")).toBe(42);
+		expect(() => numericStringAndNumber.inputSchema.parse(undefined)).toThrow();
+		expect(() => numberAndNumericString.inputSchema.parse(undefined)).toThrow();
+	});
+
+	test("defaults nullish numeric strings to zero only for the number-facing codec", () => {
+		expect(numberAndNullishNumericString.fromInput(undefined)).toBe(0);
+		expect(numberAndNullishNumericString.fromInput(null)).toBe(0);
+		expect(numberAndNullishNumericString.fromInput("42")).toBe(42);
+	});
+});
 
 describe("nullableNumericStringAndNullishNumber", () => {
 	test("maps nullish input to null and uses a nullable output schema", () => {
@@ -34,6 +56,16 @@ describe("nullableNumericStringAndNullishNumber", () => {
 		expect(
 			nullishNumberAndNullableNumericString.outputSchema.parse(undefined),
 		).toBeUndefined();
+	});
+});
+
+describe("dateAndIsoString", () => {
+	test("uses strict non-nullable schemas in both directions", () => {
+		const date = dateAndIsoString.fromInput("2024-01-01");
+		expect(date).toBeInstanceOf(Date);
+		expect(isoStringAndDate.fromInput(date)).toBe("2024-01-01T00:00:00.000Z");
+		expect(() => dateAndIsoString.inputSchema.parse(undefined)).toThrow();
+		expect(() => isoStringAndDate.inputSchema.parse(undefined)).toThrow();
 	});
 });
 
@@ -58,6 +90,15 @@ describe("nullableDateAndNullishIsoString", () => {
 	});
 });
 
+describe("yesNoAndBoolean", () => {
+	test("uses strict non-nullable schemas in both directions", () => {
+		expect(yesNoAndBoolean.fromInput(true)).toBe("Yes");
+		expect(booleanAndYesNo.fromInput("No")).toBe(false);
+		expect(() => yesNoAndBoolean.inputSchema.parse(undefined)).toThrow();
+		expect(() => booleanAndYesNo.inputSchema.parse(undefined)).toThrow();
+	});
+});
+
 describe("nullableYesNoAndNullishBoolean", () => {
 	test("maps nullish booleans to null and uses a nullable yes/no output schema", () => {
 		expect(nullableYesNoAndNullishBoolean.fromInput(undefined)).toBeNull();
@@ -79,11 +120,11 @@ describe("nullableYesNoAndNullishBoolean", () => {
 	});
 });
 
-describe("nullishStringAndEmptiableString", () => {
-	test("preserves the special emptiable-string behavior", () => {
-		expect(emptiableStringAndNullishString.fromInput(undefined)).toBe("");
-		expect(emptiableStringAndNullishString.fromOutput("")).toBeUndefined();
-		expect(nullishStringAndEmptiableString.fromInput("")).toBeUndefined();
-		expect(nullishStringAndEmptiableString.fromOutput(undefined)).toBe("");
+describe("stringAndNullish", () => {
+	test("preserves the default-empty-string behavior", () => {
+		expect(stringAndNullish.fromInput(undefined)).toBe("");
+		expect(stringAndNullish.fromOutput("")).toBeUndefined();
+		expect(nullishStringAndString.fromInput("")).toBeUndefined();
+		expect(nullishStringAndString.fromOutput(undefined)).toBe("");
 	});
 });

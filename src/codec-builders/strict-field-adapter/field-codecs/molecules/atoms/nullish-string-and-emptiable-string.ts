@@ -3,17 +3,19 @@ import type { Nullish } from "../../../../../core/helpers/helper-types";
 import { reverseCodecDirections } from "../../../../../core/helpers/reverse-codec-directions";
 import type { Codec } from "../../../../../core/types";
 
-const emptiableStringSchema = z.string();
+const stringSchema = z.string();
+const nullishStringSchema = stringSchema.nullish();
 
-const nullishStringSchema = z.string().nullish();
-
-export const emptiableStringAndNullishString = {
+export const stringAndNullish = {
 	fromInput: (v) => v ?? "",
 	fromOutput: (v) => (v === "" ? undefined : v),
 	inputSchema: nullishStringSchema,
-	outputSchema: emptiableStringSchema,
+	outputSchema: stringSchema,
 } as const satisfies Codec<string, Nullish<string>>;
 
-export const nullishStringAndEmptiableString = reverseCodecDirections(
-	emptiableStringAndNullishString,
+export const nullishStringAndString = reverseCodecDirections(
+	stringAndNullish,
 );
+
+export const emptiableStringAndNullishString = stringAndNullish;
+export const nullishStringAndEmptiableString = nullishStringAndString;

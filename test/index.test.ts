@@ -7,16 +7,12 @@ describe("codecBuilder.helpers", () => {
 	const c = codecBuilder.fieldCodec;
 
 	test("namespaces field codecs by value family and nullability", () => {
-		expect(c.emptiableString.and.nullish).toBeDefined();
-		expect(
-			c.numericString.nullable.and.nullishInt,
-		).toBeDefined();
-		expect(
-			c.date.nullable.and.nullishIsoString,
-		).toBeDefined();
-		expect(
-			"emptiableStringAndNullishString" in c,
-		).toBeFalse();
+		expect(c.string.and.nullish).toBeDefined();
+		expect(c.number.and.nullishNumericString).toBeDefined();
+		expect(c.numericString.and.int).toBeDefined();
+		expect(c.date.and.isoString).toBeDefined();
+		expect(c.yesNo.and.boolean).toBeDefined();
+		expect("emptiableStringAndNullishString" in c).toBeFalse();
 		expect("numericStringAndInt" in c).toBeFalse();
 	});
 
@@ -40,7 +36,7 @@ describe("codecBuilder.helpers", () => {
 
 	test("exposes working helper builders through the nested helpers object", () => {
 		const arrayOfCodec = codecBuilder.helpers.buildArrayOfCodec(
-			c.emptiableString.and.nullish,
+			c.string.and.nullish,
 		);
 		expect(arrayOfCodec.fromInput([undefined, "a", null])).toEqual([
 			"",
@@ -51,7 +47,7 @@ describe("codecBuilder.helpers", () => {
 
 		const arrayAndNullishArrayCodec =
 			codecBuilder.helpers.buildArrayAndNullishArrayCodec(
-				c.emptiableString.and.nullish,
+				c.string.and.nullish,
 			);
 		expect(arrayAndNullishArrayCodec.fromInput(undefined)).toEqual([]);
 		expect(arrayAndNullishArrayCodec.fromInput(["a", null])).toEqual(["a", ""]);
@@ -75,7 +71,7 @@ describe("codecBuilder.helpers", () => {
 		).toEqual(["a", "b"]);
 
 		const nullishWrappedCodec = codecBuilder.helpers.buildWithNullishFiltered(
-			c.numericString.nullable.and.nullishInt,
+			c.numericString.and.int,
 		);
 		expect(nullishWrappedCodec.fromInput(undefined)).toBeNull();
 		expect(nullishWrappedCodec.fromOutput(undefined)).toBeNull();

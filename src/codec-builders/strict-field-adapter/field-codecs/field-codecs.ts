@@ -1,11 +1,35 @@
 import type { AnyCodec, NoOpCodec } from "../../../core/types";
 import { noOpCodec } from "../build-strict-field-adapter-codec";
 import { arrayOfNonEmptyStringsAndNullishArrayOfNullishStrings } from "./molecules/array-of-non-empty-strings-and-nullish-array-of-nullish-strings";
-import { nullableDateAndNullishIsoString, nullishIsoStringAndNullableDate } from "./molecules/atoms/date-and-iso-string-date";
-import { emptiableStringAndNullishString, nullishStringAndEmptiableString } from "./molecules/atoms/nullish-string-and-emptiable-string";
-import { nullableNumericStringAndNullishNumber, nullishNumberAndNullableNumericString } from "./molecules/atoms/numeric-string-and-nullish-number";
-import { nullableYesNoAndNullishBoolean, nullishBooleanAndNullableYesNo } from "./molecules/atoms/yes-no-and-boolean";
-import { nullableNumericStringAndNullishInt, nullishIntAndNullableNumericString } from "./molecules/numeric-string-and-int";
+import {
+	dateAndIsoString,
+	isoStringAndDate,
+	nullableDateAndNullishIsoString,
+	nullishIsoStringAndNullableDate,
+} from "./molecules/atoms/date-and-iso-string-date";
+import {
+	nullishStringAndString,
+	stringAndNullish,
+} from "./molecules/atoms/nullish-string-and-emptiable-string";
+import {
+	nullableNumericStringAndNullishNumber,
+	nullishNumberAndNullableNumericString,
+	numberAndNullishNumericString,
+	numberAndNumericString,
+	numericStringAndNumber,
+} from "./molecules/atoms/numeric-string-and-nullish-number";
+import {
+	booleanAndYesNo,
+	nullableYesNoAndNullishBoolean,
+	nullishBooleanAndNullableYesNo,
+	yesNoAndBoolean,
+} from "./molecules/atoms/yes-no-and-boolean";
+import {
+	intAndNumericString,
+	nullableNumericStringAndNullishInt,
+	nullishIntAndNullableNumericString,
+	numericStringAndInt,
+} from "./molecules/numeric-string-and-int";
 
 type FieldCodecNamespace = {
 	readonly [key: string]: AnyCodec | NoOpCodec | FieldCodecNamespace;
@@ -21,6 +45,9 @@ export const fieldCodecs = {
 		},
 	},
 	date: {
+		and: {
+			isoString: dateAndIsoString,
+		},
 		nullable: {
 			and: {
 				nullishIsoString: nullableDateAndNullishIsoString,
@@ -28,23 +55,30 @@ export const fieldCodecs = {
 		},
 	},
 	isoString: {
+		and: {
+			date: isoStringAndDate,
+		},
 		nullish: {
 			and: {
 				nullableDate: nullishIsoStringAndNullableDate,
 			},
 		},
 	},
-	emptiableString: {
+	string: {
 		and: {
-			nullish: emptiableStringAndNullishString,
+			nullish: stringAndNullish,
 		},
-		nullish: {
-			and: {
-				emptiable: nullishStringAndEmptiableString,
-			},
+	},
+	nullishString: {
+		and: {
+			string: nullishStringAndString,
 		},
 	},
 	numericString: {
+		and: {
+			number: numericStringAndNumber,
+			int: numericStringAndInt,
+		},
 		nullable: {
 			and: {
 				nullishNumber: nullableNumericStringAndNullishNumber,
@@ -53,6 +87,10 @@ export const fieldCodecs = {
 		},
 	},
 	number: {
+		and: {
+			numericString: numberAndNumericString,
+			nullishNumericString: numberAndNullishNumericString,
+		},
 		nullish: {
 			and: {
 				nullableNumericString: nullishNumberAndNullableNumericString,
@@ -60,6 +98,9 @@ export const fieldCodecs = {
 		},
 	},
 	yesNo: {
+		and: {
+			boolean: yesNoAndBoolean,
+		},
 		nullable: {
 			and: {
 				nullishBoolean: nullableYesNoAndNullishBoolean,
@@ -67,6 +108,9 @@ export const fieldCodecs = {
 		},
 	},
 	boolean: {
+		and: {
+			yesNo: booleanAndYesNo,
+		},
 		nullish: {
 			and: {
 				nullableYesNo: nullishBooleanAndNullableYesNo,
@@ -74,6 +118,9 @@ export const fieldCodecs = {
 		},
 	},
 	int: {
+		and: {
+			numericString: intAndNumericString,
+		},
 		nullish: {
 			and: {
 				nullableNumericString: nullishIntAndNullableNumericString,
