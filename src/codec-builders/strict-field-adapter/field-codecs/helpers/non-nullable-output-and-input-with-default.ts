@@ -2,7 +2,7 @@
 import type { z } from "zod";
 import type { SchemaCodec } from "../../../../core/types";
 
-export function buildNonNullableOutputAndInputWithDefaultCodec<
+export function toNonNullishWithDefault<
 	TInputSchema extends z.ZodTypeAny,
 	TOutputSchema extends z.ZodTypeAny,
 >(

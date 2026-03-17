@@ -6,10 +6,10 @@ import {
 
 import { buildArrayOfCodec } from "./codec-builders/strict-field-adapter/field-codecs/builders/array-of";
 import { buildFilteredNullishArrayCodec } from "./codec-builders/strict-field-adapter/field-codecs/builders/filtered-nullish-array";
-import { buildNonNullableOutputAndInputWithDefaultCodec } from "./codec-builders/strict-field-adapter/field-codecs/helpers/non-nullable-output-and-input-with-default";
 import { buildNullableOutputAndNullishInputCodec } from "./codec-builders/strict-field-adapter/field-codecs/builders/nullable-output-and-nullish-input";
 import { buildNullableUnionAndNullishString } from "./codec-builders/strict-field-adapter/field-codecs/builders/union-and-string";
 import { fieldCodecs } from "./codec-builders/strict-field-adapter/field-codecs/field-codecs";
+import { toNonNullishWithDefault } from "./codec-builders/strict-field-adapter/field-codecs/helpers/non-nullable-output-and-input-with-default";
 import { pipeCodecs } from "./core/pipe-codecs";
 
 export const codecBuilder = {
@@ -17,7 +17,7 @@ export const codecBuilder = {
 	helpers: {
 		buildArrayOfCodec,
 		buildNullableOutputAndNullishInputCodec,
-		buildNonNullableOutputAndInputWithDefaultCodec,
+		toNonNullishWithDefault,
 		buildNullableUnionAndNullishString,
 		buildFilteredNullishArrayCodec,
 		pipeCodecs,
