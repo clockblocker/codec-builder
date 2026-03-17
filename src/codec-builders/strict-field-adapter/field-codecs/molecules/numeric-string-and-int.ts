@@ -1,12 +1,12 @@
 import { z } from "zod";
 import type { Nullish } from "../../../../core/helpers/nullish-utils";
-import { reverseCodecDirections } from "../builders/reverse-codec-directions";
 import { pipeCodecs } from "../../../../core/pipe-codecs";
 import type { Codec, SchemaCodec } from "../../../../core/types";
+import { reverseCodecDirections } from "../builders/reverse-codec-directions";
 import {
 	numericStringAndNullishNumber,
 	numericStringAndNumber,
-} from "./atoms/numeric-string-and-nullish-number";
+} from "./numeric-string-and-number";
 
 const intSchema = z.number().int();
 const numberSchema = z.number();
@@ -27,7 +27,10 @@ const intAndNullishNumber = {
 	fromOutput: (v) => v,
 	inputSchema: nullishNumberSchema,
 	outputSchema: nullishIntSchema,
-} as const satisfies SchemaCodec<typeof nullishNumberSchema, typeof nullishIntSchema>;
+} as const satisfies SchemaCodec<
+	typeof nullishNumberSchema,
+	typeof nullishIntSchema
+>;
 
 const nullishNumberAndInt = reverseCodecDirections(intAndNullishNumber);
 

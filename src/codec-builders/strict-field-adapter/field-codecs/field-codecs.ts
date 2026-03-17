@@ -6,24 +6,24 @@ import {
 	isoStringAndDate,
 	nullableDateAndNullishIsoString,
 	nullishIsoStringAndNullableDate,
-} from "./molecules/atoms/date-and-iso-string-date";
+} from "./molecules/date-and-iso-string-date";
 import {
 	nullishStringAndString,
 	stringAndNullish,
-} from "./molecules/atoms/nullish-string-and-emptiable-string";
+} from "./molecules/nullish-string-and-emptiable-string";
 import {
 	nullableNumericStringAndNullishNumber,
 	nullishNumberAndNullableNumericString,
 	numberAndNullishNumericString,
 	numberAndNumericString,
 	numericStringAndNumber,
-} from "./molecules/atoms/numeric-string-and-nullish-number";
+} from "./molecules/numeric-string-and-number";
 import {
 	booleanAndYesNo,
 	nullableYesNoAndNullishBoolean,
 	nullishBooleanAndNullableYesNo,
 	yesNoAndBoolean,
-} from "./molecules/atoms/yes-no-and-boolean";
+} from "./molecules/yes-no-and-boolean";
 import {
 	intAndNumericString,
 	nullableNumericStringAndNullishInt,
@@ -68,10 +68,10 @@ export const fieldCodecs = {
 		and: {
 			nullish: stringAndNullish,
 		},
-	},
-	nullishString: {
-		and: {
-			string: nullishStringAndString,
+		nullish: {
+			and: {
+				string: nullishStringAndString,
+			},
 		},
 	},
 	numericString: {

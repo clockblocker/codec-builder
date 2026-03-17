@@ -20,6 +20,12 @@ describe("codecBuilder.helpers", () => {
 		expect(codecBuilder.helpers.buildArrayOfCodec).toBeDefined();
 		expect(codecBuilder.helpers.buildArrayAndNullishArrayCodec).toBeDefined();
 		expect(
+			codecBuilder.helpers.buildNullableOutputAndNullishInputCodec,
+		).toBeDefined();
+		expect(
+			codecBuilder.helpers.buildNonNullableOutputAndInputWithDefaultCodec,
+		).toBeDefined();
+		expect(
 			codecBuilder.helpers.buildNullableUnionAndNullishString,
 		).toBeDefined();
 		expect(codecBuilder.helpers.buildFilteredNullishArrayCodec).toBeDefined();
@@ -28,6 +34,10 @@ describe("codecBuilder.helpers", () => {
 
 		expect("buildArrayOfCodec" in codecBuilder).toBeFalse();
 		expect("buildArrayAndNullishArrayCodec" in codecBuilder).toBeFalse();
+		expect("buildNullableOutputAndNullishInputCodec" in codecBuilder).toBeFalse();
+		expect(
+			"buildNonNullableOutputAndInputWithDefaultCodec" in codecBuilder,
+		).toBeFalse();
 		expect("buildNullableUnionAndNullishString" in codecBuilder).toBeFalse();
 		expect("buildFilteredNullishArrayCodec" in codecBuilder).toBeFalse();
 		expect("buildWithNullishFiltered" in codecBuilder).toBeFalse();
@@ -76,6 +86,29 @@ describe("codecBuilder.helpers", () => {
 		expect(nullishWrappedCodec.fromInput(undefined)).toBeNull();
 		expect(nullishWrappedCodec.fromOutput(undefined)).toBeNull();
 		expect(nullishWrappedCodec.fromInput(4)).toBe("4");
+
+		const liftedNumericStringCodec =
+			codecBuilder.helpers.buildNullableOutputAndNullishInputCodec(
+				c.numericString.and.number,
+			);
+		expect(liftedNumericStringCodec.fromInput(undefined)).toBeNull();
+		expect(liftedNumericStringCodec.fromInput(4)).toBe("4");
+		expect(liftedNumericStringCodec.outputSchema.parse(null)).toBeNull();
+
+		const strictStringCodec =
+			codecBuilder.helpers.buildNonNullableOutputAndInputWithDefaultCodec(
+				{
+					fromInput: (value: string | null | undefined) => value ?? null,
+					fromOutput: (value: string | null) =>
+						value == null || value === "" ? undefined : value,
+					inputSchema: z.string().nullish(),
+					outputSchema: z.string().nullable(),
+				},
+				"",
+			);
+		expect(strictStringCodec.fromInput("x")).toBe("x");
+		expect(strictStringCodec.fromOutput("")).toBe("");
+		expect(strictStringCodec.fromOutput("x")).toBe("x");
 	});
 
 	test("pipes codecs through the nested helpers object", () => {

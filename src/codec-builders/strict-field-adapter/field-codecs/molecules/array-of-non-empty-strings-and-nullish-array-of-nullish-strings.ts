@@ -4,7 +4,7 @@ import { pipeCodecs } from "../../../../core/pipe-codecs";
 import type { Codec } from "../../../../core/types";
 import { buildArrayAndNullishArrayCodec } from "../builders/array-and-nullish-array";
 import { buildFilteredNullishArrayCodec } from "../builders/filtered-nullish-array";
-import { emptiableStringAndNullishString } from "./atoms/nullish-string-and-emptiable-string";
+import { emptiableStringAndNullishString } from "./nullish-string-and-emptiable-string";
 
 const nonEmptyStringSchema = z.string().min(1);
 

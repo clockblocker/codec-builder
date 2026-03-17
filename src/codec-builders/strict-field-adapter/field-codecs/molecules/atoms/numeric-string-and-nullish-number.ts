@@ -1,8 +1,4 @@
 import { z } from "zod";
-import {
-	mapNullishToNullable,
-	type Nullish,
-} from "../../../../../core/helpers/nullish-utils";
 import { reverseCodecDirections } from "../../builders/reverse-codec-directions";
 import type { Codec } from "../../../../../core/types";
 
@@ -13,9 +9,6 @@ const numericStringSchema = z
 	});
 
 const numberSchema = z.number();
-const nullishNumericStringSchema = numericStringSchema.nullish();
-const nullableNumericStringSchema = numericStringSchema.nullable();
-const nullishNumberSchema = numberSchema.nullish();
 
 export const numericStringAndNumber = {
 	fromInput: (v) => String(v),
@@ -27,27 +20,3 @@ export const numericStringAndNumber = {
 export const numberAndNumericString = reverseCodecDirections(
 	numericStringAndNumber,
 );
-
-export const numberAndNullishNumericString = {
-	fromInput: (v) => (v == null ? 0 : Number(v)),
-	fromOutput: (v) => String(v),
-	inputSchema: nullishNumericStringSchema,
-	outputSchema: numberSchema,
-} as const satisfies Codec<number, Nullish<string>>;
-
-export const nullableNumericStringAndNullishNumber = {
-	fromInput: (v) => mapNullishToNullable(v, String),
-	fromOutput: (v) => mapNullishToNullable(v, Number),
-	inputSchema: nullishNumberSchema,
-	outputSchema: nullableNumericStringSchema,
-} as const satisfies Codec<string | null, Nullish<number>>;
-
-export const numericStringAndNullishNumber =
-	nullableNumericStringAndNullishNumber;
-
-export const nullishNumberAndNullableNumericString = reverseCodecDirections(
-	nullableNumericStringAndNullishNumber,
-);
-
-export const numberAndNullableNumericString =
-	nullishNumberAndNullableNumericString;
