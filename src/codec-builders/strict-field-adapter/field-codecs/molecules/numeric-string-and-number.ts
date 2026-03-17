@@ -1,7 +1,7 @@
 import type { Nullish } from "../../../../core/helpers/nullish-utils";
 import type { Codec } from "../../../../core/types";
 import { reverseCodecDirections } from "../helpers/reverse-codec-directions";
-import { toNullableOutputAndNullishInput } from "../helpers/to-nullable-output-and-nullish-input";
+import { toNullable } from "../helpers/to-nullable";
 import {
 	numberAndNumericString,
 	numericStringAndNumber,
@@ -10,7 +10,7 @@ import {
 export { numberAndNumericString, numericStringAndNumber };
 
 export const nullableNumericStringAndNullishNumber =
-	toNullableOutputAndNullishInput(numericStringAndNumber);
+	toNullable(numericStringAndNumber);
 
 export const numericStringAndNullishNumber =
 	nullableNumericStringAndNullishNumber;

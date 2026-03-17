@@ -1,5 +1,5 @@
 import { reverseCodecDirections } from "../helpers/reverse-codec-directions";
-import { toNullableOutputAndNullishInput } from "../helpers/to-nullable-output-and-nullish-input";
+import { toNullable } from "../helpers/to-nullable";
 import {
 	dateAndIsoString,
 	dateAndIsoStringDate,
@@ -15,7 +15,7 @@ export {
 };
 
 export const nullableDateAndNullishIsoString =
-	toNullableOutputAndNullishInput(dateAndIsoString);
+	toNullable(dateAndIsoString);
 
 export const nullishIsoStringAndNullableDate = reverseCodecDirections(
 	nullableDateAndNullishIsoString,

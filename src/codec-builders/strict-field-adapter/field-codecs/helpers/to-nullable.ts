@@ -3,7 +3,7 @@ import type { z } from "zod";
 import { mapNullishToNullable } from "../../../../core/helpers/nullish-utils";
 import type { SchemaCodec } from "../../../../core/types";
 
-export function toNullableOutputAndNullishInput<
+export function toNullable<
 	TInputSchema extends z.ZodTypeAny,
 	TOutputSchema extends z.ZodTypeAny,
 >(codec: SchemaCodec<TInputSchema, TOutputSchema>) {

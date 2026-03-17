@@ -7,9 +7,7 @@ import { toArrayOf } from "../helpers/to-array-of";
 import { emptiableStringAndNullishString } from "./nullish-string-and-emptiable-string";
 
 const nonEmptyStringSchema = z.string().min(1);
-const arrayOfEmptiableStrings = toArrayOf(
-	emptiableStringAndNullishString,
-);
+const arrayOfEmptiableStrings = toArrayOf(emptiableStringAndNullishString);
 const nullishArrayOfEmptiableStrings = {
 	fromInput: (input: Nullish<Nullish<string>[]>) =>
 		arrayOfEmptiableStrings.fromInput(input ?? []),
