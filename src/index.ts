@@ -4,13 +4,11 @@ import {
 	buildStrictFieldAdapterCodec,
 } from "./codec-builders/strict-field-adapter/build-strict-field-adapter-codec";
 
-import { buildArrayAndNullishArrayCodec } from "./codec-builders/strict-field-adapter/field-codecs/builders/array-and-nullish-array";
 import { buildArrayOfCodec } from "./codec-builders/strict-field-adapter/field-codecs/builders/array-of";
 import { buildFilteredNullishArrayCodec } from "./codec-builders/strict-field-adapter/field-codecs/builders/filtered-nullish-array";
-import { buildNonNullableOutputAndInputWithDefaultCodec } from "./codec-builders/strict-field-adapter/field-codecs/builders/non-nullable-output-and-input-with-default";
+import { buildNonNullableOutputAndInputWithDefaultCodec } from "./codec-builders/strict-field-adapter/field-codecs/helpers/non-nullable-output-and-input-with-default";
 import { buildNullableOutputAndNullishInputCodec } from "./codec-builders/strict-field-adapter/field-codecs/builders/nullable-output-and-nullish-input";
 import { buildNullableUnionAndNullishString } from "./codec-builders/strict-field-adapter/field-codecs/builders/union-and-string";
-import { buildWithNullishFiltered } from "./codec-builders/strict-field-adapter/field-codecs/builders/with-nullish-filtered";
 import { fieldCodecs } from "./codec-builders/strict-field-adapter/field-codecs/field-codecs";
 import { pipeCodecs } from "./core/pipe-codecs";
 
@@ -18,12 +16,10 @@ export const codecBuilder = {
 	fieldCodec: { ...fieldCodecs, arrayOfCodecShapes },
 	helpers: {
 		buildArrayOfCodec,
-		buildArrayAndNullishArrayCodec,
 		buildNullableOutputAndNullishInputCodec,
 		buildNonNullableOutputAndInputWithDefaultCodec,
 		buildNullableUnionAndNullishString,
 		buildFilteredNullishArrayCodec,
-		buildWithNullishFiltered,
 		pipeCodecs,
 	},
 	buildStrictFieldAdapterCodec,

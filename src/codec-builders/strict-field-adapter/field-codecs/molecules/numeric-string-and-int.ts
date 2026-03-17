@@ -2,7 +2,7 @@ import { z } from "zod";
 import type { Nullish } from "../../../../core/helpers/nullish-utils";
 import { pipeCodecs } from "../../../../core/pipe-codecs";
 import type { Codec, SchemaCodec } from "../../../../core/types";
-import { reverseCodecDirections } from "../builders/reverse-codec-directions";
+import { reverseCodecDirections } from "../helpers/reverse-codec-directions";
 import {
 	numericStringAndNullishNumber,
 	numericStringAndNumber,

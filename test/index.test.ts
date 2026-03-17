@@ -18,7 +18,6 @@ describe("codecBuilder.helpers", () => {
 
 	test("namespaces helper builders under helpers", () => {
 		expect(codecBuilder.helpers.buildArrayOfCodec).toBeDefined();
-		expect(codecBuilder.helpers.buildArrayAndNullishArrayCodec).toBeDefined();
 		expect(
 			codecBuilder.helpers.buildNullableOutputAndNullishInputCodec,
 		).toBeDefined();
@@ -29,18 +28,15 @@ describe("codecBuilder.helpers", () => {
 			codecBuilder.helpers.buildNullableUnionAndNullishString,
 		).toBeDefined();
 		expect(codecBuilder.helpers.buildFilteredNullishArrayCodec).toBeDefined();
-		expect(codecBuilder.helpers.buildWithNullishFiltered).toBeDefined();
 		expect(codecBuilder.helpers.pipeCodecs).toBeDefined();
 
 		expect("buildArrayOfCodec" in codecBuilder).toBeFalse();
-		expect("buildArrayAndNullishArrayCodec" in codecBuilder).toBeFalse();
 		expect("buildNullableOutputAndNullishInputCodec" in codecBuilder).toBeFalse();
 		expect(
 			"buildNonNullableOutputAndInputWithDefaultCodec" in codecBuilder,
 		).toBeFalse();
 		expect("buildNullableUnionAndNullishString" in codecBuilder).toBeFalse();
 		expect("buildFilteredNullishArrayCodec" in codecBuilder).toBeFalse();
-		expect("buildWithNullishFiltered" in codecBuilder).toBeFalse();
 		expect("pipeCodecs" in codecBuilder).toBeFalse();
 	});
 
@@ -54,13 +50,6 @@ describe("codecBuilder.helpers", () => {
 			"",
 		]);
 		expect(arrayOfCodec.fromOutput(["", "a"])).toEqual([undefined, "a"]);
-
-		const arrayAndNullishArrayCodec =
-			codecBuilder.helpers.buildArrayAndNullishArrayCodec(
-				c.string.and.nullish,
-			);
-		expect(arrayAndNullishArrayCodec.fromInput(undefined)).toEqual([]);
-		expect(arrayAndNullishArrayCodec.fromInput(["a", null])).toEqual(["a", ""]);
 
 		const nullableUnionCodec =
 			codecBuilder.helpers.buildNullableUnionAndNullishString([
@@ -80,12 +69,20 @@ describe("codecBuilder.helpers", () => {
 			filteredArrayCodec.fromInput(["a", "", null, undefined, "b"]),
 		).toEqual(["a", "b"]);
 
-		const nullishWrappedCodec = codecBuilder.helpers.buildWithNullishFiltered(
-			c.numericString.and.int,
-		);
-		expect(nullishWrappedCodec.fromInput(undefined)).toBeNull();
-		expect(nullishWrappedCodec.fromOutput(undefined)).toBeNull();
-		expect(nullishWrappedCodec.fromInput(4)).toBe("4");
+		const nullableWrappedCodec =
+			codecBuilder.helpers.buildNullableOutputAndNullishInputCodec(
+				c.numericString.and.int,
+			);
+		expect(nullableWrappedCodec.fromInput(undefined)).toBeNull();
+		expect(nullableWrappedCodec.fromOutput(null)).toBeNull();
+		expect(nullableWrappedCodec.fromInput(4)).toBe("4");
+
+		const defaultedWrappedCodec =
+			codecBuilder.helpers.buildNonNullableOutputAndInputWithDefaultCodec(
+				nullableWrappedCodec,
+				0,
+			);
+		expect(defaultedWrappedCodec.fromInput(4)).toBe("4");
 
 		const liftedNumericStringCodec =
 			codecBuilder.helpers.buildNullableOutputAndNullishInputCodec(

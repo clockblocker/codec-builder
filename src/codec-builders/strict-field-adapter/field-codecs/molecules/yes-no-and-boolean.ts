@@ -1,7 +1,7 @@
 import {
 	buildNullableOutputAndNullishInputCodec,
 } from "../builders/nullable-output-and-nullish-input";
-import { reverseCodecDirections } from "../builders/reverse-codec-directions";
+import { reverseCodecDirections } from "../helpers/reverse-codec-directions";
 import {
 	booleanAndYesNo,
 	yesNoAndBoolean,

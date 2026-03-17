@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { reverseCodecDirections } from "../../builders/reverse-codec-directions";
+import { reverseCodecDirections } from "../../helpers/reverse-codec-directions";
 import type { Codec } from "../../../../../core/types";
 
 const numericStringSchema = z
