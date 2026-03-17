@@ -6,13 +6,9 @@ import { buildFilteredNullishArrayCodec } from "../../helpers/builders/filtered-
 import { toArrayOf } from "../../helpers/casters/to-array-of";
 import { toNonNullableWithDefault } from "../../helpers/casters/to-non-nullable-with-default";
 import { toNullable } from "../../helpers/casters/to-nullable";
-import { stringAndNullish } from "../atoms/derived/string";
+import { stringAndNullishString } from "../atoms/derived/string";
 
 const nonEmptyStringSchema = z.string().min(1);
-const stringAndNullishString = toNonNullableWithDefault(
-	toNullable(stringAndNullish),
-	"",
-);
 const arrayOfNullishStrings = toArrayOf(stringAndNullishString);
 const nullishArrayOfStrings = toNonNullableWithDefault(
 	toNullable(arrayOfNullishStrings),
