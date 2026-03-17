@@ -10,10 +10,3 @@ export const dateAndIsoString = {
 	inputSchema: isoStringSchema,
 	outputSchema: dateSchema,
 } as const satisfies Codec<Date, string>;
-
-export const isoStringAndDate = {
-	fromInput: (v) => v.toISOString(),
-	fromOutput: (v) => new Date(v),
-	inputSchema: dateSchema,
-	outputSchema: isoStringSchema,
-} as const satisfies Codec<string, Date>;

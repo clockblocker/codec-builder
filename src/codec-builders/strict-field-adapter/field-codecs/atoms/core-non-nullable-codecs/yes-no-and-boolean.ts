@@ -10,10 +10,3 @@ export const yesNoAndBoolean = {
 	inputSchema: booleanSchema,
 	outputSchema: yesNoSchema,
 } as const satisfies Codec<"Yes" | "No", boolean>;
-
-export const booleanAndYesNo = {
-	fromInput: (v) => v === "Yes",
-	fromOutput: (v) => (v ? "Yes" : "No"),
-	inputSchema: yesNoSchema,
-	outputSchema: booleanSchema,
-} as const satisfies Codec<boolean, "Yes" | "No">;

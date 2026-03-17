@@ -2,11 +2,8 @@ import { pipeCodecs } from "../../../../core/pipe-codecs";
 import { reverseCodecDirections } from "../../helpers/reverse-codec-directions";
 import { toNonNullableWithDefault } from "../../helpers/to-non-nullable-with-default";
 import { toNullable } from "../../helpers/to-nullable";
-import { numberAndInt } from "../atoms/core-non-nullable-codecs/int-and-number";
-import {
-	numericStringAndNumber,
-	numberAndNumericString,
-} from "../atoms/core-non-nullable-codecs/numeric-string-and-number";
+import { numericStringAndNumber } from "../atoms/core-non-nullable-codecs/numeric-string-and-number";
+import { numberAndInt } from "../atoms/derived/int";
 
 export const numericStringAndInt = pipeCodecs(
 	numberAndInt,

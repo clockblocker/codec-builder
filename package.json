@@ -1,20 +1,20 @@
 {
-  "name": "codec-builder-library",
-  "module": "src/index.ts",
-  "type": "module",
-  "private": true,
-  "scripts": {
-    "build": "bun run ./build.ts",
-    "test": "bun test",
-    "tests": "bun test"
-  },
-  "devDependencies": {
-    "@types/bun": "latest"
-  },
-  "peerDependencies": {
-    "typescript": "^5"
-  },
-  "dependencies": {
-    "zod": "3.24.1"
-  }
+	"name": "codec-builder-library",
+	"module": "src/index.ts",
+	"type": "module",
+	"private": true,
+	"scripts": {
+		"build": "bun run ./build.ts",
+		"test": "bun test",
+		"tests": "bun test"
+	},
+	"devDependencies": {
+		"@types/bun": "latest"
+	},
+	"peerDependencies": {
+		"typescript": "^5"
+	},
+	"dependencies": {
+		"zod": "3.24.1"
+	}
 }

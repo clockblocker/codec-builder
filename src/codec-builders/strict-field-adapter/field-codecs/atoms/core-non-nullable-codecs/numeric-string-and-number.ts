@@ -15,10 +15,3 @@ export const numericStringAndNumber = {
 	inputSchema: numberSchema,
 	outputSchema: numericStringSchema,
 } as const satisfies Codec<string, number>;
-
-export const numberAndNumericString = {
-	fromInput: (v) => Number(v),
-	fromOutput: (v) => String(v),
-	inputSchema: numericStringSchema,
-	outputSchema: numberSchema,
-} as const satisfies Codec<number, string>;

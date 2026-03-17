@@ -9,13 +9,17 @@ import {
 	nullableIsoStringAndDate,
 } from "./atoms/derived/date";
 import {
-	nullableNumericStringAndNumber,
 	nullableNumberAndNumericString,
+	nullableNumericStringAndNumber,
 	numberAndNullishNumericString,
 	numberAndNumericString,
 	numericStringAndNullishNumber,
 	numericStringAndNumber,
 } from "./atoms/derived/number";
+import {
+	nullableStringAndString,
+	stringAndNullishString,
+} from "./atoms/derived/string";
 import {
 	booleanAndNullishYesNo,
 	booleanAndYesNo,
@@ -24,18 +28,14 @@ import {
 	yesNoAndBoolean,
 	yesNoAndNullishBoolean,
 } from "./atoms/derived/yes-no";
-import {
-	nullableStringAndString,
-	stringAndNullishString,
-} from "./atoms/derived/string";
 import { arrayOfNonEmptyStringsAndNullishArrayOfNullishStrings } from "./molecules/array-of-non-empty-strings-and-nullish-array-of-nullish-strings";
 import {
-	intAndNumericString,
-	numericStringAndInt,
-	numericStringAndNullishInt,
 	intAndNullishNumericString,
+	intAndNumericString,
 	nullableIntAndNumericString,
 	nullableNumericStringAndInt,
+	numericStringAndInt,
+	numericStringAndNullishInt,
 } from "./molecules/int-and-numeric-string";
 
 type FieldCodecNamespace = {
@@ -83,18 +83,18 @@ export const fieldCodecs = {
 				boolean: nullableYesNoAndBoolean,
 			},
 		},
-			boolean: {
-				and: {
-					yesNo: nullableBooleanAndYesNo,
-				},
-			},
-			int: {
-				and: {
-					numericString: nullableIntAndNumericString,
-				},
+		boolean: {
+			and: {
+				yesNo: nullableBooleanAndYesNo,
 			},
 		},
-		nonNullable: {
+		int: {
+			and: {
+				numericString: nullableIntAndNumericString,
+			},
+		},
+	},
+	nonNullable: {
 		date: {
 			and: {
 				isoString: dateAndIsoString,

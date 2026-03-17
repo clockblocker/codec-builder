@@ -102,33 +102,30 @@ type OutputSchemaShape<
 	TFieldName extends string,
 	TFieldSchema extends z.ZodTypeAny,
 	TDropFields extends readonly SchemaKeys<TInputSchema>[],
-> =
-	IsTuple<TDropFields> extends true
-		? Omit<SchemaShapeOf<TInputSchema>, TDropFields[number]> &
-				Record<TFieldName, TFieldSchema>
-		: SchemaShapeOf<TInputSchema> & Record<TFieldName, TFieldSchema>;
+> = IsTuple<TDropFields> extends true
+	? Omit<SchemaShapeOf<TInputSchema>, TDropFields[number]> &
+			Record<TFieldName, TFieldSchema>
+	: SchemaShapeOf<TInputSchema> & Record<TFieldName, TFieldSchema>;
 
 type OutputWithAddedField<
 	TInputSchema extends z.AnyZodObject,
 	TFieldName extends string,
 	TFieldSchema extends z.ZodTypeAny,
 	TDropFields extends readonly SchemaKeys<TInputSchema>[],
-> =
-	IsTuple<TDropFields> extends true
-		? Omit<z.infer<TInputSchema>, TDropFields[number]> &
-				Record<TFieldName, z.output<TFieldSchema>>
-		: Partial<Pick<z.infer<TInputSchema>, TDropFields[number]>> &
-				Partial<Omit<z.infer<TInputSchema>, TDropFields[number]>> &
-				Record<TFieldName, z.output<TFieldSchema>>;
+> = IsTuple<TDropFields> extends true
+	? Omit<z.infer<TInputSchema>, TDropFields[number]> &
+			Record<TFieldName, z.output<TFieldSchema>>
+	: Partial<Pick<z.infer<TInputSchema>, TDropFields[number]>> &
+			Partial<Omit<z.infer<TInputSchema>, TDropFields[number]>> &
+			Record<TFieldName, z.output<TFieldSchema>>;
 
 type ReconstructedInputWithDroppedFields<
 	TInputSchema extends z.AnyZodObject,
 	TDropFields extends readonly SchemaKeys<TInputSchema>[],
-> =
-	IsTuple<TDropFields> extends true
-		? Required<Pick<z.infer<TInputSchema>, TDropFields[number]>> &
-				Partial<Omit<z.infer<TInputSchema>, TDropFields[number]>>
-		: Partial<z.infer<TInputSchema>>;
+> = IsTuple<TDropFields> extends true
+	? Required<Pick<z.infer<TInputSchema>, TDropFields[number]>> &
+			Partial<Omit<z.infer<TInputSchema>, TDropFields[number]>>
+	: Partial<z.infer<TInputSchema>>;
 
 type ReshapeCodecConfig<
 	TInputSchema extends z.AnyZodObject,
