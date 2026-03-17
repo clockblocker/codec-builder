@@ -17,9 +17,15 @@ const intAndNullishNumber = {
 
 const nullishNumberAndInt = reverseCodecDirections(intAndNullishNumber);
 
-export const numericStringAndInt = pipeCodecs(
+export const nullableNumericStringAndNullishInt = pipeCodecs(
 	nullishNumberAndInt,
 	numericStringAndNullishNumber,
 ) satisfies Codec<string | null, Nullish<number>>;
 
-export const intAndNumericString = reverseCodecDirections(numericStringAndInt);
+export const numericStringAndInt = nullableNumericStringAndNullishInt;
+
+export const nullishIntAndNullableNumericString = reverseCodecDirections(
+	nullableNumericStringAndNullishInt,
+);
+
+export const intAndNumericString = nullishIntAndNullableNumericString;

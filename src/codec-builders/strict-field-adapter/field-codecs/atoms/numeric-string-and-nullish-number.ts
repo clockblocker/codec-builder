@@ -13,7 +13,7 @@ const numericStringSchema = z
 const nullableNumericStringSchema = numericStringSchema.nullable();
 const nullishNumberSchema = z.number().nullish();
 
-const nullableNumericStringAndNullishNumber = {
+export const nullableNumericStringAndNullishNumber = {
 	fromInput: (v) => mapNullishToNullable(v, String),
 	fromOutput: (v) => mapNullishToNullable(v, Number),
 	inputSchema: nullishNumberSchema,
@@ -23,6 +23,9 @@ const nullableNumericStringAndNullishNumber = {
 export const numericStringAndNullishNumber =
 	nullableNumericStringAndNullishNumber;
 
-export const numberAndNullableNumericString = reverseCodecDirections(
+export const nullishNumberAndNullableNumericString = reverseCodecDirections(
 	nullableNumericStringAndNullishNumber,
 );
+
+export const numberAndNullableNumericString =
+	nullishNumberAndNullableNumericString;

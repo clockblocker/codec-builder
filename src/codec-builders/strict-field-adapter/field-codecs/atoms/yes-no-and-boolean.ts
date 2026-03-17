@@ -9,14 +9,14 @@ const nullableYesNoSchema = yesNoSchema.nullable();
 
 const nullishBooleanSchema = z.boolean().nullish();
 
-const nullableYesNoAndNullishBoolean = {
+export const nullableYesNoAndNullishBoolean = {
 	fromInput: (v) => mapNullishToNullable(v, (value) => (value ? "Yes" : "No")),
 	fromOutput: (v) => mapNullishToNullable(v, (value) => value === "Yes"),
 	inputSchema: nullishBooleanSchema,
 	outputSchema: nullableYesNoSchema,
 } as const satisfies Codec<"Yes" | "No" | null, Nullish<boolean>>;
 
-const nullishBooleanAndNullableYesNo = reverseCodecDirections(
+export const nullishBooleanAndNullableYesNo = reverseCodecDirections(
 	nullableYesNoAndNullishBoolean,
 );
 
