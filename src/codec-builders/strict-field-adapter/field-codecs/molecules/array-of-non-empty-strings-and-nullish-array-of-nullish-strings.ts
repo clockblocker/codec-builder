@@ -2,12 +2,12 @@ import { z } from "zod";
 import type { Nullish } from "../../../../core/helpers/nullish-utils";
 import { pipeCodecs } from "../../../../core/pipe-codecs";
 import type { Codec } from "../../../../core/types";
-import { buildArrayOfCodec } from "../builders/array-of";
 import { buildFilteredNullishArrayCodec } from "../builders/filtered-nullish-array";
+import { toArrayOf } from "../helpers/to-array-of";
 import { emptiableStringAndNullishString } from "./nullish-string-and-emptiable-string";
 
 const nonEmptyStringSchema = z.string().min(1);
-const arrayOfEmptiableStrings = buildArrayOfCodec(
+const arrayOfEmptiableStrings = toArrayOf(
 	emptiableStringAndNullishString,
 );
 const nullishArrayOfEmptiableStrings = {

@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import type { SchemaCodec } from "../../../../core/types";
 
-export function buildArrayOfCodec<
+export function toArrayOf<
 	TInputSchema extends z.ZodTypeAny,
 	TOutputSchema extends z.ZodTypeAny,
 >(itemCodec: SchemaCodec<TInputSchema, TOutputSchema>) {

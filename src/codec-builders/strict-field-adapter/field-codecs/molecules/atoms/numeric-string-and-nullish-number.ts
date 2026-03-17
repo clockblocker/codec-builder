@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { reverseCodecDirections } from "../../helpers/reverse-codec-directions";
 import type { Codec } from "../../../../../core/types";
+import { reverseCodecDirections } from "../../helpers/reverse-codec-directions";
 
 const numericStringSchema = z
 	.string()

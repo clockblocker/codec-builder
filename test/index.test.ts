@@ -17,7 +17,7 @@ describe("codecBuilder.helpers", () => {
 	});
 
 	test("namespaces helper builders under helpers", () => {
-		expect(codecBuilder.helpers.buildArrayOfCodec).toBeDefined();
+		expect(codecBuilder.helpers.toArrayOf).toBeDefined();
 		expect(
 			codecBuilder.helpers.toNullableOutputAndNullishInput,
 		).toBeDefined();
@@ -30,7 +30,7 @@ describe("codecBuilder.helpers", () => {
 		expect(codecBuilder.helpers.buildFilteredNullishArrayCodec).toBeDefined();
 		expect(codecBuilder.helpers.pipeCodecs).toBeDefined();
 
-		expect("buildArrayOfCodec" in codecBuilder).toBeFalse();
+		expect("toArrayOf" in codecBuilder).toBeFalse();
 		expect("toNullableOutputAndNullishInput" in codecBuilder).toBeFalse();
 		expect(
 			"toNonNullishWithDefault" in codecBuilder,
@@ -41,7 +41,7 @@ describe("codecBuilder.helpers", () => {
 	});
 
 	test("exposes working helper builders through the nested helpers object", () => {
-		const arrayOfCodec = codecBuilder.helpers.buildArrayOfCodec(
+		const arrayOfCodec = codecBuilder.helpers.toArrayOf(
 			c.string.and.nullish,
 		);
 		expect(arrayOfCodec.fromInput([undefined, "a", null])).toEqual([
