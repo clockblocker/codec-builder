@@ -24,4 +24,4 @@ export const arrayOfNonEmptyStringsAndNullishArrayOfNullishStrings = {
 	fromOutput: fromArrayOfNullishStrings,
 	inputSchema,
 	outputSchema,
-} as const satisfies Codec<Nullish<Nullish<string>[]>, string[]>;
+} as const satisfies Codec<string[], Nullish<Nullish<string>[]>>;

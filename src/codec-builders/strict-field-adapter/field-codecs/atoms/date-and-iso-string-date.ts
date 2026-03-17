@@ -15,7 +15,7 @@ const nullableDateAndNullishIsoStringDate = {
 		mapNullishToNullable(v, (value) => value.toISOString().slice(0, 10)),
 	inputSchema: nullishIsoStringDateSchema,
 	outputSchema: nullableDateSchema,
-} as const satisfies Codec<Nullish<string>, Date | null>;
+} as const satisfies Codec<Date | null, Nullish<string>>;
 
 const nullishIsoStringDateAndNullableDate = reverseCodecDirections(
 	nullableDateAndNullishIsoStringDate,

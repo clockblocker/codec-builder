@@ -20,6 +20,6 @@ const nullishNumberAndInt = reverseCodecDirections(intAndNullishNumber);
 export const numericStringAndInt = pipeCodecs(
 	nullishNumberAndInt,
 	numericStringAndNullishNumber,
-) satisfies Codec<Nullish<number>, string | null>;
+) satisfies Codec<string | null, Nullish<number>>;
 
 export const intAndNumericString = reverseCodecDirections(numericStringAndInt);

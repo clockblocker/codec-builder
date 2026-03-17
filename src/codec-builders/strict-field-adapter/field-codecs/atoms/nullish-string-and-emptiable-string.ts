@@ -12,7 +12,7 @@ export const emptiableStringAndNullishString = {
 	fromOutput: (v) => (v === "" ? undefined : v),
 	inputSchema: nullishStringSchema,
 	outputSchema: emptiableStringSchema,
-} as const satisfies Codec<Nullish<string>, string>;
+} as const satisfies Codec<string, Nullish<string>>;
 
 export const nullishStringAndEmptiableString = reverseCodecDirections(
 	emptiableStringAndNullishString,

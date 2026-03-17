@@ -14,7 +14,7 @@ const nullableYesNoAndNullishBoolean = {
 	fromOutput: (v) => mapNullishToNullable(v, (value) => value === "Yes"),
 	inputSchema: nullishBooleanSchema,
 	outputSchema: nullableYesNoSchema,
-} as const satisfies Codec<Nullish<boolean>, "Yes" | "No" | null>;
+} as const satisfies Codec<"Yes" | "No" | null, Nullish<boolean>>;
 
 const nullishBooleanAndNullableYesNo = reverseCodecDirections(
 	nullableYesNoAndNullishBoolean,

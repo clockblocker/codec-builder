@@ -118,7 +118,7 @@ const publicCodec = {
 	fromOutput: (v: string) => Number(v),
 	inputSchema: z.number(),
 	outputSchema: z.string(),
-} satisfies Codec<number, string>;
+} satisfies Codec<string, number>;
 
 const pipedDateToIsoCodec = pipeCodecs(numberToDateCodec, dateToIsoCodec);
 type PipedDateToIsoInput = z.infer<typeof pipedDateToIsoCodec.inputSchema>;

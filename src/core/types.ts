@@ -11,8 +11,8 @@ export type CodecPair<I, O> = {
 
 // Prefer naming codecs like: OutputAndInput for consistent readability.
 export type Codec<
-	I = unknown,
 	O = unknown,
+	I = unknown,
 	TInputSchema extends z.ZodType<I, z.ZodTypeDef, any> = z.ZodType<
 		I,
 		z.ZodTypeDef,
@@ -34,8 +34,8 @@ export type SchemaCodec<
 	TInputSchema extends z.ZodTypeAny = z.ZodTypeAny,
 	TOutputSchema extends z.ZodTypeAny = z.ZodTypeAny,
 > = Codec<
-	z.output<TInputSchema>,
 	z.output<TOutputSchema>,
+	z.output<TInputSchema>,
 	TInputSchema,
 	TOutputSchema
 >;

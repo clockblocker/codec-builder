@@ -18,7 +18,7 @@ const nullableNumericStringAndNullishNumber = {
 	fromOutput: (v) => mapNullishToNullable(v, Number),
 	inputSchema: nullishNumberSchema,
 	outputSchema: nullableNumericStringSchema,
-} as const satisfies Codec<Nullish<number>, string | null>;
+} as const satisfies Codec<string | null, Nullish<number>>;
 
 export const numericStringAndNullishNumber =
 	nullableNumericStringAndNullishNumber;
