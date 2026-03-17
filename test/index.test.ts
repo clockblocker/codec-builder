@@ -2,34 +2,33 @@ import { describe, expect, test } from "bun:test";
 import { z } from "zod";
 import { codecBuilder } from "../src/index";
 
-
 describe("codecBuilder.helpers", () => {
 	const c = codecBuilder.fieldCodec;
 
 	test("namespaces field codecs by value family and nullability", () => {
-		expect(c.string.and.nullish.string).toBeDefined();
+		expect(c.nonNullable.string.and.nullish.string).toBeDefined();
 		expect(c.nullable.string.and.string).toBeDefined();
-		expect(c.number.and.nullish.numericString).toBeDefined();
+		expect(c.nonNullable.number.and.nullish.numericString).toBeDefined();
 		expect(c.nullable.number.and.numericString).toBeDefined();
-		expect(c.numericString.and.int).toBeDefined();
-		expect(c.numericString.and.nullish.number).toBeDefined();
-		expect(c.numericString.and.nullish.int).toBeDefined();
+		expect(c.nonNullable.numericString.and.int).toBeDefined();
+		expect(c.nonNullable.numericString.and.nullish.number).toBeDefined();
+		expect(c.nonNullable.numericString.and.nullish.int).toBeDefined();
 		expect(c.nullable.numericString.and.number).toBeDefined();
 		expect(c.nullable.numericString.and.int).toBeDefined();
-		expect(c.date.and.isoString).toBeDefined();
-		expect(c.date.and.nullish.isoString).toBeDefined();
+		expect(c.nonNullable.date.and.isoString).toBeDefined();
+		expect(c.nonNullable.date.and.nullish.isoString).toBeDefined();
 		expect(c.nullable.date.and.isoString).toBeDefined();
-		expect(c.isoString.and.date).toBeDefined();
-		expect(c.isoString.and.nullish.date).toBeDefined();
+		expect(c.nonNullable.isoString.and.date).toBeDefined();
+		expect(c.nonNullable.isoString.and.nullish.date).toBeDefined();
 		expect(c.nullable.isoString.and.date).toBeDefined();
-		expect(c.yesNo.and.boolean).toBeDefined();
-		expect(c.yesNo.and.nullish.boolean).toBeDefined();
+		expect(c.nonNullable.yesNo.and.boolean).toBeDefined();
+		expect(c.nonNullable.yesNo.and.nullish.boolean).toBeDefined();
 		expect(c.nullable.yesNo.and.boolean).toBeDefined();
-		expect(c.boolean.and.yesNo).toBeDefined();
-		expect(c.boolean.and.nullish.yesNo).toBeDefined();
+		expect(c.nonNullable.boolean.and.yesNo).toBeDefined();
+		expect(c.nonNullable.boolean.and.nullish.yesNo).toBeDefined();
 		expect(c.nullable.boolean.and.yesNo).toBeDefined();
-		expect(c.int.and.numericString).toBeDefined();
-		expect(c.int.and.nullish.numericString).toBeDefined();
+		expect(c.nonNullable.int.and.numericString).toBeDefined();
+		expect(c.nonNullable.int.and.nullish.numericString).toBeDefined();
 		expect(c.nullable.int.and.numericString).toBeDefined();
 		expect("emptiableStringAndNullishString" in c).toBeFalse();
 		expect("numericStringAndInt" in c).toBeFalse();
@@ -41,70 +40,80 @@ describe("codecBuilder.helpers", () => {
 		expect(nullableDateCodec.fromInput("2024-01-02")).toEqual(
 			new Date("2024-01-02"),
 		);
-		expect(nullableDateCodec.fromOutput(new Date("2024-01-02T03:04:05.000Z"))).toBe(
-			"2024-01-02T03:04:05.000Z",
-		);
+		expect(
+			nullableDateCodec.fromOutput(new Date("2024-01-02T03:04:05.000Z")),
+		).toBe("2024-01-02T03:04:05.000Z");
 
-		const defaultedDateCodec = c.date.and.nullish.isoString;
+		const defaultedDateCodec = c.nonNullable.date.and.nullish.isoString;
 		expect(defaultedDateCodec.fromInput("2024-01-02")).toEqual(
 			new Date("2024-01-02"),
 		);
 		expect(defaultedDateCodec.fromInput(undefined)).toBeInstanceOf(Date);
-		expect(defaultedDateCodec.fromOutput(new Date("2024-01-02T03:04:05.000Z"))).toBe(
-			"2024-01-02T03:04:05.000Z",
-		);
+		expect(
+			defaultedDateCodec.fromOutput(new Date("2024-01-02T03:04:05.000Z")),
+		).toBe("2024-01-02T03:04:05.000Z");
 		expect(defaultedDateCodec.inputSchema.parse(undefined)).toBeUndefined();
-		expect(defaultedDateCodec.outputSchema.parse(new Date("2024-01-02"))).toEqual(
-			new Date("2024-01-02"),
-		);
+		expect(
+			defaultedDateCodec.outputSchema.parse(new Date("2024-01-02")),
+		).toEqual(new Date("2024-01-02"));
 
 		const nullableIsoStringCodec = c.nullable.isoString.and.date;
 		expect(nullableIsoStringCodec.fromInput(undefined)).toBeNull();
-		expect(nullableIsoStringCodec.fromInput(new Date("2024-01-02T03:04:05.000Z"))).toBe(
-			"2024-01-02T03:04:05.000Z",
-		);
+		expect(
+			nullableIsoStringCodec.fromInput(new Date("2024-01-02T03:04:05.000Z")),
+		).toBe("2024-01-02T03:04:05.000Z");
 
-		const defaultedIsoStringCodec = c.isoString.and.nullish.date;
-		expect(defaultedIsoStringCodec.fromInput(new Date("2024-01-02T03:04:05.000Z"))).toBe(
-			"2024-01-02T03:04:05.000Z",
-		);
+		const defaultedIsoStringCodec = c.nonNullable.isoString.and.nullish.date;
+		expect(
+			defaultedIsoStringCodec.fromInput(new Date("2024-01-02T03:04:05.000Z")),
+		).toBe("2024-01-02T03:04:05.000Z");
 		expect(typeof defaultedIsoStringCodec.fromInput(undefined)).toBe("string");
-		expect(defaultedIsoStringCodec.fromOutput("2024-01-02T03:04:05.000Z")).toEqual(
-			new Date("2024-01-02T03:04:05.000Z"),
-		);
+		expect(
+			defaultedIsoStringCodec.fromOutput("2024-01-02T03:04:05.000Z"),
+		).toEqual(new Date("2024-01-02T03:04:05.000Z"));
 	});
 
 	test("exposes lifted scalar codecs through the new nullable and nullish paths", () => {
 		expect(c.nullable.string.and.string.fromInput(undefined)).toBeNull();
-		expect(c.string.and.nullish.string.fromInput(undefined)).toBe("");
-		expect(c.string.and.nullish.string.fromOutput("x")).toBe("x");
+		expect(c.nonNullable.string.and.nullish.string.fromInput(undefined)).toBe(
+			"",
+		);
+		expect(c.nonNullable.string.and.nullish.string.fromOutput("x")).toBe("x");
 
 		expect(c.nullable.numericString.and.number.fromInput(undefined)).toBeNull();
-		expect(c.numericString.and.nullish.number.fromInput(undefined)).toBe("0");
+		expect(
+			c.nonNullable.numericString.and.nullish.number.fromInput(undefined),
+		).toBe("0");
 		expect(c.nullable.numericString.and.int.fromInput(undefined)).toBeNull();
-		expect(c.numericString.and.nullish.int.fromInput(undefined)).toBe("0");
+		expect(
+			c.nonNullable.numericString.and.nullish.int.fromInput(undefined),
+		).toBe("0");
 
 		expect(c.nullable.number.and.numericString.fromInput(undefined)).toBeNull();
-		expect(c.number.and.nullish.numericString.fromInput(undefined)).toBe(0);
+		expect(
+			c.nonNullable.number.and.nullish.numericString.fromInput(undefined),
+		).toBe(0);
 
 		expect(c.nullable.yesNo.and.boolean.fromInput(undefined)).toBeNull();
-		expect(c.yesNo.and.nullish.boolean.fromInput(undefined)).toBe("No");
+		expect(c.nonNullable.yesNo.and.nullish.boolean.fromInput(undefined)).toBe(
+			"No",
+		);
 
 		expect(c.nullable.boolean.and.yesNo.fromInput(undefined)).toBeNull();
-		expect(c.boolean.and.nullish.yesNo.fromInput(undefined)).toBe(false);
+		expect(c.nonNullable.boolean.and.nullish.yesNo.fromInput(undefined)).toBe(
+			false,
+		);
 
 		expect(c.nullable.int.and.numericString.fromInput(undefined)).toBeNull();
-		expect(c.int.and.nullish.numericString.fromInput(undefined)).toBe(0);
+		expect(
+			c.nonNullable.int.and.nullish.numericString.fromInput(undefined),
+		).toBe(0);
 	});
 
 	test("namespaces helper builders under helpers", () => {
 		expect(codecBuilder.helpers.toArrayOf).toBeDefined();
-		expect(
-			codecBuilder.helpers.toNullable,
-		).toBeDefined();
-		expect(
-			codecBuilder.helpers.toNonNullableWithDefault,
-		).toBeDefined();
+		expect(codecBuilder.helpers.toNullable).toBeDefined();
+		expect(codecBuilder.helpers.toNonNullableWithDefault).toBeDefined();
 		expect(
 			codecBuilder.helpers.buildNullableUnionAndNullishString,
 		).toBeDefined();
@@ -113,9 +122,7 @@ describe("codecBuilder.helpers", () => {
 
 		expect("toArrayOf" in codecBuilder).toBeFalse();
 		expect("toNullable" in codecBuilder).toBeFalse();
-		expect(
-			"toNonNullableWithDefault" in codecBuilder,
-		).toBeFalse();
+		expect("toNonNullableWithDefault" in codecBuilder).toBeFalse();
 		expect("buildNullableUnionAndNullishString" in codecBuilder).toBeFalse();
 		expect("buildFilteredNullishArrayCodec" in codecBuilder).toBeFalse();
 		expect("pipeCodecs" in codecBuilder).toBeFalse();
@@ -123,7 +130,7 @@ describe("codecBuilder.helpers", () => {
 
 	test("exposes working helper builders through the nested helpers object", () => {
 		const arrayOfCodec = codecBuilder.helpers.toArrayOf(
-			c.string.and.nullish.string,
+			c.nonNullable.string.and.nullish.string,
 		);
 		expect(arrayOfCodec.fromInput([undefined, "a", null])).toEqual([
 			"",
@@ -150,44 +157,40 @@ describe("codecBuilder.helpers", () => {
 			filteredArrayCodec.fromInput(["a", "", null, undefined, "b"]),
 		).toEqual(["a", "b"]);
 
-		const nullableWrappedCodec =
-			codecBuilder.helpers.toNullable(
-				c.numericString.and.int,
-			);
+		const nullableWrappedCodec = codecBuilder.helpers.toNullable(
+			c.nonNullable.numericString.and.int,
+		);
 		expect(nullableWrappedCodec.fromInput(undefined)).toBeNull();
 		expect(nullableWrappedCodec.fromOutput(null)).toBeNull();
 		expect(nullableWrappedCodec.fromInput(4)).toBe("4");
 
-		const defaultedWrappedCodec =
-			codecBuilder.helpers.toNonNullableWithDefault(
-				nullableWrappedCodec,
-				"0",
-			);
+		const defaultedWrappedCodec = codecBuilder.helpers.toNonNullableWithDefault(
+			nullableWrappedCodec,
+			"0",
+		);
 		expect(defaultedWrappedCodec.fromInput(4)).toBe("4");
 		expect(defaultedWrappedCodec.fromInput(undefined)).toBe("0");
 		expect(defaultedWrappedCodec.fromOutput("4")).toBe(4);
 		expect(defaultedWrappedCodec.inputSchema.parse(undefined)).toBeUndefined();
 		expect(() => defaultedWrappedCodec.outputSchema.parse(null)).toThrow();
 
-		const liftedNumericStringCodec =
-			codecBuilder.helpers.toNullable(
-				c.numericString.and.number,
-			);
+		const liftedNumericStringCodec = codecBuilder.helpers.toNullable(
+			c.nonNullable.numericString.and.number,
+		);
 		expect(liftedNumericStringCodec.fromInput(undefined)).toBeNull();
 		expect(liftedNumericStringCodec.fromInput(4)).toBe("4");
 		expect(liftedNumericStringCodec.outputSchema.parse(null)).toBeNull();
 
-		const strictStringCodec =
-			codecBuilder.helpers.toNonNullableWithDefault(
-				{
-					fromInput: (value: string | null | undefined) => value ?? null,
-					fromOutput: (value: string | null) =>
-						value == null || value === "" ? undefined : value,
-					inputSchema: z.string().nullish(),
-					outputSchema: z.string().nullable(),
-				},
-				"",
-			);
+		const strictStringCodec = codecBuilder.helpers.toNonNullableWithDefault(
+			{
+				fromInput: (value: string | null | undefined) => value ?? null,
+				fromOutput: (value: string | null) =>
+					value == null || value === "" ? undefined : value,
+				inputSchema: z.string().nullish(),
+				outputSchema: z.string().nullable(),
+			},
+			"",
+		);
 		expect(strictStringCodec.fromInput("x")).toBe("x");
 		expect(strictStringCodec.fromInput(undefined)).toBe("");
 		expect(strictStringCodec.fromOutput("")).toBeUndefined();

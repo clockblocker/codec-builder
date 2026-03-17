@@ -7,9 +7,7 @@ import {
 	dateAndIsoString,
 	isoStringAndDate,
 } from "./molecules/date-and-iso-string-date";
-import {
-	stringAndNullish,
-} from "./molecules/nullish-string-and-emptiable-string";
+import { stringAndNullish } from "./molecules/nullish-string-and-emptiable-string";
 import {
 	intAndNumericString,
 	numericStringAndInt,
@@ -125,68 +123,70 @@ export const fieldCodecs = {
 			},
 		},
 	},
-	date: {
-		and: {
-			isoString: dateAndIsoString,
-			nullish: {
-				isoString: dateAndNullishIsoString,
+	nonNullable: {
+		date: {
+			and: {
+				isoString: dateAndIsoString,
+				nullish: {
+					isoString: dateAndNullishIsoString,
+				},
 			},
 		},
-	},
-	isoString: {
-		and: {
-			date: isoStringAndDate,
-			nullish: {
-				date: isoStringAndNullishDate,
+		isoString: {
+			and: {
+				date: isoStringAndDate,
+				nullish: {
+					date: isoStringAndNullishDate,
+				},
 			},
 		},
-	},
-	string: {
-		and: {
-			nullish: {
-				string: stringAndNullishString,
+		string: {
+			and: {
+				nullish: {
+					string: stringAndNullishString,
+				},
 			},
 		},
-	},
-	numericString: {
-		and: {
-			number: numericStringAndNumber,
-			int: numericStringAndInt,
-			nullish: {
-				number: numericStringAndNullishNumber,
-				int: numericStringAndNullishInt,
+		numericString: {
+			and: {
+				number: numericStringAndNumber,
+				int: numericStringAndInt,
+				nullish: {
+					number: numericStringAndNullishNumber,
+					int: numericStringAndNullishInt,
+				},
 			},
 		},
-	},
-	number: {
-		and: {
-			numericString: numberAndNumericString,
-			nullish: {
-				numericString: numberAndNullishNumericString,
+		number: {
+			and: {
+				numericString: numberAndNumericString,
+				nullish: {
+					numericString: numberAndNullishNumericString,
+				},
 			},
 		},
-	},
-	yesNo: {
-		and: {
-			boolean: yesNoAndBoolean,
-			nullish: {
-				boolean: yesNoAndNullishBoolean,
+		yesNo: {
+			and: {
+				boolean: yesNoAndBoolean,
+				nullish: {
+					boolean: yesNoAndNullishBoolean,
+				},
 			},
 		},
-	},
-	boolean: {
-		and: {
-			yesNo: booleanAndYesNo,
-			nullish: {
-				yesNo: booleanAndNullishYesNo,
+		boolean: {
+			and: {
+				yesNo: booleanAndYesNo,
+				nullish: {
+					yesNo: booleanAndNullishYesNo,
+				},
 			},
 		},
-	},
-	int: {
-		and: {
-			numericString: intAndNumericString,
-			nullish: {
-				numericString: intAndNullishNumericString,
+		int: {
+			and: {
+				numericString: intAndNumericString,
+				nullish: {
+					numericString: intAndNullishNumericString,
+				},
 			},
 		},
 	},
