@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import {
 	nullableNumericStringAndNullishInt,
 	nullishIntAndNullableNumericString,
-} from "../src/codec-builders/strict-field-adapter/field-codecs/numeric-string-and-int";
+} from "../src/codec-builders/strict-field-adapter/field-codecs/molecules/numeric-string-and-int";
 
 describe("nullableNumericStringAndNullishInt", () => {
 	test("serializes ints to numeric strings", () => {

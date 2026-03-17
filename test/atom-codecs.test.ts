@@ -2,19 +2,19 @@ import { describe, expect, test } from "bun:test";
 import {
 	nullableDateAndNullishIsoString,
 	nullishIsoStringAndNullableDate,
-} from "../src/codec-builders/strict-field-adapter/field-codecs/atoms/date-and-iso-string-date";
+} from "../src/codec-builders/strict-field-adapter/field-codecs/molecules/atoms/date-and-iso-string-date";
 import {
 	emptiableStringAndNullishString,
 	nullishStringAndEmptiableString,
-} from "../src/codec-builders/strict-field-adapter/field-codecs/atoms/nullish-string-and-emptiable-string";
+} from "../src/codec-builders/strict-field-adapter/field-codecs/molecules/atoms/nullish-string-and-emptiable-string";
 import {
 	nullableNumericStringAndNullishNumber,
 	nullishNumberAndNullableNumericString,
-} from "../src/codec-builders/strict-field-adapter/field-codecs/atoms/numeric-string-and-nullish-number";
+} from "../src/codec-builders/strict-field-adapter/field-codecs/molecules/atoms/numeric-string-and-nullish-number";
 import {
 	nullableYesNoAndNullishBoolean,
 	nullishBooleanAndNullableYesNo,
-} from "../src/codec-builders/strict-field-adapter/field-codecs/atoms/yes-no-and-boolean";
+} from "../src/codec-builders/strict-field-adapter/field-codecs/molecules/atoms/yes-no-and-boolean";
 
 describe("nullableNumericStringAndNullishNumber", () => {
 	test("maps nullish input to null and uses a nullable output schema", () => {
