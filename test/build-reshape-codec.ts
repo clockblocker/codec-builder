@@ -1,5 +1,8 @@
+import { describe, expect, test } from "bun:test";
 import { z } from "zod";
 import { buildReshapeCodec } from "../src/codec-builders/build-reshape-codec";
+
+// -- Assertions --
 
 type IsUnknown<T> = unknown extends T
 	? [T] extends [unknown]
@@ -143,6 +146,74 @@ type _addQuestionnaireVariableDropFieldsIdMatches = Assert<
 		? true
 		: false
 >;
+
+type QuestionnaireServerValue = z.infer<typeof questionnaireServerSchema>;
+type QuestionnaireReshapedValue = z.infer<
+	typeof addQuestionnaireFieldCodec.outputSchema
+>;
+type QuestionnaireReshapedValueFromVariableDropFields = z.infer<
+	typeof addQuestionnaireFieldCodecFromVariableDropFields.outputSchema
+>;
+
+const questionnaireServerValue = {
+	ans_to_q1: "Yes",
+	comment_to_q1_: "Because",
+	id: 1,
+	dateOfConstruction: "2024-01-01",
+	answers: [{ ans_to_q2: "No", comment_to_q2_: "Later" }],
+} satisfies QuestionnaireServerValue;
+
+const questionnaireReshapedValue = {
+	id: 1,
+	dateOfConstruction: "2024-01-01",
+	questionnaire: {
+		q1: { answer: "Yes", comment: "Because" },
+		q2: { answer: "No", comment: "Later" },
+	},
+} satisfies QuestionnaireReshapedValue;
+
+// -- Tests --
+
+describe("buildReshapeCodec", () => {
+	test("constructs the reshaped field and drops the configured source fields", () => {
+		const output =
+			addQuestionnaireFieldCodec.fromInput(
+				questionnaireServerValue,
+			) satisfies QuestionnaireReshapedValue;
+
+		expect(output).toEqual(questionnaireReshapedValue);
+		expect(addQuestionnaireFieldCodec.outputSchema.parse(output)).toEqual(
+			output,
+		);
+	});
+
+	test("reconstructs dropped fields from the reshaped output", () => {
+		expect(
+			addQuestionnaireFieldCodec.fromOutput(questionnaireReshapedValue),
+		).toEqual(questionnaireServerValue);
+	});
+
+	test("applies runtime dropping even when dropFields comes from a variable", () => {
+		const output =
+			addQuestionnaireFieldCodecFromVariableDropFields.fromInput(
+				questionnaireServerValue,
+			) satisfies QuestionnaireReshapedValueFromVariableDropFields;
+
+		expect(output.id).toBe(questionnaireReshapedValue.id);
+		expect(output.dateOfConstruction).toBe(
+			questionnaireReshapedValue.dateOfConstruction,
+		);
+		expect(output.questionnaire).toEqual(
+			questionnaireReshapedValue.questionnaire,
+		);
+		expect("ans_to_q1" in output).toBeFalse();
+		expect("comment_to_q1_" in output).toBeFalse();
+		expect("answers" in output).toBeFalse();
+		expect(
+			addQuestionnaireFieldCodecFromVariableDropFields.fromOutput(output),
+		).toEqual(questionnaireServerValue);
+	});
+});
 
 void addQuestionnaireFieldValue;
 void addQuestionnaireDroppedAnsToQ1;

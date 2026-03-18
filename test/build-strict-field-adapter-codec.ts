@@ -1,15 +1,18 @@
+import { describe, expect, test } from "bun:test";
 import { z } from "zod";
 import {
 	arrayOfCodecShapes,
 	buildStrictFieldAdapter,
 	buildStrictFieldAdapterCodec,
-	type ShapeOfStrictFieldAdapter,
 	noOpCodec,
+	type ShapeOfStrictFieldAdapter,
 	type ShapeOfStrictFieldAdapterCodec,
 } from "../src/codec-builders/strict-field-adapter/build-strict-field-adapter-codec";
 import { yesNoAndBoolean } from "../src/codec-builders/strict-field-adapter/field-codecs/atoms/core-non-nullable-codecs/yes-no-and-boolean";
 import { pipeCodecs } from "../src/core/pipe-codecs";
 import type { Codec, SchemaCodec } from "../src/core/types";
+
+// -- Assertions --
 
 const yesNoBool = yesNoAndBoolean;
 const codecArrayOf = arrayOfCodecShapes;
@@ -58,11 +61,12 @@ buildStrictFieldAdapterCodec(ClientSchemaWidened(), {
 	counterparties: codecArrayOf(counterpartyCodec),
 });
 
-buildStrictFieldAdapterCodec(ClientSchemaWidened(), {
-	// @ts-expect-error widened scalar number field cannot use array shape
-	id: codecArrayOf(counterpartyCodec),
-	counterparties: codecArrayOf(counterpartyCodec),
-});
+const widenedScalarCannotUseArrayShape = () =>
+	buildStrictFieldAdapterCodec(ClientSchemaWidened(), {
+		// @ts-expect-error widened scalar number field cannot use array shape
+		id: codecArrayOf(counterpartyCodec),
+		counterparties: codecArrayOf(counterpartyCodec),
+	});
 
 type WidenedOutput = z.infer<typeof widened.outputSchema>;
 const widenedArrayCheck: WidenedOutput["counterparties"] = [{ id: 1 }];
@@ -93,10 +97,11 @@ buildStrictFieldAdapterCodec(strict, {
 	id: yesNoBool,
 });
 
-buildStrictFieldAdapterCodec(strict, {
-	// @ts-expect-error scalar field cannot use array shape
-	id: codecArrayOf(counterpartyCodec),
-});
+const strictScalarCannotUseArrayShape = () =>
+	buildStrictFieldAdapterCodec(strict, {
+		// @ts-expect-error scalar field cannot use array shape
+		id: codecArrayOf(counterpartyCodec),
+	});
 
 buildStrictFieldAdapter<{ id: number }>()({
 	// @ts-expect-error number field cannot use yes/no codec
@@ -116,6 +121,10 @@ const numberOrStringInputCodec = {
 } satisfies SchemaCodec<z.ZodUnion<[z.ZodNumber, z.ZodString]>, z.ZodString>;
 
 buildStrictFieldAdapterCodec(strict, {
+	id: numberOrStringInputCodec,
+});
+
+const strictMappedWithWiderInputCodec = buildStrictFieldAdapterCodec(strict, {
 	id: numberOrStringInputCodec,
 });
 
@@ -174,13 +183,14 @@ const strictNested = z.object({
 	}),
 });
 
-buildStrictFieldAdapterCodec(strictNested, {
-	a: {
-		b: noOpCodec,
-		c: noOpCodec,
-		packed: noOpCodec,
-	},
-});
+const strictNestedShapeWithUnknownKey = () =>
+	buildStrictFieldAdapterCodec(strictNested, {
+		a: {
+			b: noOpCodec,
+			c: noOpCodec,
+			packed: noOpCodec,
+		},
+	});
 
 const questionnaireServerSchema = z.object({
 	ans_to_q1: z.string(),
@@ -217,6 +227,59 @@ const questionnaireAnswersItemShapeWithWrongKey = {
 	QuestionnaireServer["answers"][number]
 >;
 
+// -- Tests --
+
+describe("buildStrictFieldAdapterCodec", () => {
+	test("preserves widened nullable array item ids through the codec and adapter", () => {
+		const input = {
+			id: 1,
+			counterparties: [{ id: 2 }, { id: null }],
+		} satisfies Client;
+
+		expect(widened.fromInput(input)).toEqual(input);
+		expect(widened.fromOutput(input)).toEqual(input);
+		expect(widened.outputSchema.parse(input)).toEqual(input);
+		expect(widenedAdapter.fromInput(input)).toEqual(input);
+		expect(widenedAdapter.fromOutput(input)).toEqual(input);
+	});
+
+	test("maps array items and wider-input codecs at runtime", () => {
+		const timestamp = Date.UTC(2020, 0, 1);
+		const output = strictArrayMapped.fromInput({ dates: [timestamp] });
+
+		expect(output.dates).toHaveLength(1);
+		expect(output.dates[0]).toBeInstanceOf(Date);
+		expect(output.dates[0]?.toISOString()).toBe("2020-01-01T00:00:00.000Z");
+		expect(
+			strictArrayMapped.fromOutput({ dates: [new Date(timestamp)] }),
+		).toEqual({ dates: [timestamp] });
+		expect(pipedDateToIsoCodec.fromInput(timestamp)).toBe(
+			"2020-01-01T00:00:00.000Z",
+		);
+		expect(strictMappedWithWiderInputCodec.fromInput({ id: 42 })).toEqual({
+			id: "42",
+		});
+		expect(strictMappedWithWiderInputCodec.fromOutput({ id: "42" })).toEqual({
+			id: 42,
+		});
+	});
+
+	test("throws when an array shape is used for a scalar schema field", () => {
+		expect(widenedScalarCannotUseArrayShape).toThrow(
+			"Codec shape expects an array schema.",
+		);
+		expect(strictScalarCannotUseArrayShape).toThrow(
+			"Codec shape expects an array schema.",
+		);
+	});
+
+	test("throws when a nested runtime shape includes an unknown key", () => {
+		expect(strictNestedShapeWithUnknownKey).toThrow(
+			'Codec shape key "packed" is not in schema.',
+		);
+	});
+});
+
 void widenedArrayCheck;
 void strictArrayMappedCheck;
 void pipedDateToIsoInput;
@@ -225,3 +288,4 @@ void questionnaireAnswersItemShape;
 void questionnaireAnswersItemAdapterShape;
 void questionnaireAnswersItemShapeWithWrongKey;
 void publicCodec;
+void strictMappedWithWiderInputCodec;
