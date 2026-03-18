@@ -278,6 +278,46 @@ describe("buildStrictFieldAdapterCodec", () => {
 			'Codec shape key "packed" is not in schema.',
 		);
 	});
+
+	test("recognizes zod-like array and object schemas structurally", () => {
+		const crossBundleItemSchema = {
+			_def: { typeName: z.ZodFirstPartyTypeKind.ZodObject },
+			shape: {
+				id: z.number(),
+			},
+			safeParse: () => {
+				throw new Error("not used in this test");
+			},
+		} as unknown as z.AnyZodObject;
+
+		const crossBundleArraySchema = {
+			_def: { typeName: z.ZodFirstPartyTypeKind.ZodArray },
+			element: crossBundleItemSchema,
+			safeParse: () => {
+				throw new Error("not used in this test");
+			},
+		} as unknown as z.ZodArray<z.ZodTypeAny>;
+
+		const crossBundleSchema = {
+			shape: {
+				counterparties: crossBundleArraySchema,
+			},
+		} as unknown as z.ZodObject<{
+			counterparties: z.ZodArray<
+				z.ZodObject<{
+					id: z.ZodNumber;
+				}>
+			>;
+		}>;
+
+		const codec = buildStrictFieldAdapterCodec(crossBundleSchema, {
+			counterparties: codecArrayOf({
+				id: noOpCodec,
+			}),
+		});
+
+		expect(codec.outputSchema.shape.counterparties).toBeInstanceOf(z.ZodArray);
+	});
 });
 
 void widenedArrayCheck;

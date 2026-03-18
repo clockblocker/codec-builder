@@ -497,10 +497,76 @@ function isArrayCodecShape(v: unknown): v is ArrayCodecShape {
 	);
 }
 
+function isZodSchema(v: unknown): v is z.ZodTypeAny {
+	return (
+		typeof v === "object" &&
+		v !== null &&
+		"_def" in v &&
+		"safeParse" in v &&
+		typeof (v as { safeParse?: unknown }).safeParse === "function"
+	);
+}
+
+function getSchemaTypeName(
+	schema: z.ZodTypeAny,
+): z.ZodFirstPartyTypeKind | undefined {
+	const typeName = (
+		schema as { _def?: { typeName?: z.ZodFirstPartyTypeKind | string } }
+	)._def?.typeName;
+
+	return typeof typeName === "string"
+		? (typeName as z.ZodFirstPartyTypeKind)
+		: undefined;
+}
+
+function hasSchemaType(
+	schema: z.ZodTypeAny,
+	typeName: z.ZodFirstPartyTypeKind,
+): boolean {
+	return getSchemaTypeName(schema) === typeName;
+}
+
+function isZodObjectSchema(schema: z.ZodTypeAny): schema is z.AnyZodObject {
+	return (
+		hasSchemaType(schema, z.ZodFirstPartyTypeKind.ZodObject) &&
+		"shape" in schema
+	);
+}
+
+function isZodArraySchema(
+	schema: z.ZodTypeAny,
+): schema is z.ZodArray<z.ZodTypeAny> {
+	return (
+		hasSchemaType(schema, z.ZodFirstPartyTypeKind.ZodArray) &&
+		"element" in schema
+	);
+}
+
+function getSchemaNode(schemaShape: z.ZodRawShape, key: string): z.ZodTypeAny {
+	const schemaNode = schemaShape[key];
+	if (schemaNode === undefined) {
+		throw new Error(`Codec shape key "${key}" is not in schema.`);
+	}
+
+	if (!isZodSchema(schemaNode)) {
+		throw new Error(`Schema key "${key}" is not a Zod schema.`);
+	}
+
+	return schemaNode;
+}
+
 function unwrapOptionalNullableSchema(schema: z.ZodTypeAny): z.ZodTypeAny {
 	let current: z.ZodTypeAny = schema;
-	while (current instanceof z.ZodOptional || current instanceof z.ZodNullable) {
-		current = current.unwrap();
+	while (
+		hasSchemaType(current, z.ZodFirstPartyTypeKind.ZodOptional) ||
+		hasSchemaType(current, z.ZodFirstPartyTypeKind.ZodNullable)
+	) {
+		const unwrap = (current as { unwrap?: () => z.ZodTypeAny }).unwrap;
+		if (typeof unwrap !== "function") {
+			throw new Error("Expected an unwrap-able optional or nullable schema.");
+		}
+
+		current = unwrap.call(current);
 	}
 	return current;
 }
@@ -508,7 +574,7 @@ function unwrapOptionalNullableSchema(schema: z.ZodTypeAny): z.ZodTypeAny {
 function getNestedObjectSchema(schema: z.ZodTypeAny): z.AnyZodObject {
 	const current = unwrapOptionalNullableSchema(schema);
 
-	if (!(current instanceof z.ZodObject)) {
+	if (!isZodObjectSchema(current)) {
 		throw new Error("Codec shape does not match nested object schema.");
 	}
 
@@ -518,7 +584,7 @@ function getNestedObjectSchema(schema: z.ZodTypeAny): z.AnyZodObject {
 function getArrayItemSchema(schema: z.ZodTypeAny): z.ZodTypeAny {
 	const current = unwrapOptionalNullableSchema(schema);
 
-	if (!(current instanceof z.ZodArray)) {
+	if (!isZodArraySchema(current)) {
 		throw new Error("Codec shape expects an array schema.");
 	}
 
@@ -588,10 +654,7 @@ function buildOutputZodShape(
 	const result: Record<string, z.ZodTypeAny> = {};
 	for (const key in shape) {
 		const node = shape[key];
-		const schemaNode = schemaShape[key];
-		if (!schemaNode) {
-			throw new Error(`Codec shape key "${key}" is not in schema.`);
-		}
+		const schemaNode = getSchemaNode(schemaShape, key);
 
 		if (isCodec(node)) {
 			result[key] = node.outputSchema;
