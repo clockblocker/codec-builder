@@ -4,10 +4,11 @@ await rm("./dist", { force: true, recursive: true });
 
 const result = await Bun.build({
 	entrypoints: ["./src/index.ts"],
+	external: ["zod"],
 	format: "esm",
 	outdir: "./dist",
 	sourcemap: "external",
-	target: "node",
+	target: "browser",
 });
 
 if (!result.success) {

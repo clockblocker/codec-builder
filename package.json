@@ -1,20 +1,33 @@
 {
 	"name": "codec-builder-library",
-	"module": "src/index.ts",
+	"version": "0.1.0",
+	"description": "Composable Zod codec builders for reshaping and adapting data structures.",
 	"type": "module",
-	"private": true,
+	"sideEffects": false,
+	"main": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.js"
+		}
+	},
+	"files": ["dist", "README.md"],
 	"scripts": {
-		"build": "bun run ./build.ts",
+		"build": "bun run build:js && bun run build:types",
+		"build:js": "bun run ./build.ts",
+		"build:types": "bunx tsc -p tsconfig.build.json",
+		"prepack": "bun run build",
 		"test": "bun test",
-		"tests": "bun test"
+		"tests": "bun test",
+		"typecheck": "bunx tsc --noEmit"
 	},
 	"devDependencies": {
-		"@types/bun": "latest"
+		"@types/bun": "latest",
+		"typescript": "^5",
+		"zod": "3.24.1"
 	},
 	"peerDependencies": {
-		"typescript": "^5"
-	},
-	"dependencies": {
-		"zod": "3.24.1"
+		"zod": "^3.24.1"
 	}
 }
