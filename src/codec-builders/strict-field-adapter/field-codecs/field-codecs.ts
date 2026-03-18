@@ -43,14 +43,6 @@ type FieldCodecNamespace = {
 };
 
 export const fieldCodecs = {
-	array: {
-		nonEmptyString: {
-			and: {
-				nullishArrayOfNullishString:
-					arrayOfNonEmptyStringsAndNullishArrayOfNullishStrings,
-			},
-		},
-	},
 	nullable: {
 		date: {
 			and: {
@@ -93,8 +85,16 @@ export const fieldCodecs = {
 				numericString: nullableIntAndNumericString,
 			},
 		},
+		array: {
+			nonEmptyString: {
+				and: {
+					nullishArrayOfNullishString:
+						arrayOfNonEmptyStringsAndNullishArrayOfNullishStrings,
+				},
+			},
+		},
 	},
-	nonNullable: {
+	nonNullish: {
 		date: {
 			and: {
 				isoString: dateAndIsoString,
@@ -157,6 +157,14 @@ export const fieldCodecs = {
 				numericString: intAndNumericString,
 				nullish: {
 					numericString: intAndNullishNumericString,
+				},
+			},
+		},
+		array: {
+			nonEmptyString: {
+				and: {
+					nullishArrayOfNullishString:
+						arrayOfNonEmptyStringsAndNullishArrayOfNullishStrings,
 				},
 			},
 		},

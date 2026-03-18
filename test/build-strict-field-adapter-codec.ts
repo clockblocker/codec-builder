@@ -1,10 +1,9 @@
 import { describe, expect, test } from "bun:test";
 import { z } from "zod";
+import { codecBuilder } from "../src";
 import {
-	arrayOfCodecShapes,
 	buildStrictFieldAdapter,
 	buildStrictFieldAdapterCodec,
-	noOpCodec,
 	type ShapeOfStrictFieldAdapter,
 	type ShapeOfStrictFieldAdapterCodec,
 } from "../src/codec-builders/strict-field-adapter/build-strict-field-adapter-codec";
@@ -14,8 +13,8 @@ import type { Codec, SchemaCodec } from "../src/core/types";
 
 // -- Assertions --
 
+const c = codecBuilder.fieldCodec;
 const yesNoBool = yesNoAndBoolean;
-const codecArrayOf = arrayOfCodecShapes;
 
 type Properties<T> = {
 	[K in keyof T]-?: z.ZodType<T[K], z.ZodTypeDef, T[K]>;
@@ -42,30 +41,30 @@ function ClientSchemaWidened(): z.ZodObject<Properties<Client>> {
 }
 
 const counterpartyCodec = {
-	id: noOpCodec,
+	id: c.noOp,
 };
 
 const widened = buildStrictFieldAdapterCodec(ClientSchemaWidened(), {
-	id: noOpCodec,
-	counterparties: codecArrayOf(counterpartyCodec),
+	id: c.noOp,
+	counterparties: c.arrayOf(counterpartyCodec),
 });
 
 const widenedAdapter = buildStrictFieldAdapter<Client>()({
-	id: noOpCodec,
-	counterparties: codecArrayOf(counterpartyCodec),
+	id: c.noOp,
+	counterparties: c.arrayOf(counterpartyCodec),
 });
 
 buildStrictFieldAdapterCodec(ClientSchemaWidened(), {
 	// @ts-expect-error widened scalar number field cannot use yes/no codec
 	id: yesNoBool,
-	counterparties: codecArrayOf(counterpartyCodec),
+	counterparties: c.arrayOf(counterpartyCodec),
 });
 
 const widenedScalarCannotUseArrayShape = () =>
 	buildStrictFieldAdapterCodec(ClientSchemaWidened(), {
 		// @ts-expect-error widened scalar number field cannot use array shape
-		id: codecArrayOf(counterpartyCodec),
-		counterparties: codecArrayOf(counterpartyCodec),
+		id: c.arrayOf(counterpartyCodec),
+		counterparties: c.arrayOf(counterpartyCodec),
 	});
 
 type WidenedOutput = z.infer<typeof widened.outputSchema>;
@@ -100,7 +99,7 @@ buildStrictFieldAdapterCodec(strict, {
 const strictScalarCannotUseArrayShape = () =>
 	buildStrictFieldAdapterCodec(strict, {
 		// @ts-expect-error scalar field cannot use array shape
-		id: codecArrayOf(counterpartyCodec),
+		id: c.arrayOf(counterpartyCodec),
 	});
 
 buildStrictFieldAdapter<{ id: number }>()({
@@ -110,7 +109,7 @@ buildStrictFieldAdapter<{ id: number }>()({
 
 buildStrictFieldAdapter<{ id: number }>()({
 	// @ts-expect-error scalar field cannot use array shape
-	id: codecArrayOf(counterpartyCodec),
+	id: c.arrayOf(counterpartyCodec),
 });
 
 const numberOrStringInputCodec = {
@@ -160,7 +159,7 @@ const pipedDateToIsoInput: PipedDateToIsoInput = 1;
 const pipedDateToIsoOutput: PipedDateToIsoOutput = "2020-01-01T00:00:00.000Z";
 
 const strictArrayMapped = buildStrictFieldAdapterCodec(strictArray, {
-	dates: codecArrayOf(numberToDateCodec),
+	dates: c.arrayOf(numberToDateCodec),
 });
 
 type StrictArrayMappedOutput = z.infer<typeof strictArrayMapped.outputSchema>;
@@ -168,12 +167,12 @@ const strictArrayMappedCheck: StrictArrayMappedOutput["dates"] = [new Date()];
 
 buildStrictFieldAdapterCodec(strictArray, {
 	// @ts-expect-error number[] item cannot use yes/no codec
-	dates: codecArrayOf(yesNoBool),
+	dates: c.arrayOf(yesNoBool),
 });
 
 buildStrictFieldAdapter<{ dates: number[] }>()({
 	// @ts-expect-error number[] item cannot use yes/no codec
-	dates: codecArrayOf(yesNoBool),
+	dates: c.arrayOf(yesNoBool),
 });
 
 const strictNested = z.object({
@@ -186,9 +185,9 @@ const strictNested = z.object({
 const strictNestedShapeWithUnknownKey = () =>
 	buildStrictFieldAdapterCodec(strictNested, {
 		a: {
-			b: noOpCodec,
-			c: noOpCodec,
-			packed: noOpCodec,
+			b: c.noOp,
+			c: c.noOp,
+			packed: c.noOp,
 		},
 	});
 
@@ -207,22 +206,22 @@ const questionnaireServerSchema = z.object({
 
 type QuestionnaireServer = z.infer<typeof questionnaireServerSchema>;
 const questionnaireAnswersItemShape = {
-	ans_to_q2: noOpCodec,
-	comment_to_q2_: noOpCodec,
+	ans_to_q2: c.noOp,
+	comment_to_q2_: c.noOp,
 } satisfies ShapeOfStrictFieldAdapterCodec<
 	QuestionnaireServer["answers"][number]
 >;
 
 const questionnaireAnswersItemAdapterShape = {
-	ans_to_q2: noOpCodec,
-	comment_to_q2_: noOpCodec,
+	ans_to_q2: c.noOp,
+	comment_to_q2_: c.noOp,
 } satisfies ShapeOfStrictFieldAdapter<QuestionnaireServer["answers"][number]>;
 
 const questionnaireAnswersItemShapeWithWrongKey = {
-	ans_to_q2: noOpCodec,
-	comment_to_q2_: noOpCodec,
+	ans_to_q2: c.noOp,
+	comment_to_q2_: c.noOp,
 	// @ts-expect-error typo key should be rejected at declaration site
-	comment_to_q2: noOpCodec,
+	comment_to_q2: c.noOp,
 } satisfies ShapeOfStrictFieldAdapterCodec<
 	QuestionnaireServer["answers"][number]
 >;
@@ -311,8 +310,8 @@ describe("buildStrictFieldAdapterCodec", () => {
 		}>;
 
 		const codec = buildStrictFieldAdapterCodec(crossBundleSchema, {
-			counterparties: codecArrayOf({
-				id: noOpCodec,
+			counterparties: c.arrayOf({
+				id: c.noOp,
 			}),
 		});
 
