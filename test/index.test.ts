@@ -113,7 +113,9 @@ describe("codecBuilder.helpers", () => {
 	test("namespaces helper builders under helpers", () => {
 		expect(codecBuilder.buildStrictFieldAdapter).toBeDefined();
 		expect(codecBuilder.helpers.toArrayOf).toBeDefined();
+		expect(codecBuilder.helpers.toOptional).toBeDefined();
 		expect(codecBuilder.helpers.toNullable).toBeDefined();
+		expect(codecBuilder.helpers.toNullish).toBeDefined();
 		expect(codecBuilder.helpers.toNonNullishWithDefault).toBeDefined();
 		expect(
 			codecBuilder.helpers.buildNullableUnionAndNullishString,
@@ -122,7 +124,9 @@ describe("codecBuilder.helpers", () => {
 		expect(codecBuilder.helpers.pipeCodecs).toBeDefined();
 
 		expect("toArrayOf" in codecBuilder).toBeFalse();
+		expect("toOptional" in codecBuilder).toBeFalse();
 		expect("toNullable" in codecBuilder).toBeFalse();
+		expect("toNullish" in codecBuilder).toBeFalse();
 		expect("toNonNullishWithDefault" in codecBuilder).toBeFalse();
 		expect("buildNullableUnionAndNullishString" in codecBuilder).toBeFalse();
 		expect("buildFilteredNullishArrayCodec" in codecBuilder).toBeFalse();
@@ -204,6 +208,27 @@ describe("codecBuilder.helpers", () => {
 		expect(nullableWrappedCodec.fromInput(undefined)).toBeNull();
 		expect(nullableWrappedCodec.fromOutput(null)).toBeNull();
 		expect(nullableWrappedCodec.fromInput(4)).toBe("4");
+
+		const optionalWrappedCodec = codecBuilder.helpers.toOptional(
+			c.nonNullish.numericString.and.int,
+		);
+		expect(optionalWrappedCodec.fromInput(undefined)).toBeUndefined();
+		expect(optionalWrappedCodec.fromOutput(undefined)).toBeUndefined();
+		expect(optionalWrappedCodec.fromInput(4)).toBe("4");
+		expect(optionalWrappedCodec.inputSchema.parse(undefined)).toBeUndefined();
+		expect(optionalWrappedCodec.outputSchema.parse(undefined)).toBeUndefined();
+		expect(() => optionalWrappedCodec.outputSchema.parse(null)).toThrow();
+
+		const nullishWrappedCodec = codecBuilder.helpers.toNullish(
+			c.nonNullish.numericString.and.int,
+		);
+		expect(nullishWrappedCodec.fromInput(undefined)).toBeUndefined();
+		expect(nullishWrappedCodec.fromInput(null)).toBeNull();
+		expect(nullishWrappedCodec.fromOutput(undefined)).toBeUndefined();
+		expect(nullishWrappedCodec.fromOutput(null)).toBeNull();
+		expect(nullishWrappedCodec.inputSchema.parse(null)).toBeNull();
+		expect(nullishWrappedCodec.outputSchema.parse(undefined)).toBeUndefined();
+		expect(nullishWrappedCodec.outputSchema.parse(null)).toBeNull();
 
 		const defaultedWrappedCodec = codecBuilder.helpers.toNonNullishWithDefault(
 			nullableWrappedCodec,
