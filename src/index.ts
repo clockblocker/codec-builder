@@ -10,7 +10,7 @@ import { buildNullableUnionAndNullishString } from "./codec-builders/strict-fiel
 import { fieldCodecs } from "./codec-builders/strict-field-adapter/field-codecs/field-codecs";
 import { reverseCodecDirections } from "./codec-builders/strict-field-adapter/helpers/casters/reverse-codec-directions";
 import { toArrayOf } from "./codec-builders/strict-field-adapter/helpers/casters/to-array-of";
-import { toNonNullableWithDefault } from "./codec-builders/strict-field-adapter/helpers/casters/to-non-nullable-with-default";
+import { toNonNullishWithDefault } from "./codec-builders/strict-field-adapter/helpers/casters/to-non-nullish-with-default";
 import { toNullable } from "./codec-builders/strict-field-adapter/helpers/casters/to-nullable";
 import { pipeCodecs } from "./core/pipe-codecs";
 
@@ -19,7 +19,7 @@ export const codecBuilder = {
 	helpers: {
 		toArrayOf,
 		toNullable,
-		toNonNullableWithDefault,
+		toNonNullishWithDefault,
 		reverseCodecDirections,
 		buildNullableUnionAndNullishString,
 		buildFilteredNullishArrayCodec,

@@ -114,7 +114,7 @@ describe("codecBuilder.helpers", () => {
 		expect(codecBuilder.buildStrictFieldAdapter).toBeDefined();
 		expect(codecBuilder.helpers.toArrayOf).toBeDefined();
 		expect(codecBuilder.helpers.toNullable).toBeDefined();
-		expect(codecBuilder.helpers.toNonNullableWithDefault).toBeDefined();
+		expect(codecBuilder.helpers.toNonNullishWithDefault).toBeDefined();
 		expect(
 			codecBuilder.helpers.buildNullableUnionAndNullishString,
 		).toBeDefined();
@@ -123,7 +123,7 @@ describe("codecBuilder.helpers", () => {
 
 		expect("toArrayOf" in codecBuilder).toBeFalse();
 		expect("toNullable" in codecBuilder).toBeFalse();
-		expect("toNonNullableWithDefault" in codecBuilder).toBeFalse();
+		expect("toNonNullishWithDefault" in codecBuilder).toBeFalse();
 		expect("buildNullableUnionAndNullishString" in codecBuilder).toBeFalse();
 		expect("buildFilteredNullishArrayCodec" in codecBuilder).toBeFalse();
 		expect("pipeCodecs" in codecBuilder).toBeFalse();
@@ -205,7 +205,7 @@ describe("codecBuilder.helpers", () => {
 		expect(nullableWrappedCodec.fromOutput(null)).toBeNull();
 		expect(nullableWrappedCodec.fromInput(4)).toBe("4");
 
-		const defaultedWrappedCodec = codecBuilder.helpers.toNonNullableWithDefault(
+		const defaultedWrappedCodec = codecBuilder.helpers.toNonNullishWithDefault(
 			nullableWrappedCodec,
 			"0",
 		);
@@ -222,7 +222,7 @@ describe("codecBuilder.helpers", () => {
 		expect(liftedNumericStringCodec.fromInput(4)).toBe("4");
 		expect(liftedNumericStringCodec.outputSchema.parse(null)).toBeNull();
 
-		const strictStringCodec = codecBuilder.helpers.toNonNullableWithDefault(
+		const strictStringCodec = codecBuilder.helpers.toNonNullishWithDefault(
 			{
 				fromInput: (value: string | null | undefined) => value ?? null,
 				fromOutput: (value: string | null) =>

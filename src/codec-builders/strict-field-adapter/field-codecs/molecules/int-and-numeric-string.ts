@@ -1,6 +1,6 @@
 import { pipeCodecs } from "../../../../core/pipe-codecs";
 import { reverseCodecDirections } from "../../helpers/casters/reverse-codec-directions";
-import { toNonNullableWithDefault } from "../../helpers/casters/to-non-nullable-with-default";
+import { toNonNullishWithDefault } from "../../helpers/casters/to-non-nullish-with-default";
 import { toNullable } from "../../helpers/casters/to-nullable";
 import { numericStringAndNumber } from "../atoms/core-non-nullable-codecs/numeric-string-and-number";
 import { numberAndInt } from "../atoms/derived/int";
@@ -13,13 +13,13 @@ export const numericStringAndInt = pipeCodecs(
 export const intAndNumericString = reverseCodecDirections(numericStringAndInt);
 
 export const nullableNumericStringAndInt = toNullable(numericStringAndInt);
-export const numericStringAndNullishInt = toNonNullableWithDefault(
+export const numericStringAndNullishInt = toNonNullishWithDefault(
 	nullableNumericStringAndInt,
 	"0",
 );
 
 export const nullableIntAndNumericString = toNullable(intAndNumericString);
-export const intAndNullishNumericString = toNonNullableWithDefault(
+export const intAndNullishNumericString = toNonNullishWithDefault(
 	nullableIntAndNumericString,
 	0,
 );
