@@ -6,27 +6,43 @@ describe("codecBuilder.helpers", () => {
 	const c = codecBuilder.fieldCodec;
 
 	test("namespaces field codecs by value family and nullability", () => {
+		expect(c.optional.date.and.isoString).toBeDefined();
+		expect(c.nullish.date.and.isoString).toBeDefined();
 		expect(c.nonNullish.string.and.nullish.string).toBeDefined();
 		expect(c.nullable.string.and.string).toBeDefined();
+		expect(c.optional.number.and.numericString).toBeDefined();
+		expect(c.nullish.number.and.numericString).toBeDefined();
 		expect(c.nonNullish.number.and.nullish.numericString).toBeDefined();
 		expect(c.nullable.number.and.numericString).toBeDefined();
+		expect(c.optional.numericString.and.number).toBeDefined();
+		expect(c.optional.numericString.and.int).toBeDefined();
+		expect(c.nullish.numericString.and.number).toBeDefined();
+		expect(c.nullish.numericString.and.int).toBeDefined();
 		expect(c.nonNullish.numericString.and.int).toBeDefined();
 		expect(c.nonNullish.numericString.and.nullish.number).toBeDefined();
 		expect(c.nonNullish.numericString.and.nullish.int).toBeDefined();
 		expect(c.nullable.numericString.and.number).toBeDefined();
 		expect(c.nullable.numericString.and.int).toBeDefined();
+		expect(c.optional.isoString.and.date).toBeDefined();
+		expect(c.nullish.isoString.and.date).toBeDefined();
 		expect(c.nonNullish.date.and.isoString).toBeDefined();
 		expect(c.nonNullish.date.and.nullish.isoString).toBeDefined();
 		expect(c.nullable.date.and.isoString).toBeDefined();
 		expect(c.nonNullish.isoString.and.date).toBeDefined();
 		expect(c.nonNullish.isoString.and.nullish.date).toBeDefined();
 		expect(c.nullable.isoString.and.date).toBeDefined();
+		expect(c.optional.yesNo.and.boolean).toBeDefined();
+		expect(c.nullish.yesNo.and.boolean).toBeDefined();
 		expect(c.nonNullish.yesNo.and.boolean).toBeDefined();
 		expect(c.nonNullish.yesNo.and.nullish.boolean).toBeDefined();
 		expect(c.nullable.yesNo.and.boolean).toBeDefined();
+		expect(c.optional.boolean.and.yesNo).toBeDefined();
+		expect(c.nullish.boolean.and.yesNo).toBeDefined();
 		expect(c.nonNullish.boolean.and.yesNo).toBeDefined();
 		expect(c.nonNullish.boolean.and.nullish.yesNo).toBeDefined();
 		expect(c.nullable.boolean.and.yesNo).toBeDefined();
+		expect(c.optional.int.and.numericString).toBeDefined();
+		expect(c.nullish.int.and.numericString).toBeDefined();
 		expect(c.nonNullish.int.and.numericString).toBeDefined();
 		expect(c.nonNullish.int.and.nullish.numericString).toBeDefined();
 		expect(c.nullable.int.and.numericString).toBeDefined();
@@ -43,6 +59,19 @@ describe("codecBuilder.helpers", () => {
 		expect(
 			nullableDateCodec.fromOutput(new Date("2024-01-02T03:04:05.000Z")),
 		).toBe("2024-01-02T03:04:05.000Z");
+
+		const optionalDateCodec = c.optional.date.and.isoString;
+		expect(optionalDateCodec.fromInput(undefined)).toBeUndefined();
+		expect(
+			optionalDateCodec.fromOutput(new Date("2024-01-02T03:04:05.000Z")),
+		).toBe("2024-01-02T03:04:05.000Z");
+
+		const nullishDateCodec = c.nullish.date.and.isoString;
+		expect(nullishDateCodec.fromInput(undefined)).toBeUndefined();
+		expect(nullishDateCodec.fromInput(null)).toBeNull();
+		expect(nullishDateCodec.fromInput("2024-01-02")).toEqual(
+			new Date("2024-01-02"),
+		);
 
 		const defaultedDateCodec = c.nonNullish.date.and.nullish.isoString;
 		expect(defaultedDateCodec.fromInput("2024-01-02")).toEqual(
@@ -63,6 +92,16 @@ describe("codecBuilder.helpers", () => {
 			nullableIsoStringCodec.fromInput(new Date("2024-01-02T03:04:05.000Z")),
 		).toBe("2024-01-02T03:04:05.000Z");
 
+		const optionalIsoStringCodec = c.optional.isoString.and.date;
+		expect(optionalIsoStringCodec.fromInput(undefined)).toBeUndefined();
+		expect(
+			optionalIsoStringCodec.fromInput(new Date("2024-01-02T03:04:05.000Z")),
+		).toBe("2024-01-02T03:04:05.000Z");
+
+		const nullishIsoStringCodec = c.nullish.isoString.and.date;
+		expect(nullishIsoStringCodec.fromInput(undefined)).toBeUndefined();
+		expect(nullishIsoStringCodec.fromInput(null)).toBeNull();
+
 		const defaultedIsoStringCodec = c.nonNullish.isoString.and.nullish.date;
 		expect(
 			defaultedIsoStringCodec.fromInput(new Date("2024-01-02T03:04:05.000Z")),
@@ -81,30 +120,53 @@ describe("codecBuilder.helpers", () => {
 		expect(c.nonNullish.string.and.nullish.string.fromOutput("x")).toBe("x");
 
 		expect(c.nullable.numericString.and.number.fromInput(undefined)).toBeNull();
+		expect(c.optional.numericString.and.number.fromInput(undefined)).toBe(
+			undefined,
+		);
+		expect(c.nullish.numericString.and.number.fromInput(undefined)).toBe(
+			undefined,
+		);
+		expect(c.nullish.numericString.and.number.fromInput(null)).toBeNull();
 		expect(
 			c.nonNullish.numericString.and.nullish.number.fromInput(undefined),
 		).toBe("0");
 		expect(c.nullable.numericString.and.int.fromInput(undefined)).toBeNull();
+		expect(c.optional.numericString.and.int.fromInput(undefined)).toBe(
+			undefined,
+		);
+		expect(c.nullish.numericString.and.int.fromInput(null)).toBeNull();
 		expect(
 			c.nonNullish.numericString.and.nullish.int.fromInput(undefined),
 		).toBe("0");
 
 		expect(c.nullable.number.and.numericString.fromInput(undefined)).toBeNull();
+		expect(c.optional.number.and.numericString.fromInput(undefined)).toBe(
+			undefined,
+		);
+		expect(c.nullish.number.and.numericString.fromInput(null)).toBeNull();
 		expect(
 			c.nonNullish.number.and.nullish.numericString.fromInput(undefined),
 		).toBe(0);
 
 		expect(c.nullable.yesNo.and.boolean.fromInput(undefined)).toBeNull();
+		expect(c.optional.yesNo.and.boolean.fromInput(undefined)).toBeUndefined();
+		expect(c.nullish.yesNo.and.boolean.fromInput(null)).toBeNull();
 		expect(c.nonNullish.yesNo.and.nullish.boolean.fromInput(undefined)).toBe(
 			"No",
 		);
 
 		expect(c.nullable.boolean.and.yesNo.fromInput(undefined)).toBeNull();
+		expect(c.optional.boolean.and.yesNo.fromInput(undefined)).toBeUndefined();
+		expect(c.nullish.boolean.and.yesNo.fromInput(null)).toBeNull();
 		expect(c.nonNullish.boolean.and.nullish.yesNo.fromInput(undefined)).toBe(
 			false,
 		);
 
 		expect(c.nullable.int.and.numericString.fromInput(undefined)).toBeNull();
+		expect(c.optional.int.and.numericString.fromInput(undefined)).toBe(
+			undefined,
+		);
+		expect(c.nullish.int.and.numericString.fromInput(null)).toBeNull();
 		expect(
 			c.nonNullish.int.and.nullish.numericString.fromInput(undefined),
 		).toBe(0);

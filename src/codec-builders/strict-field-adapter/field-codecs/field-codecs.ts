@@ -1,5 +1,7 @@
 import type { AnyCodec, NoOpCodec } from "../../../core/types";
 import { noOpCodec } from "../build-strict-field-adapter-codec";
+import { toNullish } from "../helpers/casters/to-nullish";
+import { toOptional } from "../helpers/casters/to-optional";
 import {
 	dateAndIsoString,
 	dateAndNullishIsoString,
@@ -91,6 +93,82 @@ export const fieldCodecs = {
 					nullishArrayOfNullishString:
 						arrayOfNonEmptyStringsAndNullishArrayOfNullishStrings,
 				},
+			},
+		},
+	},
+	optional: {
+		date: {
+			and: {
+				isoString: toOptional(dateAndIsoString),
+			},
+		},
+		isoString: {
+			and: {
+				date: toOptional(isoStringAndDate),
+			},
+		},
+		numericString: {
+			and: {
+				number: toOptional(numericStringAndNumber),
+				int: toOptional(numericStringAndInt),
+			},
+		},
+		number: {
+			and: {
+				numericString: toOptional(numberAndNumericString),
+			},
+		},
+		yesNo: {
+			and: {
+				boolean: toOptional(yesNoAndBoolean),
+			},
+		},
+		boolean: {
+			and: {
+				yesNo: toOptional(booleanAndYesNo),
+			},
+		},
+		int: {
+			and: {
+				numericString: toOptional(intAndNumericString),
+			},
+		},
+	},
+	nullish: {
+		date: {
+			and: {
+				isoString: toNullish(dateAndIsoString),
+			},
+		},
+		isoString: {
+			and: {
+				date: toNullish(isoStringAndDate),
+			},
+		},
+		numericString: {
+			and: {
+				number: toNullish(numericStringAndNumber),
+				int: toNullish(numericStringAndInt),
+			},
+		},
+		number: {
+			and: {
+				numericString: toNullish(numberAndNumericString),
+			},
+		},
+		yesNo: {
+			and: {
+				boolean: toNullish(yesNoAndBoolean),
+			},
+		},
+		boolean: {
+			and: {
+				yesNo: toNullish(booleanAndYesNo),
+			},
+		},
+		int: {
+			and: {
+				numericString: toNullish(intAndNumericString),
 			},
 		},
 	},
