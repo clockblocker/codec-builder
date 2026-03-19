@@ -1,10 +1,11 @@
 import { describe, expect, test } from "bun:test";
-import { dateAndIsoString } from "../src/codec-builders/strict-field-adapter/field-codecs/atoms/core-non-nullable-codecs/date-and-iso-string";
 import { numericStringAndNumber } from "../src/codec-builders/strict-field-adapter/field-codecs/atoms/core-non-nullable-codecs/numeric-string-and-number";
 import { yesNoAndBoolean } from "../src/codec-builders/strict-field-adapter/field-codecs/atoms/core-non-nullable-codecs/yes-no-and-boolean";
 import {
 	isoStringAndDate,
+	nullableDateAndNullishIsoString,
 	nullableDateAndIsoString,
+	nullableIsoStringAndNullishDate,
 	nullableIsoStringAndDate,
 } from "../src/codec-builders/strict-field-adapter/field-codecs/atoms/derived/date";
 import {
@@ -60,12 +61,17 @@ describe("nullableNumericStringAndNumber", () => {
 	});
 });
 
-describe("dateAndIsoString", () => {
-	test("uses strict non-nullable schemas in both directions", () => {
-		const date = dateAndIsoString.fromInput("2024-01-01");
+describe("nullableDateAndNullishIsoString", () => {
+	test("maps invalid and nullish input to null", () => {
+		const date = nullableDateAndNullishIsoString.fromInput("2024-01-01");
+		if (date === null) {
+			throw new Error("Expected a valid date");
+		}
+
 		expect(date).toBeInstanceOf(Date);
 		expect(isoStringAndDate.fromInput(date)).toBe("2024-01-01T00:00:00.000Z");
-		expect(() => dateAndIsoString.inputSchema.parse(undefined)).toThrow();
+		expect(nullableDateAndNullishIsoString.fromInput("")).toBeNull();
+		expect(nullableDateAndNullishIsoString.inputSchema.parse(undefined)).toBeUndefined();
 		expect(() => isoStringAndDate.inputSchema.parse(undefined)).toThrow();
 	});
 });
@@ -81,11 +87,19 @@ describe("nullableDateAndIsoString", () => {
 	});
 
 	test("keeps the reverse date codec nullish-in and nullable-out", () => {
+		expect(nullableIsoStringAndNullishDate.inputSchema.parse(null)).toBeNull();
 		expect(nullableIsoStringAndDate.inputSchema.parse(null)).toBeNull();
+		expect(
+			nullableIsoStringAndNullishDate.inputSchema.parse(undefined),
+		).toBeUndefined();
 		expect(
 			nullableIsoStringAndDate.inputSchema.parse(undefined),
 		).toBeUndefined();
+		expect(nullableIsoStringAndNullishDate.outputSchema.parse(null)).toBeNull();
 		expect(nullableIsoStringAndDate.outputSchema.parse(null)).toBeNull();
+		expect(() =>
+			nullableIsoStringAndNullishDate.outputSchema.parse(undefined),
+		).toThrow();
 		expect(() =>
 			nullableIsoStringAndDate.outputSchema.parse(undefined),
 		).toThrow();

@@ -235,6 +235,22 @@ describe("codecBuilder.helpers", () => {
 		});
 	});
 
+	test('maps empty string date fields to null through a nullable object codec', () => {
+		const adapter = codecBuilder.buildStrictFieldAdapter<{
+			submittedAt: string | null | undefined;
+		}>()({
+			submittedAt: codecBuilder.fieldCodec.nullable.date.and.isoString,
+		});
+
+		expect(
+			adapter.fromInput({
+				submittedAt: "",
+			}),
+		).toEqual({
+			submittedAt: null,
+		});
+	});
+
 	test("exposes working helper builders through the nested helpers object", () => {
 		const arrayOfCodec = codecBuilder.helpers.toArrayOf(
 			c.nonNullish.string.and.nullish.string,
