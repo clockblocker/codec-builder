@@ -7,8 +7,3 @@ export type {
 	ShapeOfStrictFieldAdapterCodec as ShapeOfStrictFieldAdapterCodec3,
 } from "./v3";
 export { codecBuilder3 } from "./v3";
-export type {
-	ShapeOfStrictFieldAdapter as ShapeOfStrictFieldAdapter4,
-	ShapeOfStrictFieldAdapterCodec as ShapeOfStrictFieldAdapterCodec4,
-} from "./v4";
-export { codecBuilder4 } from "./v4";
