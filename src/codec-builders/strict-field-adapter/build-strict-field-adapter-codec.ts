@@ -27,11 +27,8 @@ export function arrayOfCodecShapes<
 
 export function buildStrictFieldAdapterCodec<
 	TInputSchema extends z.ZodObject,
-	const S extends RuntimeCodecShape,
->(
-	inputSchema: TInputSchema,
-	shape: S & CodecShapeForSchemaShape<SchemaShapeOf<TInputSchema>>,
-) {
+	const S extends CodecShapeForSchemaShape<SchemaShapeOf<TInputSchema>>,
+>(inputSchema: TInputSchema, shape: S) {
 	const outputSchema = z.object(
 		buildOutputZodShape(
 			shape as RuntimeCodecShape,
@@ -69,25 +66,23 @@ export function buildStrictFieldAdapterCodec<
 }
 
 export function buildStrictFieldAdapter<InputType extends object>(): <
-	const S extends RuntimeCodecShape,
+	const S extends ShapeOfStrictFieldAdapter<InputType>,
 >(
-	shape: S & ShapeOfStrictFieldAdapter<InputType>,
+	shape: S,
 ) => CodecPair<InputType, OutputOfStrictFieldAdapter<InputType, S>>;
 
 export function buildStrictFieldAdapter<
 	InputType extends object,
-	const S extends RuntimeCodecShape,
->(
-	shape: S & ShapeOfStrictFieldAdapter<InputType>,
-): CodecPair<InputType, OutputOfStrictFieldAdapter<InputType, S>>;
+	const S extends ShapeOfStrictFieldAdapter<InputType>,
+>(shape: S): CodecPair<InputType, OutputOfStrictFieldAdapter<InputType, S>>;
 
 export function buildStrictFieldAdapter<
 	InputType extends object,
-	const S extends RuntimeCodecShape,
->(shape?: S & ShapeOfStrictFieldAdapter<InputType>) {
+	const S extends ShapeOfStrictFieldAdapter<InputType>,
+>(shape?: S) {
 	if (shape === undefined) {
-		return <const TShape extends RuntimeCodecShape>(
-			deferredShape: TShape & ShapeOfStrictFieldAdapter<InputType>,
+		return <const TShape extends ShapeOfStrictFieldAdapter<InputType>>(
+			deferredShape: TShape,
 		) => buildStrictFieldAdapter<InputType, TShape>(deferredShape);
 	}
 
@@ -116,9 +111,13 @@ export function buildStrictFieldAdapter<
 // -- Internals --
 
 type RuntimeCodecShape = Record<string, unknown>;
-type AnyZodSchema = z.ZodType<any, any>;
-type AnySchemaCodec = z.ZodCodec<AnyZodSchema, AnyZodSchema>;
-type CodecWithOutputSchema<TSchema extends z.ZodTypeAny> = z.ZodCodec<
+// Type-level checks use zod core interfaces: matching a schema against the
+// classic `z.ZodType`/`z.ZodCodec` forces a structural comparison of the whole
+// classic method surface (~80k instantiations on first use).
+type AnySchema = z.core.$ZodType;
+type AnyZodSchema = z.core.$ZodType<any, any>;
+type AnySchemaCodec = z.core.$ZodCodec<AnyZodSchema, AnyZodSchema>;
+type CodecWithOutputSchema<TSchema extends AnySchema> = z.core.$ZodCodec<
 	AnyZodSchema,
 	TSchema
 >;
@@ -217,64 +216,59 @@ type OutputOfStrictFieldAdapterNode<TInputValue, TShapeNode> =
 						: never
 					: never;
 
-type OutputOfStrictFieldAdapter<
-	TInput extends object,
-	S extends RuntimeCodecShape,
-> = {
+type OutputOfStrictFieldAdapter<TInput extends object, S> = {
 	[K in KnownKeys<S>]: K extends keyof TInput
 		? OutputOfStrictFieldAdapterNode<TInput[K], S[K]>
 		: never;
-};
+} & {};
 
 type SchemaShapeOf<TSchema extends z.ZodObject> = SharedSchemaShapeOf<TSchema>;
 
-type UnwrapOptionalNullableSchema<TSchema extends z.ZodTypeAny> =
-	TSchema extends z.ZodOptional<infer TInner extends z.ZodTypeAny>
+type UnwrapOptionalNullableSchema<TSchema extends AnySchema> =
+	TSchema extends z.core.$ZodOptional<infer TInner extends AnySchema>
 		? UnwrapOptionalNullableSchema<TInner>
-		: TSchema extends z.ZodNullable<infer TInner extends z.ZodTypeAny>
+		: TSchema extends z.core.$ZodNullable<infer TInner extends AnySchema>
 			? UnwrapOptionalNullableSchema<TInner>
 			: TSchema;
 
-type ObjectSchemaOf<TSchema extends z.ZodTypeAny> =
-	UnwrapOptionalNullableSchema<TSchema> extends z.ZodObject
+type ObjectSchemaOf<TSchema extends AnySchema> =
+	UnwrapOptionalNullableSchema<TSchema> extends z.core.$ZodObject
 		? UnwrapOptionalNullableSchema<TSchema>
 		: never;
 
-type ShapeOfObjectSchema<TSchema extends z.ZodObject> =
-	TSchema extends z.ZodObject<infer TShape, any> ? TShape : never;
+type ShapeOfObjectSchema<TSchema extends z.core.$ZodObject> =
+	TSchema extends z.core.$ZodObject<infer TShape, any> ? TShape : never;
 
-type NestedSchemaShape<TSchema extends z.ZodTypeAny> =
-	ObjectSchemaOf<TSchema> extends z.ZodObject
+type NestedSchemaShape<TSchema extends AnySchema> =
+	ObjectSchemaOf<TSchema> extends z.core.$ZodObject
 		? ShapeOfObjectSchema<ObjectSchemaOf<TSchema>>
 		: never;
 
-type ArrayItemSchemaOf<TSchema extends z.ZodTypeAny> =
-	UnwrapOptionalNullableSchema<TSchema> extends z.ZodArray<infer TItem>
+type ArrayItemSchemaOf<TSchema extends AnySchema> =
+	UnwrapOptionalNullableSchema<TSchema> extends z.core.$ZodArray<infer TItem>
 		? TItem
 		: never;
 
-type ArrayItemSchemaShape<TSchema extends z.ZodTypeAny> =
-	ArrayItemSchemaOf<TSchema> extends z.ZodTypeAny
+type ArrayItemSchemaShape<TSchema extends AnySchema> =
+	ArrayItemSchemaOf<TSchema> extends AnySchema
 		? NestedSchemaShape<ArrayItemSchemaOf<TSchema>>
 		: never;
 
-type IsWideZodType<TSchema extends z.ZodTypeAny> =
+type IsWideZodType<TSchema extends AnySchema> =
 	z.core.$ZodTypeDef["type"] extends TSchema["_zod"]["def"]["type"]
 		? true
 		: false;
 
-type FieldOutput<TSchema extends z.ZodTypeAny> = NonNullable<
-	TSchema extends z.ZodType<infer TOutput, any> ? TOutput : never
->;
+type FieldOutput<TSchema extends AnySchema> = NonNullable<z.output<TSchema>>;
 
-type ArrayItemOutput<TSchema extends z.ZodTypeAny> = ArrayItemOfValue<
+type ArrayItemOutput<TSchema extends AnySchema> = ArrayItemOfValue<
 	FieldOutput<TSchema>
 >;
 
-type ArrayItemObjectOutput<TSchema extends z.ZodTypeAny> =
+type ArrayItemObjectOutput<TSchema extends AnySchema> =
 	ArrayItemOutput<TSchema> extends object ? ArrayItemOutput<TSchema> : never;
 
-type ObjectOutput<TSchema extends z.ZodTypeAny> =
+type ObjectOutput<TSchema extends AnySchema> =
 	FieldOutput<TSchema> extends readonly unknown[]
 		? never
 		: FieldOutput<TSchema> extends object
@@ -282,24 +276,23 @@ type ObjectOutput<TSchema extends z.ZodTypeAny> =
 			: never;
 
 type ZodTypeForValue<TValue> = z.ZodType<TValue, TValue>;
-type FieldInput<TField extends z.ZodTypeAny> = z.input<TField>;
-type InputCompatibleCodecForField<TField extends z.ZodTypeAny> =
-	AnySchemaCodec & {
-		decode: (v: FieldInput<TField>) => unknown;
-	};
-type ArrayItemInput<TField extends z.ZodTypeAny> =
-	ArrayItemSchemaOf<TField> extends z.ZodTypeAny
+type FieldInput<TField extends AnySchema> = z.input<TField>;
+type InputCompatibleCodecForField<TField extends AnySchema> = AnySchemaCodec & {
+	decode: (v: FieldInput<TField>) => unknown;
+};
+type ArrayItemInput<TField extends AnySchema> =
+	ArrayItemSchemaOf<TField> extends AnySchema
 		? z.input<ArrayItemSchemaOf<TField>>
 		: never;
-type InputCompatibleCodecForArrayItem<TField extends z.ZodTypeAny> =
-	ArrayItemSchemaOf<TField> extends z.ZodTypeAny
+type InputCompatibleCodecForArrayItem<TField extends AnySchema> =
+	ArrayItemSchemaOf<TField> extends AnySchema
 		? AnySchemaCodec & {
 				decode: (v: ArrayItemInput<TField>) => unknown;
 			}
 		: never;
-type IsArraySchema<TSchema extends z.ZodTypeAny> =
+type IsArraySchema<TSchema extends AnySchema> =
 	ArrayItemSchemaOf<TSchema> extends never ? false : true;
-type ArrayItemNodeForField<TField extends z.ZodTypeAny> =
+type ArrayItemNodeForField<TField extends AnySchema> =
 	ArrayItemSchemaShape<TField> extends never
 		? InputCompatibleCodecForArrayItem<TField> | NoOpCodec
 		:
@@ -307,19 +300,19 @@ type ArrayItemNodeForField<TField extends z.ZodTypeAny> =
 				| InputCompatibleCodecForArrayItem<TField>
 				| NoOpCodec;
 
-type WideObjectShapeNodeForField<TField extends z.ZodTypeAny> = [
+type WideObjectShapeNodeForField<TField extends AnySchema> = [
 	ObjectOutput<TField>,
 ] extends [never]
 	? never
 	: RuntimeCodecShape;
 
-type WideArrayShapeNodeForField<TField extends z.ZodTypeAny> = [
+type WideArrayShapeNodeForField<TField extends AnySchema> = [
 	ArrayItemObjectOutput<TField>,
 ] extends [never]
 	? never
 	: ArrayCodecShape;
 
-type CodecShapeNodeForField<TField extends z.ZodTypeAny> =
+type CodecShapeNodeForField<TField extends AnySchema> =
 	IsArraySchema<TField> extends true
 		?
 				| ArrayCodecShape<ArrayItemNodeForField<TField>>
@@ -358,7 +351,7 @@ type OutputZodArrayItemFromOutputValue<TValue, TItemShape> =
 				: never;
 
 type OutputZodArrayItemForInputField<
-	TInputField extends z.ZodTypeAny,
+	TInputField extends AnySchema,
 	TItemShape,
 > =
 	TItemShape extends CodecWithOutputSchema<infer TSchema>
@@ -388,9 +381,7 @@ type OutputZodArrayItemForInputField<
 				: never;
 
 type CodecShapeForSchemaShape<TShape extends z.ZodRawShape> = {
-	[K in keyof TShape]: TShape[K] extends z.ZodTypeAny
-		? CodecShapeNodeForField<TShape[K]>
-		: never;
+	[K in keyof TShape]: CodecShapeNodeForField<TShape[K]>;
 };
 
 type OutputZodShapeFromCodecShape<S extends RuntimeCodecShape> = {
@@ -438,7 +429,7 @@ type OutputZodShapeFromOutputObject<
 					: never;
 };
 
-type OutputZodNode<TInputField extends z.ZodTypeAny, TShapeNode> =
+type OutputZodNode<TInputField extends AnySchema, TShapeNode> =
 	TShapeNode extends CodecWithOutputSchema<infer TSchema>
 		? TSchema
 		: TShapeNode extends NoOpCodec
@@ -469,18 +460,13 @@ type OutputZodNode<TInputField extends z.ZodTypeAny, TShapeNode> =
 							>
 					: never;
 
-type OutputZodShapeForSchemaShape<
-	TShape extends z.ZodRawShape,
-	S extends RuntimeCodecShape,
-> = {
+type OutputZodShapeForSchemaShape<TShape extends z.ZodRawShape, S> = {
 	[K in KnownKeys<S>]: K extends keyof TShape
-		? TShape[K] extends z.ZodTypeAny
-			? OutputZodNode<TShape[K], S[K]>
-			: never
+		? OutputZodNode<TShape[K], S[K]>
 		: never;
 };
 
-function isCodec(v: unknown): v is AnySchemaCodec {
+function isCodec(v: unknown): v is z.ZodCodec {
 	return (
 		typeof v === "object" &&
 		v !== null &&
@@ -603,7 +589,7 @@ function buildOutputZodArrayItem(
 	itemSchema: z.ZodTypeAny,
 ): z.ZodTypeAny {
 	if (isCodec(itemShape)) {
-		return itemShape.out;
+		return itemShape.out as z.ZodTypeAny;
 	}
 
 	if (isNoOpCodec(itemShape)) {
@@ -659,7 +645,7 @@ function buildOutputZodShape(
 		const schemaNode = getSchemaNode(schemaShape, key);
 
 		if (isCodec(node)) {
-			result[key] = node.out;
+			result[key] = node.out as z.ZodTypeAny;
 		} else if (isNoOpCodec(node)) {
 			result[key] = schemaNode;
 		} else if (isArrayCodecShape(node)) {

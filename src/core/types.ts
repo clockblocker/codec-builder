@@ -23,3 +23,6 @@ export type Codec<TOutput = unknown, TInput = unknown> = z.ZodCodec<
 	z.ZodType<unknown, TInput>,
 	z.ZodType<TOutput, unknown>
 >;
+
+/** Flattens intersections/aliases so hovers show the resolved object. */
+export type Simplify<T> = { [K in keyof T]: T[K] } & {};

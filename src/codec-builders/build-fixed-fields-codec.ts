@@ -1,4 +1,5 @@
 import { z } from "zod/v4";
+import type { Simplify } from "../core/types";
 
 type CanonicalShape<TSchema extends z.ZodObject> = TSchema["shape"];
 
@@ -26,9 +27,11 @@ type NoUnknownFixedFields<TSchema extends z.ZodObject, TFixedFields> = Record<
 type ModelShape<
 	TSchema extends z.ZodObject,
 	TFixedFields extends Record<string, unknown>,
-> = Pick<
-	CanonicalShape<TSchema>,
-	Exclude<keyof CanonicalShape<TSchema>, keyof TFixedFields>
+> = Simplify<
+	Pick<
+		CanonicalShape<TSchema>,
+		Exclude<keyof CanonicalShape<TSchema>, keyof TFixedFields>
+	>
 >;
 
 /**

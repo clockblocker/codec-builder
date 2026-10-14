@@ -1,10 +1,10 @@
 import { z } from "zod/v4";
-import type { SchemaShapeOf } from "../core/types";
+import type { SchemaShapeOf, Simplify } from "../core/types";
 
 export function buildReshapeCodec<
 	TInputSchema extends z.ZodObject,
 	const TFieldName extends string,
-	TFieldSchema extends z.ZodTypeAny,
+	TFieldSchema extends z.core.$ZodType,
 	const TDropFields extends readonly SchemaKeys<TInputSchema>[] = [],
 >(
 	inputSchema: TInputSchema,
@@ -106,18 +106,19 @@ type SchemaKeys<TInputSchema extends z.ZodObject> = Extract<
 type OutputSchemaShape<
 	TInputSchema extends z.ZodObject,
 	TFieldName extends string,
-	TFieldSchema extends z.ZodTypeAny,
+	TFieldSchema extends z.core.$ZodType,
 	TDropFields extends readonly SchemaKeys<TInputSchema>[],
-> =
+> = Simplify<
 	IsTuple<TDropFields> extends true
 		? Omit<SchemaShapeOf<TInputSchema>, TDropFields[number]> &
 				Record<TFieldName, TFieldSchema>
-		: SchemaShapeOf<TInputSchema> & Record<TFieldName, TFieldSchema>;
+		: SchemaShapeOf<TInputSchema> & Record<TFieldName, TFieldSchema>
+>;
 
 type OutputWithAddedField<
 	TInputSchema extends z.ZodObject,
 	TFieldName extends string,
-	TFieldSchema extends z.ZodTypeAny,
+	TFieldSchema extends z.core.$ZodType,
 	TDropFields extends readonly SchemaKeys<TInputSchema>[],
 > =
 	IsTuple<TDropFields> extends true
@@ -139,7 +140,7 @@ type ReconstructedInputWithDroppedFields<
 type ReshapeCodecConfig<
 	TInputSchema extends z.ZodObject,
 	TFieldName extends string,
-	TFieldSchema extends z.ZodTypeAny,
+	TFieldSchema extends z.core.$ZodType,
 	TDropFields extends readonly SchemaKeys<TInputSchema>[],
 > = {
 	fieldName: TFieldName;
