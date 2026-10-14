@@ -32,12 +32,12 @@
 	"scripts": {
 		"build": "bun run build:js && bun run build:types",
 		"build:js": "bun run ./build.ts",
-		"build:types": "tsc -p tsconfig.build.json",
+		"build:types": "./node_modules/typescript/bin/tsc -p tsconfig.build.json",
 		"fix": "biome check --write .",
 		"lint": "biome check .",
 		"prepack": "bun run build",
 		"test": "bun test",
-		"typecheck": "tsc --noEmit"
+		"typecheck": "./node_modules/typescript/bin/tsc --noEmit"
 	},
 	"peerDependencies": {
 		"zod": "^4.4.0"

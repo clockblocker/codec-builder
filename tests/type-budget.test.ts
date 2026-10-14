@@ -3,7 +3,7 @@ import { expectTypes } from "typeprobe/testing";
 
 // Type-checker budgets for each builder, counted by typeprobe on the
 // project's own TypeScript (a fresh checker per count, so the numbers are
-// deterministic). Every count includes about 103k instantiations for
+// deterministic). Every count includes about 100k instantiations for
 // resolving the field-codec modules from source; the rest is the builder.
 // Budgets are the measured counts plus about 25%. If a change legitimately
 // moves a count, re-measure and keep the headroom.
@@ -21,19 +21,19 @@ test(
 			readable: true,
 			types: [
 				// buildStrictFieldAdapterCodec
-				{ name: "userCodec", maxInstantiations: 138_000 },
-				{ name: "User", maxInstantiations: 141_000 },
+				{ name: "userCodec", maxInstantiations: 134_000 },
+				{ name: "User", maxInstantiations: 137_000 },
 				// buildStrictFieldAdapter
-				{ name: "apiUserAdapter", maxInstantiations: 130_000 },
-				{ name: "AdaptedApiUser", maxInstantiations: 131_000 },
+				{ name: "apiUserAdapter", maxInstantiations: 126_500 },
+				{ name: "AdaptedApiUser", maxInstantiations: 126_500 },
 				// buildReshapeCodec
-				{ name: "personCodec", maxInstantiations: 131_000 },
-				{ name: "Person", maxInstantiations: 132_000 },
+				{ name: "personCodec", maxInstantiations: 127_500 },
+				{ name: "Person", maxInstantiations: 128_000 },
 				// buildFixedFieldsCodec
-				{ name: "lemmaCodec", maxInstantiations: 130_000 },
-				{ name: "CompactLemma", maxInstantiations: 130_000 },
+				{ name: "lemmaCodec", maxInstantiations: 126_000 },
+				{ name: "CompactLemma", maxInstantiations: 126_500 },
 			],
-			maxInstantiations: 146_000,
+			maxInstantiations: 142_000,
 		});
 
 		expect(result.types).toHaveLength(8);
