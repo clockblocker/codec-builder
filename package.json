@@ -1,6 +1,6 @@
 {
 	"name": "codec-builder-library",
-	"version": "0.1.0",
+	"version": "0.2.0",
 	"description": "Composable Zod codec builders for reshaping and adapting data structures.",
 	"type": "module",
 	"sideEffects": false,
@@ -10,24 +10,38 @@
 		".": {
 			"types": "./dist/index.d.ts",
 			"import": "./dist/index.js"
-		}
+		},
+		"./v3": {
+			"types": "./dist/v3/index.d.ts",
+			"import": "./dist/v3/index.js"
+		},
+		"./v4": {
+			"types": "./dist/v4/index.d.ts",
+			"import": "./dist/v4/index.js"
+		},
+		"./package.json": "./package.json"
 	},
-	"files": ["dist", "README.md"],
+	"files": [
+		"dist",
+		"README.md"
+	],
 	"scripts": {
 		"build": "bun run build:js && bun run build:types",
 		"build:js": "bun run ./build.ts",
-		"build:types": "bunx tsc -p tsconfig.build.json",
+		"build:types": "tsc -p tsconfig.build.json",
+		"fix": "biome check --write .",
+		"lint": "biome check .",
 		"prepack": "bun run build",
 		"test": "bun test",
-		"tests": "bun test",
-		"typecheck": "bunx tsc --noEmit"
-	},
-	"devDependencies": {
-		"@types/bun": "latest",
-		"typescript": "^5",
-		"zod": "3.24.1"
+		"typecheck": "tsc --noEmit"
 	},
 	"peerDependencies": {
-		"zod": "^3.24.1"
+		"zod": "^3.25.0 || ^4.4.0"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "2.5.13",
+		"@types/bun": "latest",
+		"typescript": "^5.9.0",
+		"zod": "^4.4.0"
 	}
 }
