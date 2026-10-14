@@ -42,12 +42,12 @@ export const isoStringAndDate = {
 
 export const dateAndNullishIsoString = toNonNullishWithDefault(
 	nullableDateAndNullishIsoString,
-	new Date(),
+	() => new Date(),
 );
 
 export const nullableIsoStringAndNullishDate = toNullable(isoStringAndDate);
 
 export const isoStringAndNullishDate = toNonNullishWithDefault(
 	nullableIsoStringAndNullishDate,
-	new Date().toISOString(),
+	() => new Date().toISOString(),
 );
