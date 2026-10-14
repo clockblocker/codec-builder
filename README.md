@@ -497,6 +497,12 @@ h.buildFilteredNullishArrayCodec(z.number().nullish(), z.number())
 | `buildNullableUnionAndNullishString(values)` | `string \| null \| undefined` | `z.enum(values).nullable()` |
 | `buildFilteredNullishArrayCodec(inItem, outItem?)` | `z.array(inItem)` | `z.array(outItem)`, `null` and `undefined` items dropped |
 
+The wrapping helpers (`toOptional`, `toNullable`, `toNullish`,
+`toNonNullishWithDefault`, `toArrayOf`) run the wrapped codec once. Its
+failures are ordinary issues (`toArrayOf` puts the item index in the path),
+so `safeDecode` returns `{ success: false }`, and async codecs work with the
+async methods.
+
 `toNonNullishWithDefault` expects a codec built by `toNullable` (input
 `.nullish()`, output `.nullable()`). To default to a function value, wrap it:
 `() => myFunction`. To flip a codec's direction, use Zod's own

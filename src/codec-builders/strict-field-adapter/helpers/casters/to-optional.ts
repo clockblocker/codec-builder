@@ -1,5 +1,5 @@
-/* eslint-disable @typescript-eslint/no-explicit-any -- helper keeps codec generics broad */
 import { z } from "zod/v4";
+import { runWrapped } from "./run-wrapped.js";
 
 export function toOptional<
 	TInputSchema extends z.ZodTypeAny,
@@ -11,18 +11,18 @@ export function toOptional<
 		inputSchema,
 		outputSchema,
 		{
-			decode: (input) =>
+			decode: (input, payload) =>
 				input === undefined
 					? undefined
-					: (codec.decode(
-							input as z.input<TInputSchema>,
-						) as z.input<TOutputSchema>),
-			encode: (output) =>
+					: (runWrapped(codec, "decode", input, payload) as Promise<
+							z.input<TOutputSchema>
+						>),
+			encode: (output, payload) =>
 				output === undefined
 					? undefined
-					: (codec.encode(
-							output as z.output<TOutputSchema>,
-						) as z.output<TInputSchema>),
+					: (runWrapped(codec, "encode", output, payload) as Promise<
+							z.output<TInputSchema>
+						>),
 		},
 	);
 }

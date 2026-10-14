@@ -1,4 +1,5 @@
 import { z } from "zod/v4";
+import { runWrapped } from "./run-wrapped.js";
 
 export function toNullish<
 	TInputSchema extends z.ZodTypeAny,
@@ -10,22 +11,18 @@ export function toNullish<
 		inputSchema,
 		outputSchema,
 		{
-			decode: (input) => {
-				if (input === null || input === undefined) {
-					return input as null | undefined;
-				}
-				return codec.decode(
-					input as z.input<TInputSchema>,
-				) as z.input<TOutputSchema>;
-			},
-			encode: (output) => {
-				if (output === null || output === undefined) {
-					return output as null | undefined;
-				}
-				return codec.encode(
-					output as z.output<TOutputSchema>,
-				) as z.output<TInputSchema>;
-			},
+			decode: (input, payload) =>
+				input === null || input === undefined
+					? (input as null | undefined)
+					: (runWrapped(codec, "decode", input, payload) as Promise<
+							z.input<TOutputSchema>
+						>),
+			encode: (output, payload) =>
+				output === null || output === undefined
+					? (output as null | undefined)
+					: (runWrapped(codec, "encode", output, payload) as Promise<
+							z.output<TInputSchema>
+						>),
 		},
 	);
 }

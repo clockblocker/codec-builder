@@ -1,5 +1,5 @@
 import { z } from "zod/v4";
-import { mapNullishToNullable } from "../../../../core/helpers/nullish-utils.js";
+import { runWrapped } from "./run-wrapped.js";
 
 export function toNullable<
 	TInputSchema extends z.ZodTypeAny,
@@ -11,22 +11,18 @@ export function toNullable<
 		inputSchema,
 		outputSchema,
 		{
-			decode: (input) =>
-				mapNullishToNullable(
-					input,
-					(value) =>
-						codec.decode(
-							value as z.input<TInputSchema>,
-						) as z.input<TOutputSchema>,
-				),
-			encode: (output) =>
-				mapNullishToNullable(
-					output,
-					(value) =>
-						codec.encode(
-							value as z.output<TOutputSchema>,
-						) as z.output<TInputSchema>,
-				),
+			decode: (input, payload) =>
+				input == null
+					? null
+					: (runWrapped(codec, "decode", input, payload) as Promise<
+							z.input<TOutputSchema>
+						>),
+			encode: (output, payload) =>
+				output == null
+					? null
+					: (runWrapped(codec, "encode", output, payload) as Promise<
+							z.output<TInputSchema>
+						>),
 		},
 	);
 }

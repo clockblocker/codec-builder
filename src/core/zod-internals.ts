@@ -207,3 +207,21 @@ export function transformsOnly(codec: z.core.$ZodType): z.ZodCodec {
 		encode: reverseTransform,
 	} as never) as unknown as z.ZodCodec;
 }
+
+/**
+ * Runs only a codec's decode (or encode) function, for wrappers whose own
+ * `in`/`out` schemas already contain the codec's (`codec.in.nullish()`,
+ * `z.array(codec.out)`, ...). Issues the function pushes land on `payload`;
+ * the result may be a Promise if the function is async.
+ */
+export function runTransform(
+	codec: z.core.$ZodType,
+	direction: Direction,
+	value: unknown,
+	payload: z.core.ParsePayload<unknown>,
+): unknown {
+	const { transform, reverseTransform } = codecTransforms(codec);
+	return direction === "decode"
+		? transform(value, payload)
+		: reverseTransform(value, payload);
+}
