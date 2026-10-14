@@ -170,10 +170,13 @@ key of the schema, and each entry is one of:
   source field's schema.
 - a field codec from `fieldCodec` (see the [list below](#field-codecs)), or any
   `z.codec(...)` you write yourself. The derived schema uses the codec's `out`.
-  The exported `Codec<Output, Input>` type describes such a codec.
-- a nested shape object, for a field whose schema is a `z.object`.
-- `fieldCodec.arrayOf(item)`, for a field whose schema is a `z.array`. `item`
-  can be `noOp`, a codec, or a nested shape.
+  The exported `Codec<Output, Input>` type describes such a codec. A plain
+  `.pipe()` or `.transform()` is not a codec (it has no encode direction) and
+  is rejected.
+- a nested shape object, for a field whose schema is a `z.object` (or a
+  nullable/optional one).
+- `fieldCodec.arrayOf(item)`, for a field whose schema is a `z.array` (or a
+  nullable/optional one). `item` can be `noOp`, a codec, or a nested shape.
 
 ```ts
 const orderRow = z.object({

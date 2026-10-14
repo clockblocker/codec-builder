@@ -634,15 +634,16 @@ type OutputZodShapeForSchemaShape<TShape extends z.ZodRawShape, S> = {
 		: never;
 };
 
+// Every Zod 4 schema has decode/encode methods and every pipe has `in` and
+// `out`, so only the def tells a codec apart: z.codec (and z.stringbool,
+// z.invertCodec) put both transforms on a pipe def.
 function isCodec(v: unknown): v is z.ZodCodec {
+	if (typeof v !== "object" || v === null || !("_zod" in v)) return false;
+	const def = (v as { _zod?: { def?: Record<string, unknown> } })._zod?.def;
 	return (
-		typeof v === "object" &&
-		v !== null &&
-		"_zod" in v &&
-		"in" in v &&
-		"out" in v &&
-		"decode" in v &&
-		"encode" in v
+		def?.type === "pipe" &&
+		typeof def.transform === "function" &&
+		typeof def.reverseTransform === "function"
 	);
 }
 
@@ -771,13 +772,18 @@ type SourceObjectSchema = {
 function compileObject(
 	shape: RuntimeCodecShape,
 	schema: SourceObjectSchema | undefined,
+	label = "",
 ): { plan: ObjectPlan; out: z.ZodTypeAny | undefined } {
 	const fields: [string, Plan][] = [];
 	const outShape: Record<string, z.ZodTypeAny> = {};
 	for (const key of Object.keys(shape)) {
 		const fieldSchema =
 			schema === undefined ? undefined : getSchemaNode(schema.shape, key);
-		const compiled = compileNode(shape[key], fieldSchema);
+		const compiled = compileNode(
+			shape[key],
+			fieldSchema,
+			label === "" ? key : `${label}.${key}`,
+		);
 		fields.push([key, compiled.plan]);
 		if (compiled.out !== undefined) outShape[key] = compiled.out;
 	}
@@ -799,6 +805,7 @@ function compileObject(
 function compileNode(
 	node: unknown,
 	schema: z.ZodTypeAny | undefined,
+	label: string,
 ): { plan: Plan; out: z.ZodTypeAny | undefined } {
 	if (isCodec(node)) {
 		return {
@@ -820,6 +827,7 @@ function compileNode(
 		const item = compileNode(
 			node.itemShape,
 			(unwrapped?.inner as z.ZodArray<z.ZodTypeAny> | undefined)?.element,
+			`${label}[]`,
 		);
 		return {
 			plan: { kind: "array", item: item.plan },
@@ -830,12 +838,18 @@ function compileNode(
 		};
 	}
 
+	if (isZodSchema(node)) {
+		throw new Error(
+			`Codec shape entry "${label}" is a Zod schema but not a codec. Use fieldCodec.noOp, a z.codec(...), a nested shape, or fieldCodec.arrayOf(...).`,
+		);
+	}
 	if (unwrapped !== undefined && !isZodObjectSchema(unwrapped.inner)) {
 		throw new Error("Codec shape does not match nested object schema.");
 	}
 	const nested = compileObject(
 		asRecord(node),
 		unwrapped?.inner as SourceObjectSchema | undefined,
+		label,
 	);
 	return {
 		plan: nested.plan,
