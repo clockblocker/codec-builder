@@ -32,38 +32,34 @@ export function buildStrictFieldAdapterCodec<
 >(
 	inputSchema: TInputSchema,
 	shape: S & NoInfer<CodecShapeChecks<SchemaShapeOf<TInputSchema>, S>>,
-) {
+): z.ZodCodec<
+	TInputSchema,
+	z.ZodObject<
+		OutputZodShapeForSchemaShape<SchemaShapeOf<TInputSchema>, S>,
+		ObjectConfigOf<TInputSchema>
+	>
+> {
 	const compiled = compileObject(
 		shape as RuntimeCodecShape,
 		inputSchema as unknown as SourceObjectSchema,
 	);
-	const outputSchema = compiled.out as z.ZodObject<
-		OutputZodShapeForSchemaShape<SchemaShapeOf<TInputSchema>, S>,
-		ObjectConfigOf<TInputSchema>
-	>;
 	const plan = compiled.plan;
 
-	type InputType = z.infer<TInputSchema>;
-	type OutputType = z.infer<typeof outputSchema>;
-
+	// Built with plain types and cast once: checking z.codec against the
+	// generic out type would make TypeScript explore the whole conditional
+	// out-shape machinery (about 15k instantiations) for no benefit.
 	// Field codec failures become issues on the object codec's payload, with
 	// their full path, so `safeDecode`/`safeEncode` report them.
-	const decode = (data: InputType, payload: IssueSink): OutputType =>
-		runPlan(plan, data, "decode", [], payload.issues) as OutputType;
-
-	const encode = (data: OutputType, payload: IssueSink): InputType =>
-		runPlan(plan, data, "encode", [], payload.issues) as InputType;
-
-	return z.codec(inputSchema, outputSchema, {
-		decode: decode as (
-			value: z.output<TInputSchema>,
-			payload: IssueSink,
-		) => z.input<typeof outputSchema>,
-		encode: encode as (
-			value: z.input<typeof outputSchema>,
-			payload: IssueSink,
-		) => z.output<TInputSchema>,
-	});
+	return z.codec(
+		inputSchema as unknown as z.ZodType,
+		compiled.out as z.ZodType,
+		{
+			decode: (data, payload) =>
+				runPlan(plan, data, "decode", [], payload.issues),
+			encode: (data, payload) =>
+				runPlan(plan, data, "encode", [], payload.issues),
+		},
+	) as never;
 }
 
 export function buildStrictFieldAdapter<InputType extends object>(): <
@@ -870,7 +866,6 @@ function asRecord(v: unknown): Record<string, unknown> {
 
 type Direction = "decode" | "encode";
 type IssuePath = readonly PropertyKey[];
-type IssueSink = { issues: z.core.$ZodRawIssue[] };
 
 function runPlanOrThrow(
 	plan: Plan,
