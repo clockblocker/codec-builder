@@ -33,12 +33,12 @@ export const isoStringAndDate = z.codec(dateSchema, isoStringSchema, {
 
 export const dateAndNullishIsoString = toNonNullishWithDefault(
 	nullableDateAndNullishIsoString,
-	new Date(),
+	() => new Date(),
 );
 
 export const nullableIsoStringAndNullishDate = toNullable(isoStringAndDate);
 
 export const isoStringAndNullishDate = toNonNullishWithDefault(
 	nullableIsoStringAndNullishDate,
-	new Date().toISOString(),
+	() => new Date().toISOString(),
 );

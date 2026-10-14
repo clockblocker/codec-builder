@@ -10,7 +10,7 @@ const nonEmptyStringSchema = z.string().min(1);
 const arrayOfNullishStrings = toArrayOf(stringAndNullishString);
 const nullishArrayOfStrings = toNonNullishWithDefault(
 	toNullable(arrayOfNullishStrings),
-	[],
+	() => [],
 );
 
 export const arrayOfNonEmptyStringsAndNullishArrayOfNullishStrings = pipeCodecs(
