@@ -225,7 +225,7 @@ codecBuilder.buildStrictFieldAdapterCodec(orderRow, {
 });
 
 codecBuilder.buildStrictFieldAdapterCodec(z.object({ id: z.number() }), {
-	// type error: this codec decodes "Yes" | "No", not a number
+	// type error: this codec decodes a "Yes"/"No" string, not a number
 	id: c.nonNullish.boolean.and.yesNo,
 });
 
