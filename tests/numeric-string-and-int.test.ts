@@ -37,6 +37,43 @@ describe("numericStringAndInt", () => {
 	});
 });
 
+describe("safe integer bounds", () => {
+	test.each([Number.MAX_SAFE_INTEGER, -Number.MAX_SAFE_INTEGER, 0])(
+		"round-trips %p",
+		(n) => {
+			const encoded = intAndNumericString.fromOutput(n);
+
+			expect(intAndNumericString.inputSchema.parse(encoded)).toBe(
+				encoded,
+			);
+			expect(intAndNumericString.fromInput(encoded) === n).toBeTrue();
+			expect(intAndNumericString.outputSchema.parse(n)).toBe(n);
+		},
+	);
+
+	test.each([
+		Number.MAX_SAFE_INTEGER + 1,
+		-Number.MAX_SAFE_INTEGER - 1,
+		1e21,
+	])("rejects %p", (n) => {
+		expect(() => intAndNumericString.outputSchema.parse(n)).toThrow();
+		expect(() => numericStringAndInt.inputSchema.parse(n)).toThrow();
+
+		const encoded = String(n);
+		expect(() => intAndNumericString.inputSchema.parse(encoded)).toThrow();
+		expect(() => intAndNumericString.fromInput(encoded)).toThrow();
+	});
+
+	test("rejects unsafe digit strings on decode", () => {
+		expect(() =>
+			intAndNumericString.fromInput("9007199254740993"),
+		).toThrow();
+		expect(() =>
+			intAndNumericString.fromInput("1000000000000000000000"),
+		).toThrow();
+	});
+});
+
 describe("nullableNumericStringAndInt", () => {
 	test("keeps the nullable/nullish variant available", () => {
 		expect(nullableNumericStringAndInt.fromInput(undefined)).toBeNull();

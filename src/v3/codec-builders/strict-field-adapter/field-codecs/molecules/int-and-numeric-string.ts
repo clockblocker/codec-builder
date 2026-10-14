@@ -7,12 +7,15 @@ import { toNullable } from "../../helpers/casters/to-nullable";
 import { numericStringAndNumber } from "../atoms/core-non-nullable-codecs/numeric-string-and-number";
 import { numberAndInt } from "../atoms/derived/int";
 
+// Digits only, and within Number.isSafeInteger so the value survives the
+// round trip (larger integers lose precision or encode in exponent form).
 const integerStringPattern = /^[+-]?\d+$/;
 const integerStringSchema = z
 	.string()
-	.refine((v) => integerStringPattern.test(v), {
-		message: "Expected an integer string",
-	});
+	.refine(
+		(v) => integerStringPattern.test(v) && Number.isSafeInteger(Number(v)),
+		{ message: "Expected a safe integer string" },
+	);
 
 const pipedNumericStringAndInt = pipeCodecs(
 	numberAndInt,
@@ -21,6 +24,7 @@ const pipedNumericStringAndInt = pipeCodecs(
 
 export const numericStringAndInt = {
 	...pipedNumericStringAndInt,
+	fromOutput: (v: string) => Number(integerStringSchema.parse(v)),
 	outputSchema: integerStringSchema,
 } as const satisfies SchemaCodec<
 	typeof pipedNumericStringAndInt.inputSchema,

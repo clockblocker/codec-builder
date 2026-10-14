@@ -1,7 +1,9 @@
 import { z } from "zod/v3";
 import type { Codec } from "../../../../../core/types";
 
-const intSchema = z.number().int();
+// .safe() limits to Number.MIN/MAX_SAFE_INTEGER, so with .int() this is
+// Number.isSafeInteger.
+const intSchema = z.number().int().safe();
 const numberSchema = z.number();
 
 export const intAndNumber = {
