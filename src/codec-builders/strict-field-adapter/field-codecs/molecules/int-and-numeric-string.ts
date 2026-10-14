@@ -1,13 +1,16 @@
 import { z } from "zod/v4";
-import { pipeCodecs } from "../../../../core/pipe-codecs";
 import { toNonNullishWithDefault } from "../../helpers/casters/to-non-nullish-with-default";
 import { toNullable } from "../../helpers/casters/to-nullable";
-import { numericStringAndNumber } from "../atoms/core-non-nullable-codecs/numeric-string-and-number";
-import { numberAndInt } from "../atoms/derived/int";
+import { integerNumericStringSchema } from "../atoms/core-non-nullable-codecs/numeric-string-and-number";
 
-export const numericStringAndInt = pipeCodecs(
-	numberAndInt,
-	numericStringAndNumber,
+// Non-integer numeric strings ("1.9") are rejected, not floored.
+export const numericStringAndInt = z.codec(
+	z.number().int(),
+	integerNumericStringSchema,
+	{
+		decode: String,
+		encode: Number,
+	},
 );
 
 export const intAndNumericString = z.invertCodec(numericStringAndInt);
