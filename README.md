@@ -36,7 +36,12 @@ bun add codec-builder-library@^0.3 zod@^3.25
 `zod/v3`; they are the same module.
 
 The package root and `codec-builder-library/v3` export the same
-`codecBuilder3`. Both entrypoints work with `import` and `require`.
+`codecBuilder3`. Both entrypoints work with `import` and `require`. The
+package is ESM only, so `require` needs a Node version that can load ES
+modules from CommonJS (20.19+ or 22.12+). From CommonJS, `require("zod")`
+loads Zod's CommonJS build, which is a separate instance from the one the
+library imports. Schemas from both still work together, but `instanceof`
+checks between them fail.
 
 ## Quick start
 

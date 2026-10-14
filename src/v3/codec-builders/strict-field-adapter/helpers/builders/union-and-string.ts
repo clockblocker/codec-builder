@@ -10,10 +10,11 @@ import type { SchemaCodec } from "../../../../core/types";
 export function buildNullableUnionAndNullishString<
 	const TValues extends NonEmptyStringTuple,
 >(valuesOrEnum: TValues | z.ZodEnum<MutableNonEmptyStringTuple<TValues>>) {
-	const enumSchema =
-		valuesOrEnum instanceof z.ZodEnum
-			? valuesOrEnum
-			: z.enum(valuesOrEnum as MutableNonEmptyStringTuple<TValues>);
+	// Not `instanceof z.ZodEnum`: a CommonJS consumer's `require("zod")` is a
+	// different Zod instance from the one this ESM build imports.
+	const enumSchema = Array.isArray(valuesOrEnum)
+		? z.enum(valuesOrEnum as MutableNonEmptyStringTuple<TValues>)
+		: (valuesOrEnum as z.ZodEnum<MutableNonEmptyStringTuple<TValues>>);
 
 	const inputSchema = z.string().nullish();
 	const outputSchema = enumSchema.nullable();
