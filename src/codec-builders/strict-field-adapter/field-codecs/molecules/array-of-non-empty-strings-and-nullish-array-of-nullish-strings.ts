@@ -1,19 +1,22 @@
 import { z } from "zod/v4";
-import { pipeCodecs } from "../../../../core/pipe-codecs";
-import { buildFilteredNullishArrayCodec } from "../../helpers/builders/filtered-nullish-array";
-import { toArrayOf } from "../../helpers/casters/to-array-of";
-import { toNonNullishWithDefault } from "../../helpers/casters/to-non-nullish-with-default";
-import { toNullable } from "../../helpers/casters/to-nullable";
-import { stringAndNullishString } from "../atoms/derived/string";
 
-const nonEmptyStringSchema = z.string().min(1);
-const arrayOfNullishStrings = toArrayOf(stringAndNullishString);
-const nullishArrayOfStrings = toNonNullishWithDefault(
-	toNullable(arrayOfNullishStrings),
-	() => [],
-);
+const nullishArrayOfNullishStringsSchema = z
+	.array(z.string().nullish())
+	.nullish();
+const arrayOfNonEmptyStringsSchema = z.array(z.string().min(1));
 
-export const arrayOfNonEmptyStringsAndNullishArrayOfNullishStrings = pipeCodecs(
-	nullishArrayOfStrings,
-	buildFilteredNullishArrayCodec(z.string(), nonEmptyStringSchema),
+/**
+ * Decodes `(string | null | undefined)[] | null | undefined` into `string[]`,
+ * dropping `null`, `undefined` and `""` items. A missing array becomes `[]`.
+ */
+export const arrayOfNonEmptyStringsAndNullishArrayOfNullishStrings = z.codec(
+	nullishArrayOfNullishStringsSchema,
+	arrayOfNonEmptyStringsSchema,
+	{
+		decode: (input) =>
+			(input ?? []).filter(
+				(item): item is string => item != null && item !== "",
+			),
+		encode: (output) => output,
+	},
 );

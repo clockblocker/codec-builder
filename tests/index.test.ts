@@ -284,9 +284,11 @@ describe("codecBuilder.helpers", () => {
 				z.string().nullish(),
 				z.string().min(1),
 			);
-		expect(
-			filteredArrayCodec.decode(["a", "", null, undefined, "b"]),
-		).toEqual(["a", "b"]);
+		expect(filteredArrayCodec.decode(["a", null, undefined, "b"])).toEqual([
+			"a",
+			"b",
+		]);
+		expect(() => filteredArrayCodec.decode(["a", ""])).toThrow(z.ZodError);
 
 		const nullableWrappedCodec = codecBuilder.helpers.toNullable(
 			c.nonNullish.numericString.and.int,
