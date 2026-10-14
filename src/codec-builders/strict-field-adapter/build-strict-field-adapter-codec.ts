@@ -169,7 +169,10 @@ type StrictFieldAdapterNodeForValue<TValue> =
 				| InputCompatibleCodecForValue<TValue>
 				| NoOpCodec
 		: IsPlainObjectValue<TValue> extends true
-			? ShapeOfStrictFieldAdapter<NonNullable<TValue>>
+			?
+					| ShapeOfStrictFieldAdapter<NonNullable<TValue>>
+					| InputCompatibleCodecForValue<TValue>
+					| NoOpCodec
 			: InputCompatibleCodecForValue<TValue> | NoOpCodec;
 
 // -- Shape checks --
@@ -459,7 +462,10 @@ type CodecShapeNodeForField<TField extends AnySchema> =
 						| WideObjectShapeNodeForField<TField>
 						| WideArrayShapeNodeForField<TField>
 				: InputCompatibleCodecForField<TField> | NoOpCodec
-			: CodecShapeForSchemaShape<NestedSchemaShape<TField>>;
+			:
+					| CodecShapeForSchemaShape<NestedSchemaShape<TField>>
+					| InputCompatibleCodecForField<TField>
+					| NoOpCodec;
 
 type OutputZodArrayItemFromCodecNode<TItemShape> =
 	TItemShape extends CodecWithOutputSchema<infer TSchema>

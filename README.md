@@ -166,10 +166,12 @@ All builders live on `codecBuilder`. (`codecBuilder4` and the
 The main builder. `schema` is a `z.object`. `shape` has exactly one entry per
 key of the schema, and each entry is one of:
 
-- `fieldCodec.noOp`: keep the field as it is. The derived schema reuses the
-  source field's schema.
+- `fieldCodec.noOp`: keep the field as it is, whatever its type (objects and
+  arrays included). The derived schema reuses the source field's schema.
 - a field codec from `fieldCodec` (see the [list below](#field-codecs)), or any
-  `z.codec(...)` you write yourself. The derived schema uses the codec's `out`.
+  `z.codec(...)` you write yourself. The codec takes the whole field value, so
+  an object field can use a codec from `z.object({...})` to a string or a
+  class. The derived schema uses the codec's `out`.
   The exported `Codec<Output, Input>` type describes such a codec. A plain
   `.pipe()` or `.transform()` is not a codec (it has no encode direction) and
   is rejected.
