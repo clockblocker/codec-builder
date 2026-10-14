@@ -1,13 +1,15 @@
 import { z } from "zod/v3";
 import type { Codec } from "../../../../../core/types";
 
-// Plain decimal only: optional sign, digits, optional fraction. Rejects
-// whitespace, hex/binary/octal prefixes, exponents, "Infinity" and "NaN".
-const decimalStringPattern = /^[+-]?\d+(\.\d+)?$/;
+// Decimal with optional sign, fraction and exponent. Accepts everything
+// String(number) produces for finite numbers ("1e+21", "1e-7"), so encoded
+// values always pass. Rejects whitespace, hex/binary/octal prefixes,
+// "Infinity", "NaN", and values that overflow to Infinity ("1e400").
+const decimalStringPattern = /^[+-]?(\d+\.?\d*|\.\d+)([eE][+-]?\d+)?$/;
 
 const numericStringSchema = z
 	.string()
-	.refine((v) => decimalStringPattern.test(v), {
+	.refine((v) => decimalStringPattern.test(v) && Number.isFinite(Number(v)), {
 		message: "Expected a numeric string",
 	});
 

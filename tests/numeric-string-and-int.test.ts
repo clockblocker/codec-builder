@@ -32,6 +32,8 @@ describe("numericStringAndInt", () => {
 		expect(() => intAndNumericString.inputSchema.parse("1.9")).toThrow();
 		expect(intAndNumericString.inputSchema.parse("1")).toBe("1");
 		expect(() => intAndNumericString.fromInput("0x1F")).toThrow();
+		expect(() => intAndNumericString.inputSchema.parse("1e3")).toThrow();
+		expect(() => intAndNumericString.inputSchema.parse("5.")).toThrow();
 	});
 });
 

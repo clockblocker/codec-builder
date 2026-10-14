@@ -347,10 +347,13 @@ Type pairs (both directions exist for each):
 | `boolean` | `yesNo`         | `"Yes"` → `true`, `"No"` → `false` (case-sensitive)      |
 | `date`    | `isoString`     | ISO date or datetime with offset → `Date`                |
 
-A numeric string is a plain decimal: an optional `+` or `-`, digits, and an
-optional fraction (`"12"`, `"-0.5"`, `"+3.25"`). Whitespace, `""`, `"0x1F"`,
-`"0b11"`, `"1e3"`, `"Infinity"`, `".5"` and `"5."` are rejected by the schema,
-and converting them throws.
+A numeric string is a finite decimal number: an optional `+` or `-`, digits
+with an optional fraction (`"12"`, `"-0.5"`, `".5"`, `"5."`), and an optional
+exponent (`"1e3"`, `"1e+21"`, `"1e-7"`). That covers every string `String()`
+produces for a finite number, so encoded values always pass the source schema.
+Whitespace, `""`, `"0x1F"`, `"0b11"`, `"Infinity"`, `"NaN"` and values that
+overflow (`"1e400"`) are rejected by the schema, and converting them throws.
+`int` codecs are stricter: they accept only an optional sign and digits.
 
 The reverse paths (`numericString.and.number`, `numericString.and.int`,
 `yesNo.and.boolean`, `isoString.and.date`) go the other way.
@@ -463,8 +466,10 @@ amounts.fromInput(null) !== amounts.fromInput(null); // true, a new array each t
   `ZodError` on invalid input; others pass bad values through. Parse with
   `inputSchema` or `outputSchema` where you need validation.
 - A numeric codec converts a number to a string with `String()`, so very large
-  or very small numbers (`1e21`, `1e-7`) become exponent strings that the
-  numeric string schema rejects.
+  or very small numbers become exponent strings (`1e21` → `"1e+21"`, `1e-7` →
+  `"1e-7"`). The numeric string schema accepts these, and they convert back to
+  the same number. `-0` encodes as `"0"`. For `int` codecs, integers of `1e21`
+  or more encode to exponent strings, which the integer string schema rejects.
 - The derived object only has the keys in the shape. A field that is optional
   and missing in the source comes back as a key set to `undefined`.
 - Derived nested objects are rebuilt with `z.object`, so `strict` or

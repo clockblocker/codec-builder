@@ -42,7 +42,22 @@ describe("numericStringAndNumber", () => {
 });
 
 describe("numeric string parsing", () => {
-	const accepted = ["0", "42", "-42", "+42", "12.50", "-0.5", "007"];
+	const accepted = [
+		"0",
+		"42",
+		"-42",
+		"+42",
+		"12.50",
+		"-0.5",
+		"007",
+		".5",
+		"5.",
+		"1e3",
+		"1E3",
+		"1e+21",
+		"1e-7",
+		"-2.5e-3",
+	];
 	const rejected = [
 		"",
 		" ",
@@ -51,12 +66,13 @@ describe("numeric string parsing", () => {
 		"0x1F",
 		"0b11",
 		"0o7",
-		"1e3",
 		"Infinity",
 		"-Infinity",
 		"NaN",
-		".5",
-		"5.",
+		".",
+		"e3",
+		"1e",
+		"1e400",
 		"1,000",
 		"abc",
 	];
@@ -72,6 +88,18 @@ describe("numeric string parsing", () => {
 		).toThrow();
 		expect(() => numberAndNumericString.fromInput(value)).toThrow();
 	});
+
+	test.each([0, -0, 0.1, 1e21, 1e-7, Number.MAX_SAFE_INTEGER, -123.456])(
+		"round-trips %p through a string that passes the schema",
+		(n) => {
+			const encoded = numberAndNumericString.fromOutput(n);
+
+			expect(numberAndNumericString.inputSchema.parse(encoded)).toBe(
+				encoded,
+			);
+			expect(numberAndNumericString.fromInput(encoded) === n).toBeTrue();
+		},
+	);
 });
 
 describe("nullableNumericStringAndNumber", () => {
