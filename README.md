@@ -254,8 +254,11 @@ If the types are bypassed, the builder throws
 `Codec shape key "bogus" is not in schema.` when it runs.
 
 A codec fits a field when it fits in both directions: its input type accepts
-the field's type (decode), and whatever it can encode is accepted by the field
-(encode). For example, `c.nullable.date.and.isoString` takes
+the field's output type (decode), and whatever it can encode is accepted by
+the field (encode). The field's output type is what the source schema
+produces, after `.default()`, `.catch()`, `z.preprocess` and `.transform()`:
+`z.string().default("x")` fits a codec whose input is `string`, and
+`z.string().transform(Number)` needs one whose input is `number`. For example, `c.nullable.date.and.isoString` takes
 `string | null | undefined` and encodes `string | null`, so it fits
 `z.string().nullable()` and `z.string().nullish()`, but not `z.string()`:
 encoding `null` would fail there. Use `c.nonNullish.date.and.isoString` for a
@@ -518,6 +521,17 @@ You can, and this library returns exactly that: a `z.codec(in, out,
 
 ## Behavior to know about
 
+- Order: `decode` parses the input with the source schema first (so
+  defaults, `.catch()`, `z.preprocess` and `.transform()` apply), then each
+  field codec decodes that field's parsed value, then the result is checked
+  against `out`. `encode` checks the value against `out`, runs the field
+  codecs' encode, then runs the source schema backward. Zod can't run
+  `.transform()` or `z.preprocess` backward, so a source schema that uses them
+  decodes fine but `encode` throws `ZodEncodeError`; codecs such as
+  `z.stringbool()` work both ways. A `noOp` field over such a source field gets
+  an `out` schema for its output side (a pipe's or codec's `out`, or a
+  pass-through for a bare `.transform()`), so `out` checks the decoded value
+  rather than re-running the source schema on it.
 - Field codecs run inside the object codec's transform. If a field codec
   rejects a value that the source schema accepted, the failure is reported
   like any other issue, with its full path (`["balance"]`,

@@ -229,7 +229,7 @@ type CodecNodeCheck<
 	TField extends AnySchema,
 	TNode,
 > = TNode extends AnySchemaCodec
-	? EncodeCheck<z.input<TField>, TNode>
+	? EncodeCheck<FieldValue<TField>, TNode>
 	: TNode extends NoOpCodec
 		? unknown
 		: TNode extends ArrayCodecShape<infer TItemShape>
@@ -358,6 +358,28 @@ type WrapLikeValue<TValue, TInner extends AnySchema> = null extends TValue
 		? z.ZodOptional<TInner>
 		: TInner;
 
+/** Strips the wrappers that don't change what a schema outputs. */
+type UnwrapForOutput<TSchema extends AnySchema> = TSchema extends
+	| z.core.$ZodOptional<infer TInner extends AnySchema>
+	| z.core.$ZodNullable<infer TInner extends AnySchema>
+	| z.core.$ZodDefault<infer TInner extends AnySchema>
+	| z.core.$ZodPrefault<infer TInner extends AnySchema>
+	| z.core.$ZodCatch<infer TInner extends AnySchema>
+	? UnwrapForOutput<TInner>
+	: TSchema;
+
+// A noOp field's out schema validates the decoded value, so a source field
+// that transforms (a pipe, codec, preprocess or .transform()) can't reuse its
+// own schema there; it gets one typed by its output instead.
+type NoOpOutSchema<TField extends AnySchema> =
+	UnwrapForOutput<TField>["_zod"]["def"]["type"] extends "pipe" | "transform"
+		? TField["_zod"]["optout"] extends "optional"
+			? z.ZodOptional<
+					ZodTypeForValue<Exclude<z.output<TField>, undefined>>
+				>
+			: ZodTypeForValue<z.output<TField>>
+		: TField;
+
 /** The unknown-key policy (`$strip`, `$strict`, `$loose`, `$catchall<T>`). */
 type ObjectConfigOf<TSchema> = TSchema extends {
 	_zod: { config: infer TConfig extends z.core.$ZodObjectConfig };
@@ -412,18 +434,21 @@ type ObjectOutput<TSchema extends AnySchema> =
 			: never;
 
 type ZodTypeForValue<TValue> = z.ZodType<TValue, TValue>;
-type FieldInput<TField extends AnySchema> = z.input<TField>;
+// A field codec decodes what the source schema produced, so it is checked
+// against the field's output type (after defaults, catch, preprocess and
+// transforms), in both directions.
+type FieldValue<TField extends AnySchema> = z.output<TField>;
 type InputCompatibleCodecForField<TField extends AnySchema> = AnySchemaCodec & {
-	decode: (v: FieldInput<TField>) => unknown;
+	decode: (v: FieldValue<TField>) => unknown;
 };
-type ArrayItemInput<TField extends AnySchema> =
+type ArrayItemValue<TField extends AnySchema> =
 	ArrayItemSchemaOf<TField> extends AnySchema
-		? z.input<ArrayItemSchemaOf<TField>>
+		? z.output<ArrayItemSchemaOf<TField>>
 		: never;
 type InputCompatibleCodecForArrayItem<TField extends AnySchema> =
 	ArrayItemSchemaOf<TField> extends AnySchema
 		? AnySchemaCodec & {
-				decode: (v: ArrayItemInput<TField>) => unknown;
+				decode: (v: ArrayItemValue<TField>) => unknown;
 			}
 		: never;
 type IsArraySchema<TSchema extends AnySchema> =
@@ -496,7 +521,7 @@ type OutputZodArrayItemForInputField<
 	TItemShape extends CodecWithOutputSchema<infer TSchema>
 		? TSchema
 		: TItemShape extends NoOpCodec
-			? ArrayItemSchemaOf<TInputField>
+			? NoOpOutSchema<ArrayItemSchemaOf<TInputField>>
 			: TItemShape extends RuntimeCodecShape
 				? ArrayItemSchemaShape<TInputField> extends never
 					? IsWideZodType<TInputField> extends true
@@ -580,7 +605,7 @@ type OutputZodNode<TInputField extends AnySchema, TShapeNode> =
 	TShapeNode extends CodecWithOutputSchema<infer TSchema>
 		? TSchema
 		: TShapeNode extends NoOpCodec
-			? TInputField
+			? NoOpOutSchema<TInputField>
 			: TShapeNode extends ArrayCodecShape<infer TItemShape>
 				? IsWideZodType<TInputField> extends true
 					? WrapLikeValue<
@@ -714,6 +739,43 @@ function getSchemaNode(schemaShape: z.ZodRawShape, key: string): z.ZodTypeAny {
 	return schemaNode;
 }
 
+/**
+ * The part of a schema that validates its output: a pipe's `out` (so a
+ * codec's `out`), and a pass-through for a bare transform, which has no
+ * output schema. Wrappers are kept around a changed inner schema (dropped
+ * for default/prefault/catch, which never output undefined). Anything else
+ * is returned as is.
+ */
+function outputSide(schema: z.ZodTypeAny): z.ZodTypeAny {
+	const type = getSchemaType(schema);
+	const def = (
+		schema as unknown as { _zod?: { def?: Record<string, unknown> } }
+	)._zod?.def;
+	if (type === "pipe" && def?.out !== undefined) {
+		return outputSide(def.out as z.ZodTypeAny);
+	}
+	if (type === "transform") {
+		return z.custom();
+	}
+	if (type === "optional" || type === "nullable") {
+		const inner = (
+			schema as unknown as { unwrap(): z.ZodTypeAny }
+		).unwrap();
+		const side = outputSide(inner);
+		if (side === inner) return schema;
+		return type === "optional" ? side.optional() : side.nullable();
+	}
+	if (
+		(type === "default" || type === "prefault" || type === "catch") &&
+		def?.innerType !== undefined
+	) {
+		const inner = def.innerType as z.ZodTypeAny;
+		const side = outputSide(inner);
+		return side === inner ? schema : side;
+	}
+	return schema;
+}
+
 type NullishWrapper = "nullable" | "optional";
 
 /** Strips optional/nullable wrappers, remembering them outermost first. */
@@ -819,7 +881,10 @@ function compileNode(
 	}
 
 	if (isNoOpCodec(node)) {
-		return { plan: noOpPlan, out: schema };
+		return {
+			plan: noOpPlan,
+			out: schema === undefined ? undefined : outputSide(schema),
+		};
 	}
 
 	const unwrapped = schema === undefined ? undefined : unwrapNullish(schema);
