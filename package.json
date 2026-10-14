@@ -2,6 +2,10 @@
 	"name": "codec-builder-library",
 	"version": "0.3.0",
 	"description": "Composable Zod codec builders for reshaping and adapting data structures.",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/clockblocker/codec-builder.git"
+	},
 	"type": "module",
 	"sideEffects": false,
 	"main": "./dist/index.js",
@@ -9,11 +13,13 @@
 	"exports": {
 		".": {
 			"types": "./dist/index.d.ts",
-			"import": "./dist/index.js"
+			"import": "./dist/index.js",
+			"default": "./dist/index.js"
 		},
 		"./v3": {
 			"types": "./dist/v3/index.d.ts",
-			"import": "./dist/v3/index.js"
+			"import": "./dist/v3/index.js",
+			"default": "./dist/v3/index.js"
 		},
 		"./package.json": "./package.json"
 	},
