@@ -225,15 +225,33 @@ codecBuilder.buildStrictFieldAdapterCodec(z.object({ id: z.number() }), {
 	// type error: this codec decodes "Yes" | "No", not a number
 	id: c.nonNullish.boolean.and.yesNo,
 });
+
+codecBuilder.buildStrictFieldAdapterCodec(
+	z.object({ nick: z.string().optional() }),
+	{
+		// type error: this codec can encode null, which the field rejects
+		nick: c.nullable.string.and.string,
+	},
+);
 ```
 
 A key that isn't in the schema is not a type error, but the builder throws
 `Codec shape key "..." is not in schema.` when it runs.
 
-A codec fits a field when the codec's input type accepts the field's type. For
-example, `c.nullable.date.and.isoString` takes `string | null | undefined`, so
-it fits both `z.string()` and `z.string().nullable()`. At runtime it still
-rejects strings that aren't ISO dates.
+A codec fits a field when it fits in both directions: its input type accepts
+the field's type (decode), and whatever it can encode is accepted by the field
+(encode). For example, `c.nullable.date.and.isoString` takes
+`string | null | undefined` and encodes `string | null`, so it fits
+`z.string().nullable()` and `z.string().nullish()`, but not `z.string()`:
+encoding `null` would fail there. Use `c.nonNullish.date.and.isoString` for a
+non-nullable field. At runtime the codec still rejects strings that aren't ISO
+dates.
+
+The encode side is read from the codec's `in` schema, assuming a codec only
+encodes `null` or `undefined` when its `out` side can hold them (the
+`nullable.*` codecs take `undefined` but never encode it). A codec with a
+wider input than the field, such as `z.union([z.number(), z.string()])` for a
+`z.number()` field, is rejected because its type says it may encode a string.
 
 The adapter keeps key names. To rename, group, or split fields, use
 `buildReshapeCodec`.
@@ -381,8 +399,9 @@ Type pairs (both directions exist for each):
 
 The reverse paths (`numericString.and.number`, `numericString.and.int`,
 `yesNo.and.boolean`, `isoString.and.date`) go the other way. The `yesNo`
-side's schema is `z.stringbool`'s input, `z.string()`, so it infers as
-`string`.
+side's schema is `z.string().pipe(z.enum(["Yes", "No"]))`: it accepts a
+`z.string()` source field, and it infers as `"Yes" | "No"`, so it also fits a
+`z.enum(["Yes", "No"])` field in the encode direction.
 
 Nullability prefixes:
 

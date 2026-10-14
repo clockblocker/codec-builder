@@ -47,7 +47,7 @@ describe("date codecs validate the ISO string", () => {
 	test("an adapter field with a garbage date fails to decode", () => {
 		const codec = codecBuilder.buildStrictFieldAdapterCodec(
 			z.object({ at: z.string() }),
-			{ at: c.nullable.date.and.isoString },
+			{ at: c.nonNullish.date.and.isoString },
 		);
 
 		expect(() => codec.decode({ at: "yesterday" })).toThrow(z.ZodError);

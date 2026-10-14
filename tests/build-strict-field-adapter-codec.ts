@@ -126,11 +126,14 @@ const numberOrStringInputCodec = z.codec(
 	},
 ) satisfies z.ZodCodec<z.ZodUnion<[z.ZodNumber, z.ZodString]>, z.ZodString>;
 
+// A wider input type means encode may produce a string for a number field.
 buildStrictFieldAdapterCodec(strict, {
+	// @ts-expect-error encode may return a string, which z.number() rejects
 	id: numberOrStringInputCodec,
 });
 
 const strictMappedWithWiderInputCodec = buildStrictFieldAdapterCodec(strict, {
+	// @ts-expect-error encode may return a string, which z.number() rejects
 	id: numberOrStringInputCodec,
 });
 

@@ -29,7 +29,10 @@ export function arrayOfCodecShapes<
 export function buildStrictFieldAdapterCodec<
 	TInputSchema extends z.ZodObject,
 	const S extends CodecShapeForSchemaShape<SchemaShapeOf<TInputSchema>>,
->(inputSchema: TInputSchema, shape: S) {
+>(
+	inputSchema: TInputSchema,
+	shape: S & NoInfer<CodecShapeChecks<SchemaShapeOf<TInputSchema>, S>>,
+) {
 	const compiled = compileObject(
 		shape as RuntimeCodecShape,
 		inputSchema as unknown as SourceObjectSchema,
@@ -66,22 +69,23 @@ export function buildStrictFieldAdapterCodec<
 export function buildStrictFieldAdapter<InputType extends object>(): <
 	const S extends ShapeOfStrictFieldAdapter<InputType>,
 >(
-	shape: S,
+	shape: S & NoInfer<AdapterShapeChecks<InputType, S>>,
 ) => CodecPair<InputType, OutputOfStrictFieldAdapter<InputType, S>>;
 
 export function buildStrictFieldAdapter<
 	InputType extends object,
 	const S extends ShapeOfStrictFieldAdapter<InputType>,
->(shape: S): CodecPair<InputType, OutputOfStrictFieldAdapter<InputType, S>>;
+>(
+	shape: S & NoInfer<AdapterShapeChecks<InputType, S>>,
+): CodecPair<InputType, OutputOfStrictFieldAdapter<InputType, S>>;
 
 export function buildStrictFieldAdapter<
 	InputType extends object,
 	const S extends ShapeOfStrictFieldAdapter<InputType>,
->(shape?: S) {
+>(shape?: S): unknown {
 	if (shape === undefined) {
-		return <const TShape extends ShapeOfStrictFieldAdapter<InputType>>(
-			deferredShape: TShape,
-		) => buildStrictFieldAdapter<InputType, TShape>(deferredShape);
+		return (deferredShape: RuntimeCodecShape) =>
+			buildStrictFieldAdapter<InputType, S>(deferredShape as never);
 	}
 
 	type OutputType = OutputOfStrictFieldAdapter<InputType, S>;
@@ -171,6 +175,90 @@ type StrictFieldAdapterNodeForValue<TValue> =
 		: IsPlainObjectValue<TValue> extends true
 			? ShapeOfStrictFieldAdapter<NonNullable<TValue>>
 			: InputCompatibleCodecForValue<TValue> | NoOpCodec;
+
+// -- Encode-direction checks --
+//
+// The constraints on S check the decode direction: each codec accepts its
+// field's value. These checks, applied as `shape: S & NoInfer<Checks>`, add
+// the encode direction: what a codec can encode must be accepted by the
+// field. A passing node maps to `unknown`; a failing one to
+// `EncodeMismatch<X>`, which the codec lacks, so the error lands on that
+// field and names the values `X` the field would reject.
+
+/** The value a codec's encode may produce that the field does not accept. */
+interface EncodeMismatch<TRejected> {
+	readonly "~codec can encode values the field does not accept": TRejected;
+}
+
+type NullishNotIn<T> =
+	| (null extends T ? never : null)
+	| (undefined extends T ? never : undefined);
+
+// Encode returns the codec's `in` output. Codecs map null to null and
+// undefined to undefined, so a nullish value the `out` side cannot hold is
+// assumed not to come back out (`nullable.*` codecs take
+// `string | null | undefined` but encode only `string | null`).
+type EncodeOutputOf<TCodec> = TCodec extends {
+	_zod: {
+		output: infer TOut;
+		def: { in: { _zod: { output: infer TIn } } };
+	};
+}
+	? Exclude<TIn, NullishNotIn<TOut>>
+	: never;
+
+type EncodeCheck<TFieldValue, TCodec> = [EncodeOutputOf<TCodec>] extends [
+	TFieldValue,
+]
+	? unknown
+	: EncodeMismatch<Exclude<EncodeOutputOf<TCodec>, TFieldValue>>;
+
+type CodecShapeChecks<TShape extends z.ZodRawShape, S> = {
+	[K in keyof S]: K extends keyof TShape
+		? CodecNodeCheck<TShape[K], S[K]>
+		: unknown;
+};
+
+type CodecNodeCheck<
+	TField extends AnySchema,
+	TNode,
+> = TNode extends AnySchemaCodec
+	? EncodeCheck<z.input<TField>, TNode>
+	: TNode extends NoOpCodec
+		? unknown
+		: TNode extends ArrayCodecShape<infer TItemShape>
+			? ArrayItemSchemaOf<TField> extends never
+				? unknown
+				: {
+						readonly itemShape: CodecNodeCheck<
+							ArrayItemSchemaOf<TField>,
+							TItemShape
+						>;
+					}
+			: NestedSchemaShape<TField> extends never
+				? unknown
+				: CodecShapeChecks<NestedSchemaShape<TField>, TNode>;
+
+type AdapterShapeChecks<TInput, S> = {
+	[K in keyof S]: K extends keyof TInput
+		? AdapterNodeCheck<TInput[K], S[K]>
+		: unknown;
+};
+
+type AdapterNodeCheck<TValue, TNode> = TNode extends AnySchemaCodec
+	? EncodeCheck<TValue, TNode>
+	: TNode extends NoOpCodec
+		? unknown
+		: TNode extends ArrayCodecShape<infer TItemShape>
+			? {
+					readonly itemShape: AdapterNodeCheck<
+						ArrayItemOfValue<TValue>,
+						TItemShape
+					>;
+				}
+			: IsPlainObjectValue<TValue> extends true
+				? AdapterShapeChecks<NonNullable<TValue>, TNode>
+				: unknown;
 
 type OutputOfStrictFieldAdapterArrayItem<TInputItem, TShapeNode> =
 	TShapeNode extends CodecWithOutputSchema<infer TSchema>
