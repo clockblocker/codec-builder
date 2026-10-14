@@ -29,31 +29,23 @@ export function buildStrictFieldAdapterCodec<
 	TInputSchema extends z.ZodObject,
 	const S extends CodecShapeForSchemaShape<SchemaShapeOf<TInputSchema>>,
 >(inputSchema: TInputSchema, shape: S) {
-	const outputSchema = z.object(
-		buildOutputZodShape(
-			shape as RuntimeCodecShape,
-			inputSchema.shape as z.ZodRawShape,
-		),
-	) as z.ZodObject<
+	const compiled = compileObject(
+		shape as RuntimeCodecShape,
+		inputSchema.shape as z.ZodRawShape,
+	);
+	const outputSchema = z.object(compiled.outShape) as z.ZodObject<
 		OutputZodShapeForSchemaShape<SchemaShapeOf<TInputSchema>, S>
 	>;
+	const plan = compiled.plan;
 
 	type InputType = z.infer<TInputSchema>;
 	type OutputType = z.infer<typeof outputSchema>;
 
-	const decode = (data: InputType): OutputType => {
-		return convertFromInput(
-			shape as RuntimeCodecShape,
-			data as Record<string, unknown>,
-		) as OutputType;
-	};
+	const decode = (data: InputType): OutputType =>
+		runPlan(plan, data, "decode") as OutputType;
 
-	const encode = (data: OutputType): InputType => {
-		return convertFromOutput(
-			shape as RuntimeCodecShape,
-			data as Record<string, unknown>,
-		) as InputType;
-	};
+	const encode = (data: OutputType): InputType =>
+		runPlan(plan, data, "encode") as InputType;
 
 	return z.codec(inputSchema, outputSchema, {
 		decode: decode as (
@@ -87,20 +79,13 @@ export function buildStrictFieldAdapter<
 	}
 
 	type OutputType = OutputOfStrictFieldAdapter<InputType, S>;
+	const plan = compileObject(shape as RuntimeCodecShape, undefined).plan;
 
-	const decode = (data: InputType): OutputType => {
-		return convertFromInput(
-			shape as RuntimeCodecShape,
-			data as Record<string, unknown>,
-		) as OutputType;
-	};
+	const decode = (data: InputType): OutputType =>
+		runPlan(plan, data, "decode") as OutputType;
 
-	const encode = (data: OutputType): InputType => {
-		return convertFromOutput(
-			shape as RuntimeCodecShape,
-			data as Record<string, unknown>,
-		) as InputType;
-	};
+	const encode = (data: OutputType): InputType =>
+		runPlan(plan, data, "encode") as InputType;
 
 	return {
 		decode,
@@ -188,10 +173,12 @@ type OutputOfStrictFieldAdapterArrayItem<TInputItem, TShapeNode> =
 			? TInputItem
 			: TShapeNode extends RuntimeCodecShape
 				? IsPlainObjectValue<TInputItem> extends true
-					? OutputOfStrictFieldAdapter<
-							NonNullable<TInputItem>,
-							TShapeNode
-						>
+					?
+							| OutputOfStrictFieldAdapter<
+									NonNullable<TInputItem>,
+									TShapeNode
+							  >
+							| Extract<TInputItem, null | undefined>
 					: never
 				: never;
 
@@ -201,18 +188,22 @@ type OutputOfStrictFieldAdapterNode<TInputValue, TShapeNode> =
 		: TShapeNode extends NoOpCodec
 			? TInputValue
 			: TShapeNode extends ArrayCodecShape<infer TItemShape>
-				? Array<
-						OutputOfStrictFieldAdapterArrayItem<
-							ArrayItemOfValue<TInputValue>,
-							TItemShape
-						>
-					>
+				?
+						| Array<
+								OutputOfStrictFieldAdapterArrayItem<
+									ArrayItemOfValue<TInputValue>,
+									TItemShape
+								>
+						  >
+						| Extract<TInputValue, null | undefined>
 				: TShapeNode extends RuntimeCodecShape
 					? IsPlainObjectValue<TInputValue> extends true
-						? OutputOfStrictFieldAdapter<
-								NonNullable<TInputValue>,
-								TShapeNode
-							>
+						?
+								| OutputOfStrictFieldAdapter<
+										NonNullable<TInputValue>,
+										TShapeNode
+								  >
+								| Extract<TInputValue, null | undefined>
 						: never
 					: never;
 
@@ -231,6 +222,23 @@ type UnwrapOptionalNullableSchema<TSchema extends AnySchema> =
 			? UnwrapOptionalNullableSchema<TInner>
 			: TSchema;
 
+/** Puts `TInner` back inside the optional/nullable wrappers of `TField`. */
+type RewrapLike<TField extends AnySchema, TInner extends AnySchema> =
+	TField extends z.core.$ZodOptional<infer TWrapped extends AnySchema>
+		? z.ZodOptional<RewrapLike<TWrapped, TInner>>
+		: TField extends z.core.$ZodNullable<infer TWrapped extends AnySchema>
+			? z.ZodNullable<RewrapLike<TWrapped, TInner>>
+			: TInner;
+
+/** For wide `z.ZodType<T>` fields: wrap `TInner` by the nullishness of `T`. */
+type WrapLikeValue<TValue, TInner extends AnySchema> = null extends TValue
+	? undefined extends TValue
+		? z.ZodOptional<z.ZodNullable<TInner>>
+		: z.ZodNullable<TInner>
+	: undefined extends TValue
+		? z.ZodOptional<TInner>
+		: TInner;
+
 type ObjectSchemaOf<TSchema extends AnySchema> =
 	UnwrapOptionalNullableSchema<TSchema> extends z.core.$ZodObject
 		? UnwrapOptionalNullableSchema<TSchema>
@@ -245,7 +253,9 @@ type NestedSchemaShape<TSchema extends AnySchema> =
 		: never;
 
 type ArrayItemSchemaOf<TSchema extends AnySchema> =
-	UnwrapOptionalNullableSchema<TSchema> extends z.core.$ZodArray<infer TItem>
+	UnwrapOptionalNullableSchema<TSchema> extends z.core.$ZodArray<
+		infer TItem extends AnySchema
+	>
 		? TItem
 		: never;
 
@@ -372,10 +382,13 @@ type OutputZodArrayItemForInputField<
 									>
 								>
 						: never
-					: z.ZodObject<
-							OutputZodShapeForSchemaShape<
-								ArrayItemSchemaShape<TInputField>,
-								TItemShape
+					: RewrapLike<
+							ArrayItemSchemaOf<TInputField>,
+							z.ZodObject<
+								OutputZodShapeForSchemaShape<
+									ArrayItemSchemaShape<TInputField>,
+									TItemShape
+								>
 							>
 						>
 				: never;
@@ -435,27 +448,49 @@ type OutputZodNode<TInputField extends AnySchema, TShapeNode> =
 		: TShapeNode extends NoOpCodec
 			? TInputField
 			: TShapeNode extends ArrayCodecShape<infer TItemShape>
-				? z.ZodArray<
-						OutputZodArrayItemForInputField<TInputField, TItemShape>
-					>
+				? IsWideZodType<TInputField> extends true
+					? WrapLikeValue<
+							z.output<TInputField>,
+							z.ZodArray<
+								OutputZodArrayItemForInputField<
+									TInputField,
+									TItemShape
+								>
+							>
+						>
+					: RewrapLike<
+							TInputField,
+							z.ZodArray<
+								OutputZodArrayItemForInputField<
+									TInputField,
+									TItemShape
+								>
+							>
+						>
 				: TShapeNode extends Record<string, any>
 					? NestedSchemaShape<TInputField> extends never
 						? IsWideZodType<TInputField> extends true
-							? [ObjectOutput<TInputField>] extends [never]
-								? z.ZodObject<
-										OutputZodShapeFromCodecShape<TShapeNode>
-									>
-								: z.ZodObject<
-										OutputZodShapeFromOutputObject<
-											ObjectOutput<TInputField>,
-											TShapeNode
-										>
-									>
+							? WrapLikeValue<
+									z.output<TInputField>,
+									[ObjectOutput<TInputField>] extends [never]
+										? z.ZodObject<
+												OutputZodShapeFromCodecShape<TShapeNode>
+											>
+										: z.ZodObject<
+												OutputZodShapeFromOutputObject<
+													ObjectOutput<TInputField>,
+													TShapeNode
+												>
+											>
+								>
 							: never
-						: z.ZodObject<
-								OutputZodShapeForSchemaShape<
-									NestedSchemaShape<TInputField>,
-									TShapeNode
+						: RewrapLike<
+								TInputField,
+								z.ZodObject<
+									OutputZodShapeForSchemaShape<
+										NestedSchemaShape<TInputField>,
+										TShapeNode
+									>
 								>
 							>
 					: never;
@@ -541,42 +576,125 @@ function getSchemaNode(schemaShape: z.ZodRawShape, key: string): z.ZodTypeAny {
 	return schemaNode;
 }
 
-function unwrapOptionalNullableSchema(schema: z.ZodTypeAny): z.ZodTypeAny {
-	let current: z.ZodTypeAny = schema;
-	while (
-		hasSchemaType(current, "optional") ||
-		hasSchemaType(current, "nullable")
-	) {
-		const unwrap = (current as { unwrap?: () => z.ZodTypeAny }).unwrap;
+type NullishWrapper = "nullable" | "optional";
+
+/** Strips optional/nullable wrappers, remembering them outermost first. */
+function unwrapNullish(schema: z.ZodTypeAny): {
+	inner: z.ZodTypeAny;
+	wrappers: NullishWrapper[];
+} {
+	const wrappers: NullishWrapper[] = [];
+	let inner: z.ZodTypeAny = schema;
+	for (;;) {
+		const type = getSchemaType(inner);
+		if (type !== "optional" && type !== "nullable") break;
+		const unwrap = (inner as { unwrap?: () => z.ZodTypeAny }).unwrap;
 		if (typeof unwrap !== "function") {
 			throw new Error(
 				"Expected an unwrap-able optional or nullable schema.",
 			);
 		}
-
-		current = unwrap.call(current);
+		wrappers.push(type);
+		inner = unwrap.call(inner);
 	}
-	return current;
+	return { inner, wrappers };
 }
 
-function getNestedObjectSchema(schema: z.ZodTypeAny): z.ZodObject {
-	const current = unwrapOptionalNullableSchema(schema);
+function rewrap(
+	schema: z.ZodTypeAny,
+	wrappers: readonly NullishWrapper[],
+): z.ZodTypeAny {
+	let result = schema;
+	for (let i = wrappers.length - 1; i >= 0; i--) {
+		result =
+			wrappers[i] === "optional" ? result.optional() : result.nullable();
+	}
+	return result;
+}
 
-	if (!isZodObjectSchema(current)) {
+// The shape is compiled once into a plan. With a schema, compiling also
+// checks the shape against it and builds the derived `out` schema.
+type Plan =
+	| { readonly kind: "noOp" }
+	| { readonly kind: "codec"; readonly codec: z.ZodCodec }
+	| { readonly kind: "array"; readonly item: Plan }
+	| ObjectPlan;
+
+interface ObjectPlan {
+	readonly kind: "object";
+	readonly fields: ReadonlyArray<readonly [string, Plan]>;
+}
+
+const noOpPlan: Plan = { kind: "noOp" };
+
+function compileObject(
+	shape: RuntimeCodecShape,
+	schemaShape: z.ZodRawShape | undefined,
+): { plan: ObjectPlan; outShape: Record<string, z.ZodTypeAny> } {
+	const fields: [string, Plan][] = [];
+	const outShape: Record<string, z.ZodTypeAny> = {};
+	for (const key of Object.keys(shape)) {
+		const fieldSchema =
+			schemaShape === undefined
+				? undefined
+				: getSchemaNode(schemaShape, key);
+		const compiled = compileNode(shape[key], fieldSchema);
+		fields.push([key, compiled.plan]);
+		if (compiled.out !== undefined) outShape[key] = compiled.out;
+	}
+	return { plan: { kind: "object", fields }, outShape };
+}
+
+function compileNode(
+	node: unknown,
+	schema: z.ZodTypeAny | undefined,
+): { plan: Plan; out: z.ZodTypeAny | undefined } {
+	if (isCodec(node)) {
+		return {
+			plan: { kind: "codec", codec: node },
+			out: node.out as z.ZodTypeAny,
+		};
+	}
+
+	if (isNoOpCodec(node)) {
+		return { plan: noOpPlan, out: schema };
+	}
+
+	const unwrapped = schema === undefined ? undefined : unwrapNullish(schema);
+
+	if (isArrayCodecShape(node)) {
+		if (unwrapped !== undefined && !isZodArraySchema(unwrapped.inner)) {
+			throw new Error("Codec shape expects an array schema.");
+		}
+		const item = compileNode(
+			node.itemShape,
+			(unwrapped?.inner as z.ZodArray<z.ZodTypeAny> | undefined)?.element,
+		);
+		return {
+			plan: { kind: "array", item: item.plan },
+			out:
+				unwrapped === undefined || item.out === undefined
+					? undefined
+					: rewrap(z.array(item.out), unwrapped.wrappers),
+		};
+	}
+
+	if (unwrapped !== undefined && !isZodObjectSchema(unwrapped.inner)) {
 		throw new Error("Codec shape does not match nested object schema.");
 	}
-
-	return current;
-}
-
-function getArrayItemSchema(schema: z.ZodTypeAny): z.ZodTypeAny {
-	const current = unwrapOptionalNullableSchema(schema);
-
-	if (!isZodArraySchema(current)) {
-		throw new Error("Codec shape expects an array schema.");
-	}
-
-	return current.element;
+	const nested = compileObject(
+		asRecord(node),
+		unwrapped === undefined
+			? undefined
+			: (unwrapped.inner as z.ZodObject).shape,
+	);
+	return {
+		plan: nested.plan,
+		out:
+			unwrapped === undefined
+				? undefined
+				: rewrap(z.object(nested.outShape), unwrapped.wrappers),
+	};
 }
 
 function asRecord(v: unknown): Record<string, unknown> {
@@ -584,140 +702,29 @@ function asRecord(v: unknown): Record<string, unknown> {
 		? (v as Record<string, unknown>)
 		: {};
 }
-function buildOutputZodArrayItem(
-	itemShape: RuntimeArrayItemShape,
-	itemSchema: z.ZodTypeAny,
-): z.ZodTypeAny {
-	if (isCodec(itemShape)) {
-		return itemShape.out as z.ZodTypeAny;
-	}
 
-	if (isNoOpCodec(itemShape)) {
-		return itemSchema;
-	}
+type Direction = "decode" | "encode";
 
-	const nestedObjectSchema = getNestedObjectSchema(itemSchema);
-	return z.object(
-		buildOutputZodShape(
-			itemShape as RuntimeCodecShape,
-			nestedObjectSchema.shape,
-		),
-	);
-}
-
-function convertArrayItemFromInput(
-	itemShape: RuntimeArrayItemShape,
-	item: unknown,
-): unknown {
-	if (isCodec(itemShape)) {
-		return z.decode(itemShape, item);
-	}
-
-	if (isNoOpCodec(itemShape)) {
-		return item;
-	}
-
-	return convertFromInput(itemShape as RuntimeCodecShape, asRecord(item));
-}
-
-function convertArrayItemFromOutput(
-	itemShape: RuntimeArrayItemShape,
-	item: unknown,
-): unknown {
-	if (isCodec(itemShape)) {
-		return z.encode(itemShape, item);
-	}
-
-	if (isNoOpCodec(itemShape)) {
-		return item;
-	}
-
-	return convertFromOutput(itemShape as RuntimeCodecShape, asRecord(item));
-}
-
-function buildOutputZodShape(
-	shape: RuntimeCodecShape,
-	schemaShape: z.ZodRawShape,
-): Record<string, z.ZodTypeAny> {
-	const result: Record<string, z.ZodTypeAny> = {};
-	for (const key in shape) {
-		const node = shape[key];
-		const schemaNode = getSchemaNode(schemaShape, key);
-
-		if (isCodec(node)) {
-			result[key] = node.out as z.ZodTypeAny;
-		} else if (isNoOpCodec(node)) {
-			result[key] = schemaNode;
-		} else if (isArrayCodecShape(node)) {
-			const itemSchema = getArrayItemSchema(schemaNode);
-			result[key] = z.array(
-				buildOutputZodArrayItem(node.itemShape, itemSchema),
-			);
-		} else {
-			const nestedObjectSchema = getNestedObjectSchema(schemaNode);
-			result[key] = z.object(
-				buildOutputZodShape(
-					node as RuntimeCodecShape,
-					nestedObjectSchema.shape,
-				),
-			);
+function runPlan(plan: Plan, value: unknown, direction: Direction): unknown {
+	switch (plan.kind) {
+		case "noOp":
+			return value;
+		case "codec":
+			return direction === "decode"
+				? z.decode(plan.codec, value)
+				: z.encode(plan.codec, value);
+		case "array":
+			// null, undefined (and anything the schema let through) pass as is.
+			if (!Array.isArray(value)) return value;
+			return value.map((item) => runPlan(plan.item, item, direction));
+		case "object": {
+			if (typeof value !== "object" || value === null) return value;
+			const data = value as Record<string, unknown>;
+			const result: Record<string, unknown> = {};
+			for (const [key, child] of plan.fields) {
+				result[key] = runPlan(child, data[key], direction);
+			}
+			return result;
 		}
 	}
-	return result;
-}
-function convertFromInput(
-	shape: RuntimeCodecShape,
-	data: Record<string, unknown>,
-): Record<string, unknown> {
-	const result: Record<string, unknown> = {};
-	for (const key in shape) {
-		const node = shape[key];
-		if (isCodec(node)) {
-			result[key] = z.decode(node, data[key]);
-		} else if (isNoOpCodec(node)) {
-			result[key] = data[key];
-		} else if (isArrayCodecShape(node)) {
-			const value = data[key];
-			result[key] = Array.isArray(value)
-				? value.map((item) =>
-						convertArrayItemFromInput(node.itemShape, item),
-					)
-				: value;
-		} else {
-			result[key] = convertFromInput(
-				node as RuntimeCodecShape,
-				asRecord(data[key]),
-			);
-		}
-	}
-	return result;
-}
-
-function convertFromOutput(
-	shape: RuntimeCodecShape,
-	data: Record<string, unknown>,
-): Record<string, unknown> {
-	const result: Record<string, unknown> = {};
-	for (const key in shape) {
-		const node = shape[key];
-		if (isCodec(node)) {
-			result[key] = z.encode(node, data[key]);
-		} else if (isNoOpCodec(node)) {
-			result[key] = data[key];
-		} else if (isArrayCodecShape(node)) {
-			const value = data[key];
-			result[key] = Array.isArray(value)
-				? value.map((item) =>
-						convertArrayItemFromOutput(node.itemShape, item),
-					)
-				: value;
-		} else {
-			result[key] = convertFromOutput(
-				node as RuntimeCodecShape,
-				asRecord(data[key]),
-			);
-		}
-	}
-
-	return result;
 }

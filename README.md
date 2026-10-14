@@ -507,9 +507,10 @@ You can, and this library returns exactly that: a `z.codec(in, out,
 - Derived nested objects are rebuilt with `z.object`, so `strictObject` or
   `passthrough` on a nested source object is not carried over to `out`. The
   top-level `out` is a plain `z.object` too.
-- A field whose schema is a nullable or optional object or array can be given a
-  nested shape or `arrayOf`, but a `null` or `undefined` value in that field
-  makes decoding fail. Use a custom codec for such fields.
+- A nested shape or `arrayOf` also fits a nullable or optional object or array
+  field. `null` and `undefined` pass through unchanged in both directions, and
+  the derived field keeps the same wrappers: `z.object({...}).nullable()`
+  becomes `{ street: string } | null` in `out`.
 
 ## Development
 
