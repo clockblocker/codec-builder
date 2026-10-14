@@ -513,9 +513,14 @@ You can, and this library returns exactly that: a `z.codec(in, out,
   turned into `null` or a default.
 - Defaults are taken per decode. A `nonNullish.date.and.nullish.isoString`
   field decoded from `null` gets the time of that decode.
-- Derived nested objects are rebuilt with `z.object`, so `strictObject` or
-  `passthrough` on a nested source object is not carried over to `out`. The
-  top-level `out` is a plain `z.object` too.
+- `out` keeps the unknown-key policy of each source object, top-level and
+  nested: `z.strictObject` stays strict, `.passthrough()`/`z.looseObject`
+  stays loose, `.catchall(schema)` keeps the catchall, and `.strip()` strips.
+  Unknown keys that the source lets through are copied unchanged in both
+  directions, and the derived types are the ones Zod infers for that policy
+  (for a loose object, `{ ...; [k: string]: unknown }`). The schema-free
+  `buildStrictFieldAdapter` has no policy to follow and drops keys outside
+  the shape.
 - A nested shape or `arrayOf` also fits a nullable or optional object or array
   field. `null` and `undefined` pass through unchanged in both directions, and
   the derived field keeps the same wrappers: `z.object({...}).nullable()`

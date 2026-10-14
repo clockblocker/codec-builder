@@ -32,10 +32,11 @@ export function buildStrictFieldAdapterCodec<
 >(inputSchema: TInputSchema, shape: S) {
 	const compiled = compileObject(
 		shape as RuntimeCodecShape,
-		inputSchema.shape as z.ZodRawShape,
+		inputSchema as unknown as SourceObjectSchema,
 	);
-	const outputSchema = z.object(compiled.outShape) as z.ZodObject<
-		OutputZodShapeForSchemaShape<SchemaShapeOf<TInputSchema>, S>
+	const outputSchema = compiled.out as z.ZodObject<
+		OutputZodShapeForSchemaShape<SchemaShapeOf<TInputSchema>, S>,
+		ObjectConfigOf<TInputSchema>
 	>;
 	const plan = compiled.plan;
 
@@ -263,6 +264,13 @@ type WrapLikeValue<TValue, TInner extends AnySchema> = null extends TValue
 		? z.ZodOptional<TInner>
 		: TInner;
 
+/** The unknown-key policy (`$strip`, `$strict`, `$loose`, `$catchall<T>`). */
+type ObjectConfigOf<TSchema> = TSchema extends {
+	_zod: { config: infer TConfig extends z.core.$ZodObjectConfig };
+}
+	? TConfig
+	: z.core.$strip;
+
 type ObjectSchemaOf<TSchema extends AnySchema> =
 	UnwrapOptionalNullableSchema<TSchema> extends z.core.$ZodObject
 		? UnwrapOptionalNullableSchema<TSchema>
@@ -412,6 +420,11 @@ type OutputZodArrayItemForInputField<
 								OutputZodShapeForSchemaShape<
 									ArrayItemSchemaShape<TInputField>,
 									TItemShape
+								>,
+								ObjectConfigOf<
+									ObjectSchemaOf<
+										ArrayItemSchemaOf<TInputField>
+									>
 								>
 							>
 						>
@@ -514,7 +527,8 @@ type OutputZodNode<TInputField extends AnySchema, TShapeNode> =
 									OutputZodShapeForSchemaShape<
 										NestedSchemaShape<TInputField>,
 										TShapeNode
-									>
+									>,
+									ObjectConfigOf<ObjectSchemaOf<TInputField>>
 								>
 							>
 					: never;
@@ -647,26 +661,44 @@ type Plan =
 interface ObjectPlan {
 	readonly kind: "object";
 	readonly fields: ReadonlyArray<readonly [string, Plan]>;
+	/** Copy keys outside the shape (the source is loose or has a catchall). */
+	readonly keepUnknownKeys: boolean;
+	readonly fieldKeys: ReadonlySet<string>;
 }
 
 const noOpPlan: Plan = { kind: "noOp" };
 
+type SourceObjectSchema = {
+	shape: z.ZodRawShape;
+	_zod?: { def?: { catchall?: z.ZodTypeAny } };
+};
+
 function compileObject(
 	shape: RuntimeCodecShape,
-	schemaShape: z.ZodRawShape | undefined,
-): { plan: ObjectPlan; outShape: Record<string, z.ZodTypeAny> } {
+	schema: SourceObjectSchema | undefined,
+): { plan: ObjectPlan; out: z.ZodTypeAny | undefined } {
 	const fields: [string, Plan][] = [];
 	const outShape: Record<string, z.ZodTypeAny> = {};
 	for (const key of Object.keys(shape)) {
 		const fieldSchema =
-			schemaShape === undefined
-				? undefined
-				: getSchemaNode(schemaShape, key);
+			schema === undefined ? undefined : getSchemaNode(schema.shape, key);
 		const compiled = compileNode(shape[key], fieldSchema);
 		fields.push([key, compiled.plan]);
 		if (compiled.out !== undefined) outShape[key] = compiled.out;
 	}
-	return { plan: { kind: "object", fields }, outShape };
+
+	// The derived object keeps the source's unknown-key policy: strict and
+	// loose are catchalls (never / unknown) in Zod 4, strip has none.
+	const catchall = schema?._zod?.def?.catchall;
+	const plan: ObjectPlan = {
+		kind: "object",
+		fields,
+		keepUnknownKeys: catchall !== undefined,
+		fieldKeys: new Set(Object.keys(shape)),
+	};
+	if (schema === undefined) return { plan, out: undefined };
+	const out = z.object(outShape);
+	return { plan, out: catchall === undefined ? out : out.catchall(catchall) };
 }
 
 function compileNode(
@@ -708,16 +740,14 @@ function compileNode(
 	}
 	const nested = compileObject(
 		asRecord(node),
-		unwrapped === undefined
-			? undefined
-			: (unwrapped.inner as z.ZodObject).shape,
+		unwrapped?.inner as SourceObjectSchema | undefined,
 	);
 	return {
 		plan: nested.plan,
 		out:
-			unwrapped === undefined
+			unwrapped === undefined || nested.out === undefined
 				? undefined
-				: rewrap(z.object(nested.outShape), unwrapped.wrappers),
+				: rewrap(nested.out, unwrapped.wrappers),
 	};
 }
 
@@ -792,9 +822,31 @@ function runPlan(
 					[...path, key],
 					issues,
 				);
-				if (present || converted !== undefined) result[key] = converted;
+				if (present || converted !== undefined) {
+					setKey(result, key, converted);
+				}
+			}
+			if (plan.keepUnknownKeys) {
+				for (const key of Object.keys(data)) {
+					if (!plan.fieldKeys.has(key))
+						setKey(result, key, data[key]);
+				}
 			}
 			return result;
 		}
+	}
+}
+
+/** Assigns an own property, even for a key named `__proto__`. */
+function setKey(target: Record<string, unknown>, key: string, value: unknown) {
+	if (key === "__proto__") {
+		Object.defineProperty(target, key, {
+			configurable: true,
+			enumerable: true,
+			value,
+			writable: true,
+		});
+	} else {
+		target[key] = value;
 	}
 }
