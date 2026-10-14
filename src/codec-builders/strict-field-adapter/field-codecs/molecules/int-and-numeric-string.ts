@@ -1,7 +1,7 @@
 import { z } from "zod/v4";
-import { toNonNullishWithDefault } from "../../helpers/casters/to-non-nullish-with-default";
-import { toNullable } from "../../helpers/casters/to-nullable";
-import { integerNumericStringSchema } from "../atoms/core-non-nullable-codecs/numeric-string-and-number";
+import { toNonNullishWithDefault } from "../../helpers/casters/to-non-nullish-with-default.js";
+import { toNullable } from "../../helpers/casters/to-nullable.js";
+import { integerNumericStringSchema } from "../atoms/core-non-nullable-codecs/numeric-string-and-number.js";
 
 // Non-integer numeric strings ("1.9") are rejected, not floored. Both sides
 // are limited to safe integers: z.number().int() enforces the safe range in

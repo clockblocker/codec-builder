@@ -1,5 +1,5 @@
 import { z } from "zod/v4";
-import type { Simplify } from "../core/types";
+import type { Simplify } from "../core/types.js";
 
 type CanonicalShape<TSchema extends z.ZodObject> = TSchema["shape"];
 

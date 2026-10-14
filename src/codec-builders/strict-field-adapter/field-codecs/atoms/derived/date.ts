@@ -1,6 +1,6 @@
 import { z } from "zod/v4";
-import { toNonNullishWithDefault } from "../../../helpers/casters/to-non-nullish-with-default";
-import { toNullable } from "../../../helpers/casters/to-nullable";
+import { toNonNullishWithDefault } from "../../../helpers/casters/to-non-nullish-with-default.js";
+import { toNullable } from "../../../helpers/casters/to-nullable.js";
 
 const isoDateSchema = z.iso.date();
 const isoDateTimeSchema = z.iso.datetime({ offset: true });

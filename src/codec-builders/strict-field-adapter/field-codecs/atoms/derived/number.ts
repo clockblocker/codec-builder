@@ -1,7 +1,7 @@
 import { z } from "zod/v4";
-import { toNonNullishWithDefault } from "../../../helpers/casters/to-non-nullish-with-default";
-import { toNullable } from "../../../helpers/casters/to-nullable";
-import { numericStringAndNumber } from "../core-non-nullable-codecs/numeric-string-and-number";
+import { toNonNullishWithDefault } from "../../../helpers/casters/to-non-nullish-with-default.js";
+import { toNullable } from "../../../helpers/casters/to-nullable.js";
+import { numericStringAndNumber } from "../core-non-nullable-codecs/numeric-string-and-number.js";
 
 export { numericStringAndNumber };
 

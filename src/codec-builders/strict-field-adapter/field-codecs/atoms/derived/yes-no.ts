@@ -1,7 +1,7 @@
 import { z } from "zod/v4";
-import { toNonNullishWithDefault } from "../../../helpers/casters/to-non-nullish-with-default";
-import { toNullable } from "../../../helpers/casters/to-nullable";
-import { yesNoAndBoolean } from "../core-non-nullable-codecs/yes-no-and-boolean";
+import { toNonNullishWithDefault } from "../../../helpers/casters/to-non-nullish-with-default.js";
+import { toNullable } from "../../../helpers/casters/to-nullable.js";
+import { yesNoAndBoolean } from "../core-non-nullable-codecs/yes-no-and-boolean.js";
 
 export { yesNoAndBoolean };
 

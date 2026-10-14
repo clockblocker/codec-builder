@@ -1,7 +1,7 @@
 import { z } from "zod/v4";
-import type { Nullish } from "../../../../../core/helpers/nullish-utils";
-import { toNonNullishWithDefault } from "../../../helpers/casters/to-non-nullish-with-default";
-import { toNullable } from "../../../helpers/casters/to-nullable";
+import type { Nullish } from "../../../../../core/helpers/nullish-utils.js";
+import { toNonNullishWithDefault } from "../../../helpers/casters/to-non-nullish-with-default.js";
+import { toNullable } from "../../../helpers/casters/to-nullable.js";
 
 const stringSchema = z.string();
 const nullishStringSchema = stringSchema.nullish();

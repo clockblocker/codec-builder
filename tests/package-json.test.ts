@@ -24,3 +24,20 @@ test("package metadata", async () => {
 		await Bun.file(resolve(import.meta.dir, "../LICENSE")).exists(),
 	).toBeTrue();
 });
+
+test("relative imports in src carry a .js extension for node16/nodenext consumers", async () => {
+	const glob = new Bun.Glob("src/**/*.ts");
+	const offenders: string[] = [];
+	for await (const file of glob.scan(resolve(import.meta.dir, ".."))) {
+		const text = await Bun.file(
+			resolve(import.meta.dir, "..", file),
+		).text();
+		for (const match of text.matchAll(
+			/(?:from|import)\s+"(\.{1,2}\/[^"]*)"/g,
+		)) {
+			if (!match[1]?.endsWith(".js"))
+				offenders.push(`${file}: ${match[1]}`);
+		}
+	}
+	expect(offenders).toEqual([]);
+});

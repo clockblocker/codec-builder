@@ -1,5 +1,5 @@
 import { z } from "zod/v4";
-import { mapNullishToNullable } from "../../../../core/helpers/nullish-utils";
+import { mapNullishToNullable } from "../../../../core/helpers/nullish-utils.js";
 
 export function toNullable<
 	TInputSchema extends z.ZodTypeAny,

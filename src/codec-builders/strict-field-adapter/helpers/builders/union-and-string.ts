@@ -4,7 +4,7 @@ import {
 	makeNullableFromNullish,
 	mapNullishToNullable,
 	type Nullish,
-} from "../../../../core/helpers/nullish-utils";
+} from "../../../../core/helpers/nullish-utils.js";
 
 export function buildNullableUnionAndNullishString<
 	const TValues extends NonEmptyStringTuple,

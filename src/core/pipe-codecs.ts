@@ -1,6 +1,6 @@
 import { z } from "zod/v4";
 
-import type { CodecPair } from "./types";
+import type { CodecPair } from "./types.js";
 
 export function pipeCodecs<
 	TInputSchema extends z.ZodTypeAny,
