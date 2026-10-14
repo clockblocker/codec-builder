@@ -2,26 +2,19 @@ import { z } from "zod/v4";
 import { toNonNullishWithDefault } from "../../../helpers/casters/to-non-nullish-with-default";
 import { toNullable } from "../../../helpers/casters/to-nullable";
 
-const isoDateSchema = z.string().date();
-const isoDateTimeSchema = z.string().datetime({ offset: true });
+const isoDateSchema = z.iso.date();
+const isoDateTimeSchema = z.iso.datetime({ offset: true });
 const isoStringSchema = z.union([isoDateSchema, isoDateTimeSchema]);
 const dateSchema = z.date();
 
-const nullableDateInputSchema = z.string().nullish();
+const nullableDateInputSchema = isoStringSchema.nullish();
 const nullableDateOutputSchema = dateSchema.nullable();
 
 export const nullableDateAndNullishIsoString = z.codec(
 	nullableDateInputSchema,
 	nullableDateOutputSchema,
 	{
-		decode: (value) => {
-			if (value == null) {
-				return null;
-			}
-
-			const parsed = isoStringSchema.safeParse(value);
-			return parsed.success ? new Date(parsed.data) : null;
-		},
+		decode: (value) => (value == null ? null : new Date(value)),
 		encode: (value) => (value == null ? null : value.toISOString()),
 	},
 );

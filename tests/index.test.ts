@@ -246,18 +246,15 @@ describe("codecBuilder.helpers", () => {
 		});
 	});
 
-	test("maps empty string date fields to null through a nullable object codec", () => {
+	test("rejects an empty string date field in a nullable adapter codec", () => {
 		const adapter = codecBuilder.buildStrictFieldAdapter<{
 			submittedAt: string | null | undefined;
 		}>()({
 			submittedAt: codecBuilder.fieldCodec.nullable.date.and.isoString,
 		});
 
-		expect(
-			adapter.decode({
-				submittedAt: "",
-			}),
-		).toEqual({
+		expect(() => adapter.decode({ submittedAt: "" })).toThrow(z.ZodError);
+		expect(adapter.decode({ submittedAt: null })).toEqual({
 			submittedAt: null,
 		});
 	});

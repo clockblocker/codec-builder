@@ -71,7 +71,7 @@ describe("nullableNumericStringAndNumber", () => {
 });
 
 describe("nullableDateAndNullishIsoString", () => {
-	test("maps invalid and nullish input to null", () => {
+	test("decodes ISO strings and maps nullish input to null", () => {
 		const date = nullableDateAndNullishIsoString.decode("2024-01-01");
 		if (date === null) {
 			throw new Error("Expected a valid date");
@@ -79,7 +79,9 @@ describe("nullableDateAndNullishIsoString", () => {
 
 		expect(date).toBeInstanceOf(Date);
 		expect(isoStringAndDate.decode(date)).toBe("2024-01-01T00:00:00.000Z");
-		expect(nullableDateAndNullishIsoString.decode("")).toBeNull();
+		expect(() => nullableDateAndNullishIsoString.decode("")).toThrow(
+			z.ZodError,
+		);
 		expect(
 			nullableDateAndNullishIsoString.in.parse(undefined),
 		).toBeUndefined();
