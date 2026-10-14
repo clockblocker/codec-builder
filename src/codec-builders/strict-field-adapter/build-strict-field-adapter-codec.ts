@@ -6,6 +6,7 @@ import type {
 	CodecPair,
 	NoOpCodec,
 	SchemaShapeOf as SharedSchemaShapeOf,
+	Simplify,
 } from "../../core/types.js";
 
 // -- Exports --
@@ -111,7 +112,7 @@ type CodecWithOutputSchema<TSchema extends AnySchema> = z.core.$ZodCodec<
 	TSchema
 >;
 type KnownKeys<T> = {
-	[K in keyof T]: string extends K
+	[K in keyof T]-?: string extends K
 		? never
 		: number extends K
 			? never
@@ -211,11 +212,30 @@ type OutputOfStrictFieldAdapterNode<TInputValue, TShapeNode> =
 						: never
 					: never;
 
-type OutputOfStrictFieldAdapter<TInput extends object, S> = {
-	[K in KnownKeys<S>]: K extends keyof TInput
-		? OutputOfStrictFieldAdapterNode<TInput[K], S[K]>
-		: never;
-} & {};
+// Key optionality follows the derived schema's rules: noOp, nested and array
+// fields keep the source key's `?`, and a codec field is optional exactly
+// when its `out` schema is optional (as `z.object` would infer it).
+type OptionalOutputCodec = { _zod: { optout: "optional" } };
+
+type OutputOfStrictFieldAdapter<TInput extends object, S> = Simplify<
+	{
+		[K in keyof TInput as K extends keyof S
+			? S[K] extends AnySchemaCodec
+				? never
+				: K
+			: never]: OutputOfStrictFieldAdapterNode<TInput[K], S[K & keyof S]>;
+	} & {
+		[K in KnownKeys<S> as S[K] extends OptionalOutputCodec
+			? K
+			: never]?: z.output<S[K]>;
+	} & {
+		[K in KnownKeys<S> as S[K] extends AnySchemaCodec
+			? S[K] extends OptionalOutputCodec
+				? never
+				: K
+			: never]: z.output<S[K]>;
+	}
+>;
 
 type SchemaShapeOf<TSchema extends z.ZodObject> = SharedSchemaShapeOf<TSchema>;
 
@@ -760,13 +780,19 @@ function runPlan(
 			const data = value as Record<string, unknown>;
 			const result: Record<string, unknown> = {};
 			for (const [key, child] of plan.fields) {
-				result[key] = runPlan(
+				// Like z.object: a missing key stays missing. A codec still
+				// runs on a missing value (it may supply null or a default);
+				// the key is set only if the codec returns something.
+				const present = key in data;
+				if (!present && child.kind !== "codec") continue;
+				const converted = runPlan(
 					child,
 					data[key],
 					direction,
 					[...path, key],
 					issues,
 				);
+				if (present || converted !== undefined) result[key] = converted;
 			}
 			return result;
 		}

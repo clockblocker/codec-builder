@@ -491,6 +491,13 @@ You can, and this library returns exactly that: a `z.codec(in, out,
   `{ success: false }`, and `decode`/`encode` throw a `ZodError`. The
   schema-free `buildStrictFieldAdapter` throws a `ZodError` with the same
   paths. `helpers.pipeCodecs` reports failures of either codec the same way.
+- Optional keys work like in `z.object`: a key missing from the input stays
+  missing in the output, in both directions, and a key that is present stays
+  present (even with the value `undefined`). A `noOp`, nested, or `arrayOf`
+  field keeps the source key's optionality. A codec field is optional in `out`
+  when the codec's `out` schema is optional (`optional.*`, `nullish.*`); a
+  codec still runs on a missing value, so `nullable.*` turns a missing key
+  into `null` and `nonNullish.X.and.nullish.Y` into its default.
 - Numeric strings must be decimal numbers with an optional exponent (`"12"`,
   `"-3.5"`, `".5"`, `"1e-7"`) that parse to a finite number. Whitespace, hex,
   binary, octal, `"Infinity"` and `"NaN"` are rejected. The exponent form is
