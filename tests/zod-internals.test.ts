@@ -2,12 +2,16 @@ import { describe, expect, test } from "bun:test";
 import { z } from "zod/v4";
 import {
 	codecTransforms,
+	finalizeIssues,
 	innerTypeOf,
 	isCodec,
 	isZodSchema,
 	objectCatchall,
 	pipeOut,
+	runSchema,
 	schemaType,
+	transformsOnly,
+	withoutOutCheck,
 } from "../src/core/zod-internals";
 
 // Pins the Zod internals the library relies on (all reads go through
@@ -72,5 +76,56 @@ describe("zod internals the library relies on", () => {
 		expect(
 			objectCatchall(z.object(shape).catchall(z.number())),
 		).toBeInstanceOf(z.ZodNumber);
+	});
+
+	test("_zod.run returns raw issues with relative paths, in both directions", () => {
+		const schema = z.object({ a: z.number() });
+		const failed = runSchema(schema, { a: "x" }, "decode", false);
+		expect(failed.issues).toHaveLength(1);
+		expect(failed.issues[0]?.path).toEqual(["a"]);
+		expect(failed.issues[0]?.message).toBeUndefined();
+		expect(finalizeIssues(failed.issues)[0]?.message).toBe(
+			"Invalid input: expected number, received string",
+		);
+
+		const codec = z.codec(z.string(), z.number(), {
+			decode: Number,
+			encode: String,
+		});
+		expect(runSchema(codec, "2", "decode", false).value).toBe(2);
+		expect(runSchema(codec, 2, "encode", false).value).toBe("2");
+	});
+
+	test("_zod.run with async: false throws Zod's async error", () => {
+		const asyncSchema = z.string().refine(async () => true);
+		expect(() => runSchema(asyncSchema, "a", "decode", false)).toThrow(
+			z.core.$ZodAsyncError,
+		);
+	});
+
+	test("derived codecs skip exactly the checks they say", () => {
+		const runs: string[] = [];
+		const codec = z.codec(
+			z.string().refine(() => runs.push("in") > 0),
+			z.number().refine(() => runs.push("out") > 0),
+			{ decode: Number, encode: String },
+		);
+		expect(
+			runSchema(withoutOutCheck(codec), "1", "decode", false).value,
+		).toBe(1);
+		expect(runs).toEqual(["in"]);
+		runs.length = 0;
+		expect(
+			runSchema(withoutOutCheck(codec), 1, "encode", false).value,
+		).toBe("1");
+		expect(runs).toEqual(["in"]);
+		runs.length = 0;
+		expect(
+			runSchema(transformsOnly(codec), "1", "decode", false).value,
+		).toBe(1);
+		expect(runSchema(transformsOnly(codec), 1, "encode", false).value).toBe(
+			"1",
+		);
+		expect(runs).toEqual([]);
 	});
 });

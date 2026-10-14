@@ -549,9 +549,9 @@ You can, and this library returns exactly that: a `z.codec(in, out,
 - Field codecs must be synchronous. A shape with an async field codec (an
   async transform or refinement) throws Zod's `$ZodAsyncError`, even from
   `decodeAsync`/`encodeAsync`. The same goes for `helpers.pipeCodecs`.
-- A field codec's `out` schema is checked twice per call: once by the field
-  codec itself and once by the object's `out`. This only shows if a
-  refinement there has side effects.
+- Each field codec runs once per call: its `in` is checked, it transforms, and
+  its `out` is checked by the object's `out` (which contains it). A source
+  field that is the codec's own `in` schema is not checked a second time.
 - Numeric strings must be decimal numbers with an optional exponent (`"12"`,
   `"-3.5"`, `".5"`, `"1e-7"`) that parse to a finite number. Whitespace, hex,
   binary, octal, `"Infinity"` and `"NaN"` are rejected. The exponent form is

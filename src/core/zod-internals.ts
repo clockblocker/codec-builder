@@ -6,7 +6,7 @@
 // tests/zod-internals-boundary.test.ts keeps `_zod` out of other modules.
 // The shapes used are the same in Zod 4.4 through 4.6.
 
-import type { z } from "zod/v4";
+import { z } from "zod/v4";
 
 // -- Types --
 
@@ -112,4 +112,70 @@ export function codecTransforms(codec: z.core.$ZodType): {
 		transform: def?.transform as CodecTransform,
 		reverseTransform: def?.reverseTransform as CodecTransform,
 	};
+}
+
+// -- Running schemas --
+
+export type Direction = "decode" | "encode";
+
+/** What a schema run returns: the value plus raw (unfinalized) issues. */
+export type RunResult = z.core.ParsePayload<unknown>;
+
+/**
+ * Runs a schema the way an enclosing schema runs its children: issues stay
+ * raw (with paths relative to `value`) so the caller can push them onto its
+ * own payload, and the enclosing parse finalizes them with its context. With
+ * `async: false`, an async step throws Zod's `$ZodAsyncError`.
+ */
+export function runSchema(
+	schema: z.core.$ZodType,
+	value: unknown,
+	direction: Direction,
+	async: false,
+): RunResult {
+	return (
+		schema as unknown as {
+			_zod: {
+				run(
+					payload: RunResult,
+					ctx: { direction: "forward" | "backward"; async: false },
+				): RunResult;
+			};
+		}
+	)._zod.run(
+		{ value, issues: [] },
+		{ direction: direction === "decode" ? "forward" : "backward", async },
+	);
+}
+
+/** Finalizes raw issues (fills in messages) as a top-level parse would. */
+export function finalizeIssues(
+	issues: readonly z.core.$ZodRawIssue[],
+): z.core.$ZodIssue[] {
+	const config = z.core.config();
+	return issues.map((issue) =>
+		z.core.util.finalizeIssue(issue, undefined, config),
+	);
+}
+
+/**
+ * The codec without its `out` check: validates `in` and transforms, for
+ * callers that validate `out` themselves (an enclosing schema that contains
+ * `codec.out`). Encoding transforms and then validates `in` backward.
+ */
+export function withoutOutCheck(codec: z.core.$ZodType): z.ZodCodec {
+	const { transform, reverseTransform } = codecTransforms(codec);
+	return z.codec((codec as z.ZodCodec).in as z.ZodTypeAny, z.unknown(), {
+		decode: transform,
+		encode: reverseTransform,
+	} as never) as unknown as z.ZodCodec;
+}
+
+/** The codec's transforms alone, for callers that validate both sides. */
+export function transformsOnly(codec: z.core.$ZodType): z.ZodCodec {
+	const { transform, reverseTransform } = codecTransforms(codec);
+	return z.codec(z.unknown(), z.unknown(), {
+		decode: transform,
+		encode: reverseTransform,
+	} as never) as unknown as z.ZodCodec;
 }

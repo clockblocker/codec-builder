@@ -11,6 +11,8 @@ import type {
 import {
 	type CodecInOutputOf,
 	type DefTypeOf,
+	type Direction,
+	finalizeIssues,
 	type IsOptionalOutput,
 	innerTypeOf,
 	isCodec,
@@ -19,7 +21,10 @@ import {
 	type OptionalOutputSchema,
 	objectCatchall,
 	pipeOut,
+	runSchema,
 	schemaType,
+	transformsOnly,
+	withoutOutCheck,
 } from "../../core/zod-internals.js";
 
 // -- Exports --
@@ -838,8 +843,18 @@ function compileNode(
 	label: string,
 ): { plan: Plan; out: z.ZodTypeAny | undefined } {
 	if (isCodec(node)) {
+		// With a schema, the object's `out` contains `node.out` and validates
+		// it, so the codec runs without its own `out` check; if the source
+		// field is the codec's `in` schema itself, the source schema has
+		// checked that too. Without a schema the whole codec runs.
+		const run =
+			schema === undefined
+				? node
+				: schema === node.in
+					? transformsOnly(node)
+					: withoutOutCheck(node);
 		return {
-			plan: { kind: "codec", codec: node },
+			plan: { kind: "codec", codec: run },
 			out: node.out as z.ZodTypeAny,
 		};
 	}
@@ -899,7 +914,6 @@ function asRecord(v: unknown): Record<string, unknown> {
 		: {};
 }
 
-type Direction = "decode" | "encode";
 type IssuePath = readonly PropertyKey[];
 
 function runPlanOrThrow(
@@ -910,7 +924,7 @@ function runPlanOrThrow(
 	const issues: z.core.$ZodRawIssue[] = [];
 	const result = runPlan(plan, value, direction, [], issues);
 	if (issues.length > 0) {
-		throw new z.ZodError(issues as z.core.$ZodIssue[]);
+		throw new z.ZodError(finalizeIssues(issues));
 	}
 	return result;
 }
@@ -926,17 +940,13 @@ function runPlan(
 		case "noOp":
 			return value;
 		case "codec": {
-			const result =
-				direction === "decode"
-					? z.safeDecode(plan.codec, value)
-					: z.safeEncode(plan.codec, value);
-			if (result.success) return result.data;
-			for (const issue of result.error.issues) {
-				// Already finalized (message set); Zod finalizes it again as is.
+			const result = runSchema(plan.codec, value, direction, false);
+			if (result.issues.length === 0) return result.value;
+			for (const issue of result.issues) {
 				issues.push({
 					...issue,
-					path: [...path, ...issue.path],
-				} as z.core.$ZodRawIssue);
+					path: [...path, ...(issue.path ?? [])],
+				});
 			}
 			return value;
 		}
