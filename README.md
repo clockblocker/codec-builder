@@ -235,8 +235,18 @@ codecBuilder.buildStrictFieldAdapterCodec(
 );
 ```
 
-A key that isn't in the schema is not a type error, but the builder throws
-`Codec shape key "..." is not in schema.` when it runs.
+A key that isn't in the schema is a type error too, at any depth:
+
+```ts
+codecBuilder.buildStrictFieldAdapterCodec(z.object({ id: z.number() }), {
+	id: c.noOp,
+	// type error: Property '"~shape key is not in the schema"' is missing ...
+	bogus: c.noOp,
+});
+```
+
+If the types are bypassed, the builder throws
+`Codec shape key "bogus" is not in schema.` when it runs.
 
 A codec fits a field when it fits in both directions: its input type accepts
 the field's type (decode), and whatever it can encode is accepted by the field
@@ -494,9 +504,9 @@ You can, and this library returns exactly that: a `z.codec(in, out,
   from the field codecs (and from the source schema for `noOp` fields), so a
   field added to the source shows up as a type error in the shape until you
   decide what happens to it.
-- The shape is checked field by field. A missing key or a codec whose input
-  doesn't accept the field's type is a compile error. A key that isn't in the
-  schema throws when the codec is built.
+- The shape is checked field by field. A missing key, a key that isn't in the
+  schema, or a codec that doesn't fit the field in either direction is a
+  compile error.
 - Field codecs are reusable values. The same `nullable.date.and.isoString`
   works in every object that has a nullable timestamp, and it already knows its
   own schemas on both sides.

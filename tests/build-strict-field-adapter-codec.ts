@@ -191,6 +191,7 @@ const strictNestedShapeWithUnknownKey = () =>
 		a: {
 			b: c.noOp,
 			c: c.noOp,
+			// @ts-expect-error packed is not a key of the nested schema
 			packed: c.noOp,
 		},
 	});

@@ -176,18 +176,25 @@ type StrictFieldAdapterNodeForValue<TValue> =
 			? ShapeOfStrictFieldAdapter<NonNullable<TValue>>
 			: InputCompatibleCodecForValue<TValue> | NoOpCodec;
 
-// -- Encode-direction checks --
+// -- Shape checks --
 //
 // The constraints on S check the decode direction: each codec accepts its
 // field's value. These checks, applied as `shape: S & NoInfer<Checks>`, add
-// the encode direction: what a codec can encode must be accepted by the
-// field. A passing node maps to `unknown`; a failing one to
-// `EncodeMismatch<X>`, which the codec lacks, so the error lands on that
-// field and names the values `X` the field would reject.
+// what a constraint can't see because it doesn't know S:
+// - the encode direction: what a codec can encode must be accepted by the
+//   field (`EncodeMismatch<X>` names the values `X` the field would reject);
+// - keys that are not in the schema (`UnknownShapeKey<K>`).
+// A passing node maps to `unknown`. A failing one maps to an interface the
+// node lacks, so the error lands on that key and says what is wrong.
 
 /** The value a codec's encode may produce that the field does not accept. */
 interface EncodeMismatch<TRejected> {
 	readonly "~codec can encode values the field does not accept": TRejected;
+}
+
+/** A shape key that the schema (or input type) does not have. */
+interface UnknownShapeKey<TKey> {
+	readonly "~shape key is not in the schema": TKey;
 }
 
 type NullishNotIn<T> =
@@ -216,7 +223,7 @@ type EncodeCheck<TFieldValue, TCodec> = [EncodeOutputOf<TCodec>] extends [
 type CodecShapeChecks<TShape extends z.ZodRawShape, S> = {
 	[K in keyof S]: K extends keyof TShape
 		? CodecNodeCheck<TShape[K], S[K]>
-		: unknown;
+		: UnknownShapeKey<K>;
 };
 
 type CodecNodeCheck<
@@ -242,7 +249,7 @@ type CodecNodeCheck<
 type AdapterShapeChecks<TInput, S> = {
 	[K in keyof S]: K extends keyof TInput
 		? AdapterNodeCheck<TInput[K], S[K]>
-		: unknown;
+		: UnknownShapeKey<K>;
 };
 
 type AdapterNodeCheck<TValue, TNode> = TNode extends AnySchemaCodec
