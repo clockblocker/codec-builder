@@ -1,14 +1,45 @@
+import { buildFixedFieldsCodec } from "./codec-builders/build-fixed-fields-codec";
+import { buildReshapeCodec } from "./codec-builders/build-reshape-codec";
+import {
+	arrayOfCodecShapes,
+	buildStrictFieldAdapter,
+	buildStrictFieldAdapterCodec,
+} from "./codec-builders/strict-field-adapter/build-strict-field-adapter-codec";
+import { fieldCodecs } from "./codec-builders/strict-field-adapter/field-codecs/field-codecs";
+import { buildFilteredNullishArrayCodec } from "./codec-builders/strict-field-adapter/helpers/builders/filtered-nullish-array";
+import { buildNullableUnionAndNullishString } from "./codec-builders/strict-field-adapter/helpers/builders/union-and-string";
+import { toArrayOf } from "./codec-builders/strict-field-adapter/helpers/casters/to-array-of";
+import { toNonNullishWithDefault } from "./codec-builders/strict-field-adapter/helpers/casters/to-non-nullish-with-default";
+import { toNullable } from "./codec-builders/strict-field-adapter/helpers/casters/to-nullable";
+import { toNullish } from "./codec-builders/strict-field-adapter/helpers/casters/to-nullish";
+import { toOptional } from "./codec-builders/strict-field-adapter/helpers/casters/to-optional";
+import { pipeCodecs } from "./core/pipe-codecs";
+
+export const codecBuilder = {
+	fieldCodec: { ...fieldCodecs, arrayOf: arrayOfCodecShapes },
+	helpers: {
+		toArrayOf,
+		toOptional,
+		toNullable,
+		toNullish,
+		toNonNullishWithDefault,
+		buildNullableUnionAndNullishString,
+		buildFilteredNullishArrayCodec,
+		pipeCodecs,
+	},
+	buildStrictFieldAdapter,
+	buildStrictFieldAdapterCodec,
+	buildFixedFieldsCodec,
+	buildReshapeCodec,
+} as const;
+
+/** Alias of `codecBuilder`, kept so `codecBuilder4` imports keep working. */
+export const codecBuilder4 = codecBuilder;
+
 export type {
-	Codec,
-	Codec as Codec3,
 	ShapeOfStrictFieldAdapter,
-	ShapeOfStrictFieldAdapter as ShapeOfStrictFieldAdapter3,
-	ShapeOfStrictFieldAdapterCodec,
-	ShapeOfStrictFieldAdapterCodec as ShapeOfStrictFieldAdapterCodec3,
-} from "./v3";
-export { codecBuilder3 } from "./v3";
-export type {
 	ShapeOfStrictFieldAdapter as ShapeOfStrictFieldAdapter4,
+	ShapeOfStrictFieldAdapterCodec,
 	ShapeOfStrictFieldAdapterCodec as ShapeOfStrictFieldAdapterCodec4,
-} from "./v4";
-export { codecBuilder4 } from "./v4";
+} from "./codec-builders/strict-field-adapter/build-strict-field-adapter-codec";
+export type { Codec, CodecPair } from "./core/types";

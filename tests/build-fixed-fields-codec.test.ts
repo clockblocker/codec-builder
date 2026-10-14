@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { z } from "zod/v4";
 
-import { codecBuilder4 } from "../../src/v4";
+import { codecBuilder4 } from "../src";
 
 const canonicalSchema = z.strictObject({
 	language: z.literal("de"),

@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import { z } from "zod/v3";
-import { buildReshapeCodec } from "../src/v3/codec-builders/build-reshape-codec";
+import { z } from "zod/v4";
+import { buildReshapeCodec } from "../src/codec-builders/build-reshape-codec";
 import type { Expect, ExpectFalse } from "./type-helpers";
 
 // -- Assertions --
@@ -80,7 +80,7 @@ buildReshapeCodec(questionnaireServerSchema, {
 });
 
 type AddQuestionnaireFieldOutput = z.infer<
-	typeof addQuestionnaireFieldCodec.outputSchema
+	typeof addQuestionnaireFieldCodec.out
 >;
 const addQuestionnaireFieldValue: AddQuestionnaireFieldOutput["questionnaire"] =
 	{
@@ -132,7 +132,7 @@ const addQuestionnaireFieldCodecFromVariableDropFields = buildReshapeCodec(
 	},
 );
 type AddQuestionnaireFieldOutputFromVariableDropFields = z.infer<
-	typeof addQuestionnaireFieldCodecFromVariableDropFields.outputSchema
+	typeof addQuestionnaireFieldCodecFromVariableDropFields.out
 >;
 type _addQuestionnaireVariableDropFieldsIdIsNotUnknown = ExpectFalse<
 	IsUnknown<AddQuestionnaireFieldOutputFromVariableDropFields["id"]>
@@ -147,10 +147,10 @@ type _addQuestionnaireVariableDropFieldsIdMatches = Expect<
 
 type QuestionnaireServerValue = z.infer<typeof questionnaireServerSchema>;
 type QuestionnaireReshapedValue = z.infer<
-	typeof addQuestionnaireFieldCodec.outputSchema
+	typeof addQuestionnaireFieldCodec.out
 >;
 type QuestionnaireReshapedValueFromVariableDropFields = z.infer<
-	typeof addQuestionnaireFieldCodecFromVariableDropFields.outputSchema
+	typeof addQuestionnaireFieldCodecFromVariableDropFields.out
 >;
 
 const questionnaireServerValue = {
@@ -174,27 +174,25 @@ const questionnaireReshapedValue = {
 
 describe("buildReshapeCodec", () => {
 	test("constructs the reshaped field and drops the configured source fields", () => {
-		const output = addQuestionnaireFieldCodec.fromInput(
+		expect(addQuestionnaireFieldCodec).toBeInstanceOf(z.ZodCodec);
+		const output = addQuestionnaireFieldCodec.decode(
 			questionnaireServerValue,
 		) satisfies QuestionnaireReshapedValue;
 
 		expect(output).toEqual(questionnaireReshapedValue);
-		expect(addQuestionnaireFieldCodec.outputSchema.parse(output)).toEqual(
-			output,
-		);
+		expect(addQuestionnaireFieldCodec.out.parse(output)).toEqual(output);
 	});
 
 	test("reconstructs dropped fields from the reshaped output", () => {
 		expect(
-			addQuestionnaireFieldCodec.fromOutput(questionnaireReshapedValue),
+			addQuestionnaireFieldCodec.encode(questionnaireReshapedValue),
 		).toEqual(questionnaireServerValue);
 	});
 
 	test("applies runtime dropping even when dropFields comes from a variable", () => {
-		const output =
-			addQuestionnaireFieldCodecFromVariableDropFields.fromInput(
-				questionnaireServerValue,
-			) satisfies QuestionnaireReshapedValueFromVariableDropFields;
+		const output = addQuestionnaireFieldCodecFromVariableDropFields.decode(
+			questionnaireServerValue,
+		) satisfies QuestionnaireReshapedValueFromVariableDropFields;
 
 		expect(output.id).toBe(questionnaireReshapedValue.id);
 		expect(output.dateOfConstruction).toBe(
@@ -207,7 +205,7 @@ describe("buildReshapeCodec", () => {
 		expect("comment_to_q1_" in output).toBeFalse();
 		expect("answers" in output).toBeFalse();
 		expect(
-			addQuestionnaireFieldCodecFromVariableDropFields.fromOutput(output),
+			addQuestionnaireFieldCodecFromVariableDropFields.encode(output),
 		).toEqual(questionnaireServerValue);
 	});
 });

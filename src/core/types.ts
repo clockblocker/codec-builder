@@ -14,3 +14,12 @@ export type NoOpCodec = {
 
 export type SchemaShapeOf<TSchema extends z.ZodObject> =
 	TSchema extends z.ZodObject<infer TShape, any> ? TShape : never;
+
+/**
+ * A Zod 4 codec that decodes `TInput` into `TOutput`. Every `fieldCodec` entry
+ * and any `z.codec(...)` with matching types is assignable to it.
+ */
+export type Codec<TOutput = unknown, TInput = unknown> = z.ZodCodec<
+	z.ZodType<unknown, TInput>,
+	z.ZodType<TOutput, unknown>
+>;

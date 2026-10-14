@@ -1,15 +1,14 @@
 import { describe, expect, test } from "bun:test";
-import { z } from "zod/v3";
-import { codecBuilder3 as codecBuilder } from "../src/v3";
+import { z } from "zod/v4";
+import { codecBuilder4 as codecBuilder } from "../src";
 import {
 	buildStrictFieldAdapter,
 	buildStrictFieldAdapterCodec,
 	type ShapeOfStrictFieldAdapter,
 	type ShapeOfStrictFieldAdapterCodec,
-} from "../src/v3/codec-builders/strict-field-adapter/build-strict-field-adapter-codec";
-import { yesNoAndBoolean } from "../src/v3/codec-builders/strict-field-adapter/field-codecs/atoms/core-non-nullable-codecs/yes-no-and-boolean";
-import { pipeCodecs } from "../src/v3/core/pipe-codecs";
-import type { Codec, SchemaCodec } from "../src/v3/core/types";
+} from "../src/codec-builders/strict-field-adapter/build-strict-field-adapter-codec";
+import { yesNoAndBoolean } from "../src/codec-builders/strict-field-adapter/field-codecs/atoms/core-non-nullable-codecs/yes-no-and-boolean";
+import { pipeCodecs } from "../src/core/pipe-codecs";
 import type { Expect, ExpectFalse, IsAny } from "./type-helpers";
 
 // -- Assertions --
@@ -18,7 +17,7 @@ const c = codecBuilder.fieldCodec;
 const yesNoBool = yesNoAndBoolean;
 
 type Properties<T> = {
-	[K in keyof T]-?: z.ZodType<T[K], z.ZodTypeDef, T[K]>;
+	[K in keyof T]-?: z.ZodType<T[K], T[K]>;
 };
 
 interface Counterparty {
@@ -38,7 +37,7 @@ function ClientSchemaWidened(): z.ZodObject<Properties<Client>> {
 				id: z.number().nullable(),
 			}),
 		),
-	}) as z.ZodObject<Properties<Client>>;
+	}) as unknown as z.ZodObject<Properties<Client>>;
 }
 
 const counterpartyCodec = {
@@ -68,12 +67,21 @@ const widenedScalarCannotUseArrayShape = () =>
 		counterparties: c.arrayOf(counterpartyCodec),
 	});
 
-type WidenedOutput = z.infer<typeof widened.outputSchema>;
+type WidenedOutput = z.infer<typeof widened.out>;
 const widenedArrayCheck: WidenedOutput["counterparties"] = [{ id: 1 }];
 type CounterpartyId = WidenedOutput["counterparties"][number]["id"];
-type WidenedAdapterOutput = ReturnType<typeof widenedAdapter.fromInput>;
+type WidenedAdapterOutput = ReturnType<typeof widenedAdapter.decode>;
 type AdapterCounterpartyId =
 	WidenedAdapterOutput["counterparties"][number]["id"];
+
+type _wideSchemaHasWideTypeName = Expect<
+	z.core.$ZodTypeDef["type"] extends z.ZodType<
+		Counterparty[],
+		Counterparty[]
+	>["_zod"]["def"]["type"]
+		? true
+		: false
+>;
 
 type _counterpartyIdIsNotAny = ExpectFalse<IsAny<CounterpartyId>>;
 type _counterpartyIdMatches = Expect<
@@ -109,12 +117,14 @@ buildStrictFieldAdapter<{ id: number }>()({
 	id: c.arrayOf(counterpartyCodec),
 });
 
-const numberOrStringInputCodec = {
-	fromInput: (v: number | string) => String(v),
-	fromOutput: (v: string) => Number(v),
-	inputSchema: z.union([z.number(), z.string()]),
-	outputSchema: z.string(),
-} satisfies SchemaCodec<z.ZodUnion<[z.ZodNumber, z.ZodString]>, z.ZodString>;
+const numberOrStringInputCodec = z.codec(
+	z.union([z.number(), z.string()]),
+	z.string(),
+	{
+		decode: (value) => String(value),
+		encode: (value) => Number(value),
+	},
+) satisfies z.ZodCodec<z.ZodUnion<[z.ZodNumber, z.ZodString]>, z.ZodString>;
 
 buildStrictFieldAdapterCodec(strict, {
 	id: numberOrStringInputCodec,
@@ -128,30 +138,24 @@ const strictArray = z.object({
 	dates: z.array(z.number()),
 });
 
-const numberToDateCodec = {
-	fromInput: (v: number) => new Date(v),
-	fromOutput: (v: Date) => v.getTime(),
-	inputSchema: z.number(),
-	outputSchema: z.date(),
-} satisfies SchemaCodec<z.ZodNumber, z.ZodDate>;
+const numberToDateCodec = z.codec(z.number(), z.date(), {
+	decode: (value) => new Date(value),
+	encode: (value) => value.getTime(),
+}) satisfies z.ZodCodec<z.ZodNumber, z.ZodDate>;
 
-const dateToIsoCodec = {
-	fromInput: (v: Date) => v.toISOString(),
-	fromOutput: (v: string) => new Date(v),
-	inputSchema: z.date(),
-	outputSchema: z.string(),
-} satisfies SchemaCodec<z.ZodDate, z.ZodString>;
+const dateToIsoCodec = z.codec(z.date(), z.string(), {
+	decode: (value) => value.toISOString(),
+	encode: (value) => new Date(value),
+}) satisfies z.ZodCodec<z.ZodDate, z.ZodString>;
 
-const publicCodec = {
-	fromInput: (v: number) => String(v),
-	fromOutput: (v: string) => Number(v),
-	inputSchema: z.number(),
-	outputSchema: z.string(),
-} satisfies Codec<string, number>;
+const publicCodec = z.codec(z.number(), z.string(), {
+	decode: (value) => String(value),
+	encode: (value) => Number(value),
+}) satisfies z.ZodCodec<z.ZodNumber, z.ZodString>;
 
 const pipedDateToIsoCodec = pipeCodecs(numberToDateCodec, dateToIsoCodec);
-type PipedDateToIsoInput = z.infer<typeof pipedDateToIsoCodec.inputSchema>;
-type PipedDateToIsoOutput = z.infer<typeof pipedDateToIsoCodec.outputSchema>;
+type PipedDateToIsoInput = z.infer<typeof pipedDateToIsoCodec.in>;
+type PipedDateToIsoOutput = z.infer<typeof pipedDateToIsoCodec.out>;
 const pipedDateToIsoInput: PipedDateToIsoInput = 1;
 const pipedDateToIsoOutput: PipedDateToIsoOutput = "2020-01-01T00:00:00.000Z";
 
@@ -159,7 +163,7 @@ const strictArrayMapped = buildStrictFieldAdapterCodec(strictArray, {
 	dates: c.arrayOf(numberToDateCodec),
 });
 
-type StrictArrayMappedOutput = z.infer<typeof strictArrayMapped.outputSchema>;
+type StrictArrayMappedOutput = z.infer<typeof strictArrayMapped.out>;
 const strictArrayMappedCheck: StrictArrayMappedOutput["dates"] = [new Date()];
 
 buildStrictFieldAdapterCodec(strictArray, {
@@ -232,32 +236,42 @@ describe("buildStrictFieldAdapterCodec", () => {
 			counterparties: [{ id: 2 }, { id: null }],
 		} satisfies Client;
 
-		expect(widened.fromInput(input)).toEqual(input);
-		expect(widened.fromOutput(input)).toEqual(input);
-		expect(widened.outputSchema.parse(input)).toEqual(input);
-		expect(widenedAdapter.fromInput(input)).toEqual(input);
-		expect(widenedAdapter.fromOutput(input)).toEqual(input);
+		expect(widened).toBeInstanceOf(z.ZodCodec);
+		expect(widened.decode(input)).toEqual(input);
+		expect(widened.encode(input)).toEqual(input);
+		expect(widened.out.parse(input)).toEqual(input);
+		expect(widenedAdapter.decode(input)).toEqual(input);
+		expect(widenedAdapter.encode(input)).toEqual(input);
+	});
+
+	test("validates the derived schemas in both directions", () => {
+		expect(
+			strictMappedWithWiderInputCodec.safeDecode({ id: null } as never)
+				.success,
+		).toBeFalse();
+		expect(
+			strictMappedWithWiderInputCodec.safeEncode({ id: 42 } as never)
+				.success,
+		).toBeFalse();
 	});
 
 	test("maps array items and wider-input codecs at runtime", () => {
 		const timestamp = Date.UTC(2020, 0, 1);
-		const output = strictArrayMapped.fromInput({ dates: [timestamp] });
+		const output = strictArrayMapped.decode({ dates: [timestamp] });
 
 		expect(output.dates).toHaveLength(1);
 		expect(output.dates[0]).toBeInstanceOf(Date);
 		expect(output.dates[0]?.toISOString()).toBe("2020-01-01T00:00:00.000Z");
 		expect(
-			strictArrayMapped.fromOutput({ dates: [new Date(timestamp)] }),
+			strictArrayMapped.encode({ dates: [new Date(timestamp)] }),
 		).toEqual({ dates: [timestamp] });
-		expect(pipedDateToIsoCodec.fromInput(timestamp)).toBe(
+		expect(pipedDateToIsoCodec.decode(timestamp)).toBe(
 			"2020-01-01T00:00:00.000Z",
 		);
-		expect(strictMappedWithWiderInputCodec.fromInput({ id: 42 })).toEqual({
+		expect(strictMappedWithWiderInputCodec.decode({ id: 42 })).toEqual({
 			id: "42",
 		});
-		expect(
-			strictMappedWithWiderInputCodec.fromOutput({ id: "42" }),
-		).toEqual({
+		expect(strictMappedWithWiderInputCodec.encode({ id: "42" })).toEqual({
 			id: 42,
 		});
 	});
@@ -279,17 +293,17 @@ describe("buildStrictFieldAdapterCodec", () => {
 
 	test("recognizes zod-like array and object schemas structurally", () => {
 		const crossBundleItemSchema = {
-			_def: { typeName: z.ZodFirstPartyTypeKind.ZodObject },
+			_def: { type: "object" },
 			shape: {
 				id: z.number(),
 			},
 			safeParse: () => {
 				throw new Error("not used in this test");
 			},
-		} as unknown as z.AnyZodObject;
+		} as unknown as z.ZodObject;
 
 		const crossBundleArraySchema = {
-			_def: { typeName: z.ZodFirstPartyTypeKind.ZodArray },
+			_def: { type: "array" },
 			element: crossBundleItemSchema,
 			safeParse: () => {
 				throw new Error("not used in this test");
@@ -314,9 +328,7 @@ describe("buildStrictFieldAdapterCodec", () => {
 			}),
 		});
 
-		expect(codec.outputSchema.shape.counterparties).toBeInstanceOf(
-			z.ZodArray,
-		);
+		expect(codec.out.shape.counterparties).toBeInstanceOf(z.ZodArray);
 	});
 });
 

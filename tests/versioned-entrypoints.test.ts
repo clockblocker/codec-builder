@@ -1,36 +1,70 @@
 import { describe, expect, test } from "bun:test";
 import { resolve } from "node:path";
-import { z as z3 } from "zod/v3";
-import { z as z4 } from "zod/v4";
-import { codecBuilder3 } from "../src/v3";
-import { codecBuilder4 } from "../src/v4";
+import { z } from "zod/v4";
+import * as root from "../src";
+import * as v4 from "../src/v4";
+import type { Expect } from "./type-helpers";
 
-describe("versioned codec builders", () => {
-	test("keeps the existing Zod 3 interface available explicitly", () => {
-		const codec =
-			codecBuilder3.fieldCodec.nonNullish.numericString.and.number;
+type Equal<A, B> =
+	(<T>() => T extends A ? 1 : 2) extends <T>() => T extends B ? 1 : 2
+		? true
+		: false;
 
-		expect(codec.inputSchema).toBeInstanceOf(z3.ZodNumber);
-		expect(codec.fromInput(42)).toBe("42");
-		expect(codec.fromOutput("42.5")).toBe(42.5);
+// The unsuffixed root type names are the Zod 4 types, and the `4`-suffixed
+// names and the `/v4` subpath are aliases of them.
+type _rootTypes = [
+	Expect<
+		Equal<
+			root.ShapeOfStrictFieldAdapter4<{ a: 1 }>,
+			root.ShapeOfStrictFieldAdapter<{ a: 1 }>
+		>
+	>,
+	Expect<
+		Equal<
+			root.ShapeOfStrictFieldAdapterCodec4<{ a: 1 }>,
+			root.ShapeOfStrictFieldAdapterCodec<{ a: 1 }>
+		>
+	>,
+	Expect<
+		Equal<
+			v4.ShapeOfStrictFieldAdapter<{ a: 1 }>,
+			root.ShapeOfStrictFieldAdapter<{ a: 1 }>
+		>
+	>,
+	Expect<Equal<v4.Codec<string, number>, root.Codec<string, number>>>,
+];
+
+const _fieldCodecIsCodec: root.Codec<string, number> =
+	root.codecBuilder.fieldCodec.nonNullish.numericString.and.number;
+
+describe("entrypoints", () => {
+	test("root and /v4 export the same builder", () => {
+		expect(root.codecBuilder4).toBe(root.codecBuilder);
+		expect(v4.codecBuilder).toBe(root.codecBuilder);
+		expect(v4.codecBuilder4).toBe(root.codecBuilder);
+		expect(Object.keys(root).sort()).toEqual([
+			"codecBuilder",
+			"codecBuilder4",
+		]);
 	});
 
 	test("builds and validates codecs with Zod 4 schemas", () => {
 		const codec =
-			codecBuilder4.fieldCodec.nonNullish.numericString.and.number;
+			root.codecBuilder.fieldCodec.nonNullish.numericString.and.number;
 
-		expect(codec.in).toBeInstanceOf(z4.ZodNumber);
+		expect(_fieldCodecIsCodec).toBe(codec as typeof _fieldCodecIsCodec);
+		expect(codec.in).toBeInstanceOf(z.ZodNumber);
 		expect(codec.decode(42)).toBe("42");
 		expect(codec.encode("42.5")).toBe(42.5);
 
-		const adapter = codecBuilder4.buildStrictFieldAdapterCodec(
-			z4.object({
-				id: z4.number(),
-				label: z4.string(),
+		const adapter = root.codecBuilder.buildStrictFieldAdapterCodec(
+			z.object({
+				id: z.number(),
+				label: z.string(),
 			}),
 			{
 				id: codec,
-				label: codecBuilder4.fieldCodec.noOp,
+				label: root.codecBuilder.fieldCodec.noOp,
 			},
 		);
 
@@ -44,62 +78,28 @@ describe("versioned codec builders", () => {
 		});
 	});
 
-	test("bundles each versioned entrypoint without the other Zod runtime", async () => {
+	test("bundles the root and /v4 entrypoints against zod/v4 only", async () => {
 		const packageRoot = resolve(import.meta.dir, "..");
-		const [v3Build, v4Build, rootV3Build, rootV4Build] = await Promise.all([
-			Bun.build({
-				entrypoints: [resolve(packageRoot, "src/v3/index.ts")],
-				format: "esm",
-				packages: "external",
-				target: "node",
-			}),
-			Bun.build({
-				entrypoints: [resolve(packageRoot, "src/v4/index.ts")],
-				format: "esm",
-				packages: "external",
-				target: "node",
-			}),
-			Bun.build({
-				entrypoints: [
-					resolve(
-						packageRoot,
-						"tests/fixtures/import-v3-from-root.ts",
-					),
-				],
-				format: "esm",
-				packages: "external",
-				target: "node",
-			}),
-			Bun.build({
-				entrypoints: [
-					resolve(
-						packageRoot,
-						"tests/fixtures/import-v4-from-root.ts",
-					),
-				],
-				format: "esm",
-				packages: "external",
-				target: "node",
-			}),
-		]);
+		const builds = await Promise.all(
+			[
+				"src/index.ts",
+				"src/v4/index.ts",
+				"tests/fixtures/import-v4-from-root.ts",
+			].map((entrypoint) =>
+				Bun.build({
+					entrypoints: [resolve(packageRoot, entrypoint)],
+					format: "esm",
+					packages: "external",
+					target: "node",
+				}),
+			),
+		);
 
-		expect(v3Build.success).toBeTrue();
-		expect(v4Build.success).toBeTrue();
-		expect(rootV3Build.success).toBeTrue();
-		expect(rootV4Build.success).toBeTrue();
-
-		const v3Bundle = await v3Build.outputs[0]?.text();
-		const v4Bundle = await v4Build.outputs[0]?.text();
-		const rootV3Bundle = await rootV3Build.outputs[0]?.text();
-		const rootV4Bundle = await rootV4Build.outputs[0]?.text();
-
-		for (const bundle of [v3Bundle, rootV3Bundle]) {
-			expect(bundle ?? "").toContain("zod/v3");
-			expect(bundle ?? "").not.toContain("zod/v4");
-		}
-		for (const bundle of [v4Bundle, rootV4Bundle]) {
-			expect(bundle ?? "").toContain("zod/v4");
-			expect(bundle ?? "").not.toContain("zod/v3");
+		for (const build of builds) {
+			expect(build.success).toBeTrue();
+			const bundle = (await build.outputs[0]?.text()) ?? "";
+			expect(bundle).toContain("zod/v4");
+			expect(bundle).not.toContain("zod/v3");
 		}
 	});
 });

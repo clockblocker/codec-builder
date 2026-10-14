@@ -1,6 +1,6 @@
 {
 	"name": "codec-builder-library",
-	"version": "0.2.0",
+	"version": "0.4.0",
 	"description": "Composable Zod codec builders for reshaping and adapting data structures.",
 	"type": "module",
 	"sideEffects": false,
@@ -10,10 +10,6 @@
 		".": {
 			"types": "./dist/index.d.ts",
 			"import": "./dist/index.js"
-		},
-		"./v3": {
-			"types": "./dist/v3/index.d.ts",
-			"import": "./dist/v3/index.js"
 		},
 		"./v4": {
 			"types": "./dist/v4/index.d.ts",
@@ -36,7 +32,7 @@
 		"typecheck": "tsc --noEmit"
 	},
 	"peerDependencies": {
-		"zod": "^3.25.0 || ^4.4.0"
+		"zod": "^4.4.0"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "2.5.13",
