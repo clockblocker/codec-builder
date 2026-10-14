@@ -2,6 +2,7 @@ import { noOpCodec } from "../build-strict-field-adapter-codec";
 import { toNullish } from "../helpers/casters/to-nullish";
 import { toOptional } from "../helpers/casters/to-optional";
 import {
+	dateAndIsoString,
 	dateAndNullishIsoString,
 	isoStringAndDate,
 	isoStringAndNullishDate,
@@ -81,19 +82,11 @@ export const fieldCodecs = {
 				numericString: nullableIntAndNumericString,
 			},
 		},
-		array: {
-			nonEmptyString: {
-				and: {
-					nullishArrayOfNullishString:
-						arrayOfNonEmptyStringsAndNullishArrayOfNullishStrings,
-				},
-			},
-		},
 	},
 	optional: {
 		date: {
 			and: {
-				isoString: toOptional(nullableDateAndNullishIsoString),
+				isoString: toOptional(dateAndIsoString),
 			},
 		},
 		isoString: {
@@ -131,7 +124,7 @@ export const fieldCodecs = {
 	nullish: {
 		date: {
 			and: {
-				isoString: toNullish(nullableDateAndNullishIsoString),
+				isoString: toNullish(dateAndIsoString),
 			},
 		},
 		isoString: {
@@ -169,7 +162,7 @@ export const fieldCodecs = {
 	nonNullish: {
 		date: {
 			and: {
-				isoString: dateAndNullishIsoString,
+				isoString: dateAndIsoString,
 				nullish: {
 					isoString: dateAndNullishIsoString,
 				},

@@ -24,6 +24,8 @@ export const isoStringAndDate = z.codec(dateSchema, isoStringSchema, {
 	encode: (value) => new Date(value),
 });
 
+export const dateAndIsoString = z.invertCodec(isoStringAndDate);
+
 export const dateAndNullishIsoString = toNonNullishWithDefault(
 	nullableDateAndNullishIsoString,
 	() => new Date(),
