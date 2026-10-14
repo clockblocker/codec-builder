@@ -546,6 +546,12 @@ You can, and this library returns exactly that: a `z.codec(in, out,
   when the codec's `out` schema is optional (`optional.*`, `nullish.*`); a
   codec still runs on a missing value, so `nullable.*` turns a missing key
   into `null` and `nonNullish.X.and.nullish.Y` into its default.
+- Field codecs must be synchronous. A shape with an async field codec (an
+  async transform or refinement) throws Zod's `$ZodAsyncError`, even from
+  `decodeAsync`/`encodeAsync`. The same goes for `helpers.pipeCodecs`.
+- A field codec's `out` schema is checked twice per call: once by the field
+  codec itself and once by the object's `out`. This only shows if a
+  refinement there has side effects.
 - Numeric strings must be decimal numbers with an optional exponent (`"12"`,
   `"-3.5"`, `".5"`, `"1e-7"`) that parse to a finite number. Whitespace, hex,
   binary, octal, `"Infinity"` and `"NaN"` are rejected. The exponent form is
