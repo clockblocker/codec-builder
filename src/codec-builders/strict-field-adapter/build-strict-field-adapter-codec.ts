@@ -8,6 +8,19 @@ import type {
 	SchemaShapeOf as SharedSchemaShapeOf,
 	Simplify,
 } from "../../core/types.js";
+import {
+	type CodecInOutputOf,
+	type DefTypeOf,
+	type IsOptionalOutput,
+	innerTypeOf,
+	isCodec,
+	isZodSchema,
+	type ObjectConfigOf,
+	type OptionalOutputSchema,
+	objectCatchall,
+	pipeOut,
+	schemaType,
+} from "../../core/zod-internals.js";
 
 // -- Exports --
 
@@ -204,14 +217,10 @@ type NullishNotIn<T> =
 // undefined to undefined, so a nullish value the `out` side cannot hold is
 // assumed not to come back out (`nullable.*` codecs take
 // `string | null | undefined` but encode only `string | null`).
-type EncodeOutputOf<TCodec> = TCodec extends {
-	_zod: {
-		output: infer TOut;
-		def: { in: { _zod: { output: infer TIn } } };
-	};
-}
-	? Exclude<TIn, NullishNotIn<TOut>>
-	: never;
+type EncodeOutputOf<TCodec> = Exclude<
+	CodecInOutputOf<TCodec>,
+	NullishNotIn<z.output<TCodec>>
+>;
 
 type EncodeCheck<TFieldValue, TCodec> = [EncodeOutputOf<TCodec>] extends [
 	TFieldValue,
@@ -310,7 +319,6 @@ type OutputOfStrictFieldAdapterNode<TInputValue, TShapeNode> =
 // Key optionality follows the derived schema's rules: noOp, nested and array
 // fields keep the source key's `?`, and a codec field is optional exactly
 // when its `out` schema is optional (as `z.object` would infer it).
-type OptionalOutputCodec = { _zod: { optout: "optional" } };
 
 type OutputOfStrictFieldAdapter<TInput extends object, S> = Simplify<
 	{
@@ -320,12 +328,12 @@ type OutputOfStrictFieldAdapter<TInput extends object, S> = Simplify<
 				: K
 			: never]: OutputOfStrictFieldAdapterNode<TInput[K], S[K & keyof S]>;
 	} & {
-		[K in KnownKeys<S> as S[K] extends OptionalOutputCodec
+		[K in KnownKeys<S> as S[K] extends OptionalOutputSchema
 			? K
 			: never]?: z.output<S[K]>;
 	} & {
 		[K in KnownKeys<S> as S[K] extends AnySchemaCodec
-			? S[K] extends OptionalOutputCodec
+			? S[K] extends OptionalOutputSchema
 				? never
 				: K
 			: never]: z.output<S[K]>;
@@ -372,20 +380,13 @@ type UnwrapForOutput<TSchema extends AnySchema> = TSchema extends
 // that transforms (a pipe, codec, preprocess or .transform()) can't reuse its
 // own schema there; it gets one typed by its output instead.
 type NoOpOutSchema<TField extends AnySchema> =
-	UnwrapForOutput<TField>["_zod"]["def"]["type"] extends "pipe" | "transform"
-		? TField["_zod"]["optout"] extends "optional"
+	DefTypeOf<UnwrapForOutput<TField>> extends "pipe" | "transform"
+		? IsOptionalOutput<TField> extends true
 			? z.ZodOptional<
 					ZodTypeForValue<Exclude<z.output<TField>, undefined>>
 				>
 			: ZodTypeForValue<z.output<TField>>
 		: TField;
-
-/** The unknown-key policy (`$strip`, `$strict`, `$loose`, `$catchall<T>`). */
-type ObjectConfigOf<TSchema> = TSchema extends {
-	_zod: { config: infer TConfig extends z.core.$ZodObjectConfig };
-}
-	? TConfig
-	: z.core.$strip;
 
 type ObjectSchemaOf<TSchema extends AnySchema> =
 	UnwrapOptionalNullableSchema<TSchema> extends z.core.$ZodObject
@@ -413,9 +414,7 @@ type ArrayItemSchemaShape<TSchema extends AnySchema> =
 		: never;
 
 type IsWideZodType<TSchema extends AnySchema> =
-	z.core.$ZodTypeDef["type"] extends TSchema["_zod"]["def"]["type"]
-		? true
-		: false;
+	z.core.$ZodTypeDef["type"] extends DefTypeOf<TSchema> ? true : false;
 
 type FieldOutput<TSchema extends AnySchema> = NonNullable<z.output<TSchema>>;
 
@@ -663,19 +662,6 @@ type OutputZodShapeForSchemaShape<TShape extends z.ZodRawShape, S> = {
 		: never;
 } & {};
 
-// Every Zod 4 schema has decode/encode methods and every pipe has `in` and
-// `out`, so only the def tells a codec apart: z.codec (and z.stringbool,
-// z.invertCodec) put both transforms on a pipe def.
-function isCodec(v: unknown): v is z.ZodCodec {
-	if (typeof v !== "object" || v === null || !("_zod" in v)) return false;
-	const def = (v as { _zod?: { def?: Record<string, unknown> } })._zod?.def;
-	return (
-		def?.type === "pipe" &&
-		typeof def.transform === "function" &&
-		typeof def.reverseTransform === "function"
-	);
-}
-
 function isNoOpCodec(v: unknown): v is NoOpCodec {
 	return (
 		typeof v === "object" &&
@@ -695,25 +681,10 @@ function isArrayCodecShape(v: unknown): v is ArrayCodecShape {
 	);
 }
 
-function isZodSchema(v: unknown): v is z.ZodTypeAny {
-	return (
-		typeof v === "object" &&
-		v !== null &&
-		"_def" in v &&
-		"safeParse" in v &&
-		typeof (v as { safeParse?: unknown }).safeParse === "function"
-	);
-}
-
 type ZodSchemaType = "array" | "nullable" | "object" | "optional";
 
-function getSchemaType(schema: z.ZodTypeAny): string | undefined {
-	const type = (schema as { _def?: { type?: string } })._def?.type;
-	return typeof type === "string" ? type : undefined;
-}
-
 function hasSchemaType(schema: z.ZodTypeAny, type: ZodSchemaType): boolean {
-	return getSchemaType(schema) === type;
+	return schemaType(schema) === type;
 }
 
 function isZodObjectSchema(schema: z.ZodTypeAny): schema is z.ZodObject {
@@ -747,13 +718,9 @@ function getSchemaNode(schemaShape: z.ZodRawShape, key: string): z.ZodTypeAny {
  * is returned as is.
  */
 function outputSide(schema: z.ZodTypeAny): z.ZodTypeAny {
-	const type = getSchemaType(schema);
-	const def = (
-		schema as unknown as { _zod?: { def?: Record<string, unknown> } }
-	)._zod?.def;
-	if (type === "pipe" && def?.out !== undefined) {
-		return outputSide(def.out as z.ZodTypeAny);
-	}
+	const type = schemaType(schema);
+	const out = type === "pipe" ? pipeOut(schema) : undefined;
+	if (out !== undefined) return outputSide(out);
 	if (type === "transform") {
 		return z.custom();
 	}
@@ -765,11 +732,11 @@ function outputSide(schema: z.ZodTypeAny): z.ZodTypeAny {
 		if (side === inner) return schema;
 		return type === "optional" ? side.optional() : side.nullable();
 	}
-	if (
-		(type === "default" || type === "prefault" || type === "catch") &&
-		def?.innerType !== undefined
-	) {
-		const inner = def.innerType as z.ZodTypeAny;
+	const inner =
+		type === "default" || type === "prefault" || type === "catch"
+			? innerTypeOf(schema)
+			: undefined;
+	if (inner !== undefined) {
 		const side = outputSide(inner);
 		return side === inner ? schema : side;
 	}
@@ -786,7 +753,7 @@ function unwrapNullish(schema: z.ZodTypeAny): {
 	const wrappers: NullishWrapper[] = [];
 	let inner: z.ZodTypeAny = schema;
 	for (;;) {
-		const type = getSchemaType(inner);
+		const type = schemaType(inner);
 		if (type !== "optional" && type !== "nullable") break;
 		const unwrap = (inner as { unwrap?: () => z.ZodTypeAny }).unwrap;
 		if (typeof unwrap !== "function") {
@@ -830,10 +797,7 @@ interface ObjectPlan {
 
 const noOpPlan: Plan = { kind: "noOp" };
 
-type SourceObjectSchema = {
-	shape: z.ZodRawShape;
-	_zod?: { def?: { catchall?: z.ZodTypeAny } };
-};
+type SourceObjectSchema = { shape: z.ZodRawShape };
 
 function compileObject(
 	shape: RuntimeCodecShape,
@@ -856,7 +820,7 @@ function compileObject(
 
 	// The derived object keeps the source's unknown-key policy: strict and
 	// loose are catchalls (never / unknown) in Zod 4, strip has none.
-	const catchall = schema?._zod?.def?.catchall;
+	const catchall = objectCatchall(schema);
 	const plan: ObjectPlan = {
 		kind: "object",
 		fields,

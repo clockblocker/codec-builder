@@ -1,6 +1,7 @@
 import { z } from "zod/v4";
 
 import type { CodecPair } from "./types.js";
+import { codecTransforms } from "./zod-internals.js";
 
 export function pipeCodecs<
 	TInputSchema extends z.ZodTypeAny,
@@ -39,8 +40,8 @@ type Transform = (value: unknown, payload: Payload) => unknown;
 // checked twice. Failures are pushed onto the payload instead of thrown, so
 // `safeDecode`/`safeEncode` report them.
 function pipeZodCodecs(left: z.ZodCodec, right: z.ZodCodec) {
-	const leftDef = left._zod.def;
-	const rightDef = right._zod.def;
+	const leftDef = codecTransforms(left);
+	const rightDef = codecTransforms(right);
 	const middle: z.core.$ZodType[] =
 		left.out === right.in ? [left.out] : [left.out, right.in];
 	const middleBackward = [...middle].reverse();
