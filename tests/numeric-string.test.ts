@@ -70,8 +70,34 @@ describe("numeric string parsing", () => {
 		}
 	});
 
+	test("the int codecs only accept safe integers", () => {
+		for (const unsafe of [Number.MAX_SAFE_INTEGER + 1, 1e21, -1e21]) {
+			// int side (z.number().int() is limited to the safe range)
+			expect(stringFromInt.safeDecode(unsafe).success).toBeFalse();
+			expect(intFromString.safeEncode(unsafe).success).toBeFalse();
+			// numeric-string side
+			expect(
+				intFromString.safeDecode(String(unsafe)).success,
+			).toBeFalse();
+			expect(
+				stringFromInt.safeEncode(String(unsafe)).success,
+			).toBeFalse();
+		}
+		expect(
+			intFromString.safeDecode("9007199254740992").success,
+		).toBeFalse();
+		expect(intFromString.safeDecode("1e21").success).toBeFalse();
+	});
+
 	test("decode(encode(n)) === n for the int codec", () => {
-		for (const n of [0, -0, 7, -42, Number.MAX_SAFE_INTEGER]) {
+		for (const n of [
+			0,
+			-0,
+			7,
+			-42,
+			Number.MAX_SAFE_INTEGER,
+			-Number.MAX_SAFE_INTEGER,
+		]) {
 			expect(
 				intFromString.decode(intFromString.encode(n)) === n,
 			).toBeTrue();

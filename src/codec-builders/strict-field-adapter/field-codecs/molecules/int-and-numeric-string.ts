@@ -3,7 +3,9 @@ import { toNonNullishWithDefault } from "../../helpers/casters/to-non-nullish-wi
 import { toNullable } from "../../helpers/casters/to-nullable";
 import { integerNumericStringSchema } from "../atoms/core-non-nullable-codecs/numeric-string-and-number";
 
-// Non-integer numeric strings ("1.9") are rejected, not floored.
+// Non-integer numeric strings ("1.9") are rejected, not floored. Both sides
+// are limited to safe integers: z.number().int() enforces the safe range in
+// Zod 4, and the string side checks Number.isSafeInteger.
 export const numericStringAndInt = z.codec(
 	z.number().int(),
 	integerNumericStringSchema,
