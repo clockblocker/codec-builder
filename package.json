@@ -2,6 +2,7 @@
 	"name": "codec-builder-library",
 	"version": "0.3.0",
 	"description": "Composable Zod codec builders for reshaping and adapting data structures.",
+	"license": "MIT",
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/clockblocker/codec-builder.git"

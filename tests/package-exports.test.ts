@@ -24,11 +24,11 @@ describe("package.json", () => {
 		]);
 	});
 
-	test("declares zod 3 as the peer dependency and a repository", () => {
+	test("declares zod 3 as the peer dependency, a repository and MIT", () => {
 		expect(packageJson.peerDependencies.zod).toBe("^3.25.0");
 		expect(packageJson.repository.url).toContain(
 			"github.com/clockblocker/codec-builder",
 		);
-		expect("license" in packageJson).toBeFalse();
+		expect(packageJson.license).toBe("MIT");
 	});
 });
