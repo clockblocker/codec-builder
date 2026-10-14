@@ -1,0 +1,29 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    name: zod ${{ matrix.zod }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # The peer range starts at 4.4.0 (z.invertCodec). 4.5.4 is the last
+        # 4.5, 4.6.0 the first 4.6, and ^4 resolves to the latest 4.x.
+        zod: ["4.4.0", "4.5.4", "4.6.0", "^4"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - name: Install zod ${{ matrix.zod }}
+        run: |
+          bun add --dev --exact "zod@${{ matrix.zod }}"
+          node -p "'zod ' + require('./node_modules/zod/package.json').version"
+      - run: bun test
+      - run: bun run typecheck
+      - run: bun run lint
+      - run: bun run build
