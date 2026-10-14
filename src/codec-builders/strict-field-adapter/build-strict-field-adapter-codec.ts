@@ -9,7 +9,7 @@ import {
 	then,
 } from "../../core/maybe-async.js";
 import type {
-	CodecPair,
+	AsyncCodecPair,
 	NoOpCodec,
 	SchemaShapeOf as SharedSchemaShapeOf,
 	Simplify,
@@ -109,14 +109,14 @@ export function buildStrictFieldAdapter<InputType extends object>(): <
 	const S extends ShapeOfStrictFieldAdapter<InputType>,
 >(
 	shape: S & NoInfer<AdapterShapeChecks<InputType, S>>,
-) => CodecPair<InputType, OutputOfStrictFieldAdapter<InputType, S>>;
+) => AsyncCodecPair<InputType, OutputOfStrictFieldAdapter<InputType, S>>;
 
 export function buildStrictFieldAdapter<
 	InputType extends object,
 	const S extends ShapeOfStrictFieldAdapter<InputType>,
 >(
 	shape: S & NoInfer<AdapterShapeChecks<InputType, S>>,
-): CodecPair<InputType, OutputOfStrictFieldAdapter<InputType, S>>;
+): AsyncCodecPair<InputType, OutputOfStrictFieldAdapter<InputType, S>>;
 
 export function buildStrictFieldAdapter<
 	InputType extends object,
@@ -127,19 +127,16 @@ export function buildStrictFieldAdapter<
 			buildStrictFieldAdapter<InputType, S>(deferredShape as never);
 	}
 
-	type OutputType = OutputOfStrictFieldAdapter<InputType, S>;
 	const plan = compileObject(shape as RuntimeCodecShape, undefined).plan;
 
-	const decode = (data: InputType): OutputType =>
-		runPlanOrThrow(plan, data, "decode") as OutputType;
-
-	const encode = (data: OutputType): InputType =>
-		runPlanOrThrow(plan, data, "encode") as InputType;
-
+	// The overloads give the types; the body stays non-generic (see
+	// buildStrictFieldAdapterCodec).
 	return {
-		decode,
-		encode,
-	} satisfies CodecPair<InputType, OutputType>;
+		decode: (data: unknown) => runPlanOrThrow(plan, data, "decode"),
+		encode: (data: unknown) => runPlanOrThrow(plan, data, "encode"),
+		decodeAsync: (data: unknown) => runPlanAsync(plan, data, "decode"),
+		encodeAsync: (data: unknown) => runPlanAsync(plan, data, "encode"),
+	} satisfies AsyncCodecPair<unknown, unknown>;
 }
 
 // -- Internals --
@@ -940,6 +937,28 @@ function asRecord(v: unknown): Record<string, unknown> {
 }
 
 type IssuePath = readonly PropertyKey[];
+
+// The schema-free adapter's async methods: field codecs run once each, and
+// any issues reject the Promise with one ZodError.
+async function runPlanAsync(
+	plan: Plan,
+	value: unknown,
+	direction: Direction,
+): Promise<unknown> {
+	const issues: z.core.$ZodRawIssue[] = [];
+	const result = await runPlan(
+		plan,
+		value,
+		direction,
+		[],
+		issues,
+		"maybe-async",
+	);
+	if (issues.length > 0) {
+		throw new z.ZodError(finalizeIssues(issues));
+	}
+	return result;
+}
 
 function runPlanOrThrow(
 	plan: Plan,

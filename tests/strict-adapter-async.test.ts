@@ -168,7 +168,7 @@ describe("async field codecs", () => {
 		expect(await sync.decodeAsync({ vip: "No" })).toEqual({ vip: false });
 	});
 
-	test("the schema-free adapter has no async API and throws Zod's error", () => {
+	test("the schema-free adapter's sync decode throws Zod's async error", () => {
 		const adapter = codecBuilder.buildStrictFieldAdapter<{
 			balance: string;
 		}>()({ balance: asyncNumber });

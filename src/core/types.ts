@@ -8,6 +8,15 @@ export type CodecPair<I, O> = {
 	encode: (output: O) => I;
 };
 
+/**
+ * A `CodecPair` with async variants. `decodeAsync`/`encodeAsync` also run
+ * async field codecs; the sync methods throw Zod's `$ZodAsyncError` there.
+ */
+export interface AsyncCodecPair<I, O> extends CodecPair<I, O> {
+	decodeAsync: (input: I) => Promise<O>;
+	encodeAsync: (output: O) => Promise<I>;
+}
+
 export type NoOpCodec = {
 	readonly __noOpCodec: true;
 };

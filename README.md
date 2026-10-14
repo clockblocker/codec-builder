@@ -347,8 +347,10 @@ value. The derived schema keeps the canonical object's unknown-key policy
 ### `buildStrictFieldAdapter<T>()(shape)`
 
 The same shape language for when you have a TypeScript type but no schema. You
-get `{ decode, encode }` with inferred types. There's no derived schema and no
-validation.
+get `{ decode, encode, decodeAsync, encodeAsync }` with inferred types (the
+exported `AsyncCodecPair` type). The field codecs validate their own values,
+and a failure throws (or rejects with) a `ZodError` with the full path, but
+there's no derived schema and nothing checks the fields that use `noOp`.
 
 ```ts
 type ApiUser = { id: number; is_admin: "Yes" | "No"; joined: string };
@@ -557,8 +559,7 @@ You can, and this library returns exactly that: a `z.codec(in, out,
   `helpers.pipeCodecs`. Use `decodeAsync`, `encodeAsync`, `safeDecodeAsync`
   or `safeEncodeAsync`; each async step runs once. As in Zod, the sync methods
   throw `$ZodAsyncError` when something async is reached. The schema-free
-  `buildStrictFieldAdapter` has only sync `decode`/`encode` and throws that
-  error too.
+  `buildStrictFieldAdapter` has `decodeAsync`/`encodeAsync` for the same.
 - Each field codec runs once per call: its `in` is checked, it transforms, and
   its `out` is checked by the object's `out` (which contains it). A source
   field that is the codec's own `in` schema is not checked a second time.

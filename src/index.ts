@@ -42,4 +42,4 @@ export type {
 	ShapeOfStrictFieldAdapterCodec,
 	ShapeOfStrictFieldAdapterCodec as ShapeOfStrictFieldAdapterCodec4,
 } from "./codec-builders/strict-field-adapter/build-strict-field-adapter-codec.js";
-export type { Codec, CodecPair } from "./core/types.js";
+export type { AsyncCodecPair, Codec, CodecPair } from "./core/types.js";
