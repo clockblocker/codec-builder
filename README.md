@@ -375,7 +375,7 @@ Type pairs (both directions exist for each):
 | Derived  | Source          | Decode                                        |
 | -------- | --------------- | --------------------------------------------- |
 | `number` | `numericString` | `"12.50"` → `12.5`, `"1e3"` → `1000`; rejects `""`, `" 12 "`, `"0x1F"`, `"Infinity"` |
-| `int`    | `numericString` | `"12"` → `12`; rejects `"12.7"` and integers beyond `Number.MAX_SAFE_INTEGER` |
+| `int`    | `numericString` | `"12"` → `12`, `"-7"` → `-7`; digits only, so rejects `"12.7"`, `"1e3"`, `"1.0"`, and integers beyond `Number.MAX_SAFE_INTEGER` |
 | `boolean`| `yesNo`         | `"Yes"` → `true`, `"No"` → `false` (case-sensitive) |
 | `date`   | `isoString`     | ISO date or datetime with offset → `Date`; rejects other strings |
 
@@ -494,8 +494,11 @@ You can, and this library returns exactly that: a `z.codec(in, out,
   binary, octal, `"Infinity"` and `"NaN"` are rejected. The exponent form is
   accepted because `String(1e21)` is `"1e+21"`: whatever `encode` produces
   decodes back to the same number.
-- The `int` codecs reject non-integers (`"1.9"`) instead of rounding, and
-  reject integers outside `±Number.MAX_SAFE_INTEGER`.
+- Integer numeric strings are digits with an optional sign (`"42"`, `"-7"`,
+  `"+3"`). The `int` codecs reject non-integers (`"1.9"`) instead of rounding,
+  reject other spellings of whole numbers (`"1e3"`, `"1.0"`), and reject
+  integers outside `±Number.MAX_SAFE_INTEGER`. A safe integer never encodes to
+  exponent form, so every encoded value decodes back.
 - The date codecs accept an ISO date (`2024-01-02`) or an ISO datetime with
   `Z` or an offset. Any other string fails with a `ZodError`; it is not
   turned into `null` or a default.

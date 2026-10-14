@@ -20,7 +20,7 @@ describe("numericStringAndInt", () => {
 		expect(numericStringAndInt.encode("42")).toBe(42);
 		expect(() => numericStringAndInt.encode("42.9")).toThrow(z.ZodError);
 		expect(() => intAndNumericString.decode("1.9")).toThrow(z.ZodError);
-		expect(intAndNumericString.decode("1e3")).toBe(1000);
+		expect(() => intAndNumericString.decode("1e3")).toThrow(z.ZodError);
 		expect(intAndNumericString.decode("-7")).toBe(-7);
 		expect(intAndNumericString.encode(42)).toBe("42");
 	});

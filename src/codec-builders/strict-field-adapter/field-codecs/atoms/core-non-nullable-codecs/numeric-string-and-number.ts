@@ -12,10 +12,20 @@ export const numericStringSchema = z
 		message: "Expected a numeric string",
 	});
 
-export const integerNumericStringSchema = numericStringSchema.refine(
-	(v) => Number.isSafeInteger(Number(v)),
-	{ message: "Expected an integer numeric string" },
-);
+// Integers are digits only, with an optional sign: "42", "-7", "+3". No
+// exponent or decimal point ("1e3", "1.0"), even when the value is whole.
+// A safe integer never stringifies to exponent form, so whatever `encode`
+// produces still decodes back.
+const integerNumericStringPattern = /^[+-]?\d+$/;
+
+export const integerNumericStringSchema = z
+	.string()
+	.refine(
+		(v) =>
+			integerNumericStringPattern.test(v) &&
+			Number.isSafeInteger(Number(v)),
+		{ message: "Expected an integer numeric string" },
+	);
 
 const numberSchema = z.number();
 

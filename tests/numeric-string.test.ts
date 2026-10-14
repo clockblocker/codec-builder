@@ -89,6 +89,27 @@ describe("numeric string parsing", () => {
 		expect(intFromString.safeDecode("1e21").success).toBeFalse();
 	});
 
+	test("int numeric strings are digits only, with an optional sign", () => {
+		for (const rejected of ["1e3", "1.0", "5.", ".5", "+", "-", ""]) {
+			expect(intFromString.safeDecode(rejected).success).toBeFalse();
+			expect(stringFromInt.safeEncode(rejected).success).toBeFalse();
+		}
+		expect(intFromString.decode("-42")).toBe(-42);
+		expect(intFromString.decode("+7")).toBe(7);
+		expect(intFromString.decode("0")).toBe(0);
+		expect(stringFromInt.encode("+7")).toBe(7);
+		// the general number grammar is unchanged
+		expect(numberFromString.decode("1e3")).toBe(1000);
+		expect(numberFromString.decode("1.0")).toBe(1);
+	});
+
+	test("±MAX_SAFE_INTEGER round-trips through the int codec", () => {
+		for (const n of [Number.MAX_SAFE_INTEGER, -Number.MAX_SAFE_INTEGER]) {
+			expect(intFromString.encode(n)).toBe(String(n));
+			expect(intFromString.decode(String(n))).toBe(n);
+		}
+	});
+
 	test("decode(encode(n)) === n for the int codec", () => {
 		for (const n of [
 			0,
