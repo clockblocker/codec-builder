@@ -539,7 +539,7 @@ type OutputZodShapeFromCodecShape<S extends RuntimeCodecShape> = {
 				: S[K] extends RuntimeCodecShape
 					? z.ZodObject<OutputZodShapeFromCodecShape<S[K]>>
 					: never;
-};
+} & {};
 
 type OutputZodShapeFromOutputObject<
 	TObj extends object,
@@ -572,7 +572,7 @@ type OutputZodShapeFromOutputObject<
 							: never
 						: z.ZodObject<OutputZodShapeFromCodecShape<S[K]>>
 					: never;
-};
+} & {};
 
 type OutputZodNode<TInputField extends AnySchema, TShapeNode> =
 	TShapeNode extends CodecWithOutputSchema<infer TSchema>
@@ -628,11 +628,13 @@ type OutputZodNode<TInputField extends AnySchema, TShapeNode> =
 							>
 					: never;
 
+// The out-shape aliases end in `& {}` so hovers show the resolved shape
+// instead of the alias (the intersection reduces to the bare mapped type).
 type OutputZodShapeForSchemaShape<TShape extends z.ZodRawShape, S> = {
 	[K in KnownKeys<S>]: K extends keyof TShape
 		? OutputZodNode<TShape[K], S[K]>
 		: never;
-};
+} & {};
 
 // Every Zod 4 schema has decode/encode methods and every pipe has `in` and
 // `out`, so only the def tells a codec apart: z.codec (and z.stringbool,

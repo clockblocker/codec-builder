@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { expectTypes } from "typeprobe/testing";
+import { DEFAULT_UTILITY_TYPES, expectTypes } from "typeprobe/testing";
 
 // Type-checker budgets for each builder, counted by typeprobe on the
 // project's own TypeScript (a fresh checker per count, so the numbers are
@@ -8,8 +8,21 @@ import { expectTypes } from "typeprobe/testing";
 // Budgets are the measured counts plus about 25%. If a change legitimately
 // moves a count, re-measure and keep the headroom.
 //
-// `readable: true` fails when a printed type shows an unresolved utility
-// type (Omit, Pick, ...) or an object intersection instead of the object.
+// `readable` fails when a printed type shows an unresolved utility type
+// (Omit, Pick, ...), one of the library's internal aliases, or an object
+// intersection instead of the object.
+
+// Internal aliases that must never show up in a hover.
+const internalAliases = [
+	"OutputZodShapeForSchemaShape",
+	"OutputZodShapeFromCodecShape",
+	"OutputZodShapeFromOutputObject",
+	"OutputOfStrictFieldAdapter",
+	"OutputZodNode",
+	"RewrapLike",
+	"WrapLikeValue",
+	"ObjectConfigOf",
+];
 
 const fixture = new URL("./fixtures/type-budget.ts", import.meta.url);
 
@@ -18,7 +31,9 @@ test(
 	() => {
 		const result = expectTypes(fixture, {
 			compiler: "project",
-			readable: true,
+			readable: {
+				utilityTypes: [...DEFAULT_UTILITY_TYPES, ...internalAliases],
+			},
 			types: [
 				// buildStrictFieldAdapterCodec
 				{ name: "userCodec", maxInstantiations: 134_000 },
