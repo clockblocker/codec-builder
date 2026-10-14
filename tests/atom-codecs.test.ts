@@ -41,6 +41,39 @@ describe("numericStringAndNumber", () => {
 	});
 });
 
+describe("numeric string parsing", () => {
+	const accepted = ["0", "42", "-42", "+42", "12.50", "-0.5", "007"];
+	const rejected = [
+		"",
+		" ",
+		" 12 ",
+		"12 ",
+		"0x1F",
+		"0b11",
+		"0o7",
+		"1e3",
+		"Infinity",
+		"-Infinity",
+		"NaN",
+		".5",
+		"5.",
+		"1,000",
+		"abc",
+	];
+
+	test.each(accepted)("accepts %p", (value) => {
+		expect(numericStringAndNumber.outputSchema.parse(value)).toBe(value);
+		expect(numberAndNumericString.fromInput(value)).toBe(Number(value));
+	});
+
+	test.each(rejected)("rejects %p", (value) => {
+		expect(() =>
+			numericStringAndNumber.outputSchema.parse(value),
+		).toThrow();
+		expect(() => numberAndNumericString.fromInput(value)).toThrow();
+	});
+});
+
 describe("nullableNumericStringAndNumber", () => {
 	test("maps nullish input to null and uses a nullable output schema", () => {
 		expect(nullableNumericStringAndNumber.fromInput(undefined)).toBeNull();

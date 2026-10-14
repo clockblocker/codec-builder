@@ -5,7 +5,7 @@ const intSchema = z.number().int();
 const numberSchema = z.number();
 
 export const intAndNumber = {
-	fromInput: (v) => Math.floor(v),
+	fromInput: (v) => intSchema.parse(v),
 	fromOutput: (v) => v,
 	inputSchema: numberSchema,
 	outputSchema: intSchema,
