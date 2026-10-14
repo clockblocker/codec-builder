@@ -37,6 +37,7 @@
 	"devDependencies": {
 		"@biomejs/biome": "2.5.13",
 		"@types/bun": "latest",
+		"typeprobe": "^4.0.0",
 		"typescript": "^5.9.0",
 		"zod": "^4.4.0"
 	}
