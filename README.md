@@ -546,9 +546,13 @@ You can, and this library returns exactly that: a `z.codec(in, out,
   when the codec's `out` schema is optional (`optional.*`, `nullish.*`); a
   codec still runs on a missing value, so `nullable.*` turns a missing key
   into `null` and `nonNullish.X.and.nullish.Y` into its default.
-- Field codecs must be synchronous. A shape with an async field codec (an
-  async transform or refinement) throws Zod's `$ZodAsyncError`, even from
-  `decodeAsync`/`encodeAsync`. The same goes for `helpers.pipeCodecs`.
+- Field codecs can be async (an async transform or refinement), in nested
+  shapes and `arrayOf` too, and so can the codecs given to
+  `helpers.pipeCodecs`. Use `decodeAsync`, `encodeAsync`, `safeDecodeAsync`
+  or `safeEncodeAsync`; each async step runs once. As in Zod, the sync methods
+  throw `$ZodAsyncError` when something async is reached. The schema-free
+  `buildStrictFieldAdapter` has only sync `decode`/`encode` and throws that
+  error too.
 - Each field codec runs once per call: its `in` is checked, it transforms, and
   its `out` is checked by the object's `out` (which contains it). A source
   field that is the codec's own `in` schema is not checked a second time.

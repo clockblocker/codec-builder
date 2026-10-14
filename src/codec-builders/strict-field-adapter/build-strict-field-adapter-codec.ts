@@ -2,6 +2,12 @@
 /** biome-ignore-all lint/suspicious/noExplicitAny: Library generic shape */
 
 import { z } from "zod/v4";
+import {
+	all,
+	forZod,
+	type MaybePromise,
+	then,
+} from "../../core/maybe-async.js";
 import type {
 	CodecPair,
 	NoOpCodec,
@@ -9,6 +15,7 @@ import type {
 	Simplify,
 } from "../../core/types.js";
 import {
+	type AsyncMode,
 	type CodecInOutputOf,
 	type DefTypeOf,
 	type Direction,
@@ -73,9 +80,27 @@ export function buildStrictFieldAdapterCodec<
 		compiled.out as z.ZodType,
 		{
 			decode: (data, payload) =>
-				runPlan(plan, data, "decode", [], payload.issues),
+				forZod(
+					runPlan(
+						plan,
+						data,
+						"decode",
+						[],
+						payload.issues,
+						"maybe-async",
+					),
+				),
 			encode: (data, payload) =>
-				runPlan(plan, data, "encode", [], payload.issues),
+				forZod(
+					runPlan(
+						plan,
+						data,
+						"encode",
+						[],
+						payload.issues,
+						"maybe-async",
+					),
+				),
 		},
 	) as never;
 }
@@ -922,68 +947,97 @@ function runPlanOrThrow(
 	direction: Direction,
 ): unknown {
 	const issues: z.core.$ZodRawIssue[] = [];
-	const result = runPlan(plan, value, direction, [], issues);
+	// No async API here, so an async field codec throws Zod's async error.
+	const result = runPlan(plan, value, direction, [], issues, "sync");
 	if (issues.length > 0) {
 		throw new z.ZodError(finalizeIssues(issues));
 	}
 	return result;
 }
 
+// Runs synchronously while every field codec does; with "maybe-async" it
+// returns a Promise as soon as one goes async (see core/maybe-async.ts).
 function runPlan(
 	plan: Plan,
 	value: unknown,
 	direction: Direction,
 	path: IssuePath,
 	issues: z.core.$ZodRawIssue[],
-): unknown {
+	mode: AsyncMode,
+): MaybePromise<unknown> {
 	switch (plan.kind) {
 		case "noOp":
 			return value;
-		case "codec": {
-			const result = runSchema(plan.codec, value, direction, false);
-			if (result.issues.length === 0) return result.value;
-			for (const issue of result.issues) {
-				issues.push({
-					...issue,
-					path: [...path, ...(issue.path ?? [])],
-				});
-			}
-			return value;
-		}
+		case "codec":
+			return then(
+				runSchema(plan.codec, value, direction, mode),
+				(result) => {
+					if (result.issues.length === 0) return result.value;
+					for (const issue of result.issues) {
+						issues.push({
+							...issue,
+							path: [...path, ...(issue.path ?? [])],
+						});
+					}
+					return value;
+				},
+			);
 		case "array":
 			// null, undefined (and anything the schema let through) pass as is.
 			if (!Array.isArray(value)) return value;
-			return value.map((item, index) =>
-				runPlan(plan.item, item, direction, [...path, index], issues),
+			return all(
+				value.map((item, index) =>
+					runPlan(
+						plan.item,
+						item,
+						direction,
+						[...path, index],
+						issues,
+						mode,
+					),
+				),
 			);
 		case "object": {
 			if (typeof value !== "object" || value === null) return value;
 			const data = value as Record<string, unknown>;
-			const result: Record<string, unknown> = {};
+			const keys: string[] = [];
+			const present: boolean[] = [];
+			const converted: MaybePromise<unknown>[] = [];
 			for (const [key, child] of plan.fields) {
 				// Like z.object: a missing key stays missing. A codec still
 				// runs on a missing value (it may supply null or a default);
 				// the key is set only if the codec returns something.
-				const present = key in data;
-				if (!present && child.kind !== "codec") continue;
-				const converted = runPlan(
-					child,
-					data[key],
-					direction,
-					[...path, key],
-					issues,
+				const isPresent = key in data;
+				if (!isPresent && child.kind !== "codec") continue;
+				keys.push(key);
+				present.push(isPresent);
+				converted.push(
+					runPlan(
+						child,
+						data[key],
+						direction,
+						[...path, key],
+						issues,
+						mode,
+					),
 				);
-				if (present || converted !== undefined) {
-					setKey(result, key, converted);
-				}
 			}
-			if (plan.keepUnknownKeys) {
-				for (const key of Object.keys(data)) {
-					if (!plan.fieldKeys.has(key))
-						setKey(result, key, data[key]);
+			return then(all(converted), (values) => {
+				const result: Record<string, unknown> = {};
+				values.forEach((fieldValue, index) => {
+					if (present[index] || fieldValue !== undefined) {
+						setKey(result, keys[index] as string, fieldValue);
+					}
+				});
+				if (plan.keepUnknownKeys) {
+					for (const key of Object.keys(data)) {
+						if (!plan.fieldKeys.has(key)) {
+							setKey(result, key, data[key]);
+						}
+					}
 				}
-			}
-			return result;
+				return result;
+			});
 		}
 	}
 }

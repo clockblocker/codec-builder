@@ -118,34 +118,62 @@ export function codecTransforms(codec: z.core.$ZodType): {
 
 export type Direction = "decode" | "encode";
 
+/** "sync" throws on an async step; "maybe-async" returns a Promise then. */
+export type AsyncMode = "sync" | "maybe-async";
+
 /** What a schema run returns: the value plus raw (unfinalized) issues. */
 export type RunResult = z.core.ParsePayload<unknown>;
 
 /**
  * Runs a schema the way an enclosing schema runs its children: issues stay
  * raw (with paths relative to `value`) so the caller can push them onto its
- * own payload, and the enclosing parse finalizes them with its context. With
- * `async: false`, an async step throws Zod's `$ZodAsyncError`.
+ * own payload, and the enclosing parse finalizes them with its context.
+ *
+ * "sync" passes `async: false` and throws Zod's `$ZodAsyncError` on any
+ * async step, as a top-level sync parse does.
+ * "maybe-async" leaves `async` unset, as Zod does for nested runs: the result
+ * is a value while every step is sync and a Promise once one is async, and
+ * each step runs once either way.
  */
 export function runSchema(
 	schema: z.core.$ZodType,
 	value: unknown,
 	direction: Direction,
-	async: false,
-): RunResult {
-	return (
+	mode: "sync",
+): RunResult;
+export function runSchema(
+	schema: z.core.$ZodType,
+	value: unknown,
+	direction: Direction,
+	mode: AsyncMode,
+): RunResult | Promise<RunResult>;
+export function runSchema(
+	schema: z.core.$ZodType,
+	value: unknown,
+	direction: Direction,
+	mode: AsyncMode,
+): RunResult | Promise<RunResult> {
+	const ctx: { direction: "forward" | "backward"; async?: false } = {
+		direction: direction === "decode" ? "forward" : "backward",
+	};
+	if (mode === "sync") ctx.async = false;
+	const result = (
 		schema as unknown as {
 			_zod: {
 				run(
 					payload: RunResult,
-					ctx: { direction: "forward" | "backward"; async: false },
-				): RunResult;
+					context: typeof ctx,
+				): RunResult | Promise<RunResult>;
 			};
 		}
-	)._zod.run(
-		{ value, issues: [] },
-		{ direction: direction === "decode" ? "forward" : "backward", async },
-	);
+	)._zod.run({ value, issues: [] }, ctx);
+	if (mode === "sync" && result instanceof Promise) {
+		// Zod throws for async checks itself but hands back a Promise for an
+		// async transform; a top-level sync parse turns that into this error.
+		result.then(undefined, () => {});
+		throw new z.core.$ZodAsyncError();
+	}
+	return result;
 }
 
 /** Finalizes raw issues (fills in messages) as a top-level parse would. */

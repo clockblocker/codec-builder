@@ -80,7 +80,7 @@ describe("zod internals the library relies on", () => {
 
 	test("_zod.run returns raw issues with relative paths, in both directions", () => {
 		const schema = z.object({ a: z.number() });
-		const failed = runSchema(schema, { a: "x" }, "decode", false);
+		const failed = runSchema(schema, { a: "x" }, "decode", "sync");
 		expect(failed.issues).toHaveLength(1);
 		expect(failed.issues[0]?.path).toEqual(["a"]);
 		expect(failed.issues[0]?.message).toBeUndefined();
@@ -92,15 +92,41 @@ describe("zod internals the library relies on", () => {
 			decode: Number,
 			encode: String,
 		});
-		expect(runSchema(codec, "2", "decode", false).value).toBe(2);
-		expect(runSchema(codec, 2, "encode", false).value).toBe("2");
+		expect(runSchema(codec, "2", "decode", "sync").value).toBe(2);
+		expect(runSchema(codec, 2, "encode", "sync").value).toBe("2");
 	});
 
-	test("_zod.run with async: false throws Zod's async error", () => {
-		const asyncSchema = z.string().refine(async () => true);
-		expect(() => runSchema(asyncSchema, "a", "decode", false)).toThrow(
+	test("_zod.run: async false throws, async unset returns a Promise once", async () => {
+		let checks = 0;
+		const asyncSchema = z.string().refine(async () => {
+			checks++;
+			return true;
+		});
+		expect(() => runSchema(asyncSchema, "a", "decode", "sync")).toThrow(
 			z.core.$ZodAsyncError,
 		);
+		checks = 0;
+		const pending = runSchema(asyncSchema, "a", "decode", "maybe-async");
+		expect(pending).toBeInstanceOf(Promise);
+		expect((await pending).value).toBe("a");
+		expect(checks).toBe(1);
+		const plain = runSchema(z.string(), "a", "decode", "maybe-async");
+		expect(plain).not.toBeInstanceOf(Promise);
+	});
+
+	test("_zod.run returns a Promise (not an error) for an async transform", () => {
+		const asyncTransform = z.codec(z.string(), z.number(), {
+			decode: async (value) => Number(value),
+			encode: String,
+		});
+		// With async: false Zod still returns a Promise here, so runSchema
+		// throws the async error itself in "sync" mode.
+		expect(() => runSchema(asyncTransform, "1", "decode", "sync")).toThrow(
+			z.core.$ZodAsyncError,
+		);
+		expect(
+			runSchema(asyncTransform, "1", "decode", "maybe-async"),
+		).toBeInstanceOf(Promise);
 	});
 
 	test("derived codecs skip exactly the checks they say", () => {
@@ -111,21 +137,21 @@ describe("zod internals the library relies on", () => {
 			{ decode: Number, encode: String },
 		);
 		expect(
-			runSchema(withoutOutCheck(codec), "1", "decode", false).value,
+			runSchema(withoutOutCheck(codec), "1", "decode", "sync").value,
 		).toBe(1);
 		expect(runs).toEqual(["in"]);
 		runs.length = 0;
 		expect(
-			runSchema(withoutOutCheck(codec), 1, "encode", false).value,
+			runSchema(withoutOutCheck(codec), 1, "encode", "sync").value,
 		).toBe("1");
 		expect(runs).toEqual(["in"]);
 		runs.length = 0;
 		expect(
-			runSchema(transformsOnly(codec), "1", "decode", false).value,
+			runSchema(transformsOnly(codec), "1", "decode", "sync").value,
 		).toBe(1);
-		expect(runSchema(transformsOnly(codec), 1, "encode", false).value).toBe(
-			"1",
-		);
+		expect(
+			runSchema(transformsOnly(codec), 1, "encode", "sync").value,
+		).toBe("1");
 		expect(runs).toEqual([]);
 	});
 });
