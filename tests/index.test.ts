@@ -300,11 +300,11 @@ describe("codecBuilder.helpers", () => {
 		const filteredArrayCodec =
 			codecBuilder.helpers.buildFilteredNullishArrayCodec(
 				z.string().nullish(),
-				z.string().min(1),
+				z.string(),
 			);
 		expect(
 			filteredArrayCodec.fromInput(["a", "", null, undefined, "b"]),
-		).toEqual(["a", "b"]);
+		).toEqual(["a", "", "b"]);
 
 		const nullableWrappedCodec = codecBuilder.helpers.toNullable(
 			c.nonNullish.numericString.and.int,

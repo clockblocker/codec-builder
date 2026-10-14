@@ -14,7 +14,9 @@ export function buildFilteredNullishArrayCodec<
 
 	return {
 		fromInput: (input) =>
-			input.filter(Boolean) as z.output<TOutputItemSchema>[],
+			input.filter(
+				(item) => item !== null && item !== undefined,
+			) as z.output<TOutputItemSchema>[],
 		fromOutput: (output) => output as z.output<TInputItemSchema>[],
 		inputSchema,
 		outputSchema,
