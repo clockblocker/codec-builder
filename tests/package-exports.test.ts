@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import { resolve } from "node:path";
 import packageJson from "../package.json";
 
 describe("package.json", () => {
@@ -31,4 +32,20 @@ describe("package.json", () => {
 		);
 		expect(packageJson.license).toBe("MIT");
 	});
+});
+
+test("relative imports in src carry a .js extension for node16/nodenext consumers", async () => {
+	const root = resolve(import.meta.dir, "..");
+	const offenders: string[] = [];
+	for await (const file of new Bun.Glob("src/**/*.ts").scan(root)) {
+		const text = await Bun.file(resolve(root, file)).text();
+		for (const match of text.matchAll(
+			/(?:from|import)\s+"(\.{1,2}(?:\/[^"]*)?)"/g,
+		)) {
+			if (!match[1]?.endsWith(".js")) {
+				offenders.push(`${file}: ${match[1]}`);
+			}
+		}
+	}
+	expect(offenders).toEqual([]);
 });

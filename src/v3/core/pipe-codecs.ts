@@ -3,7 +3,7 @@
 
 import type { z } from "zod/v3";
 
-import type { CodecPair, SchemaCodec } from "./types";
+import type { CodecPair, SchemaCodec } from "./types.js";
 
 export function pipeCodecs<
 	TInputSchema extends z.ZodTypeAny,

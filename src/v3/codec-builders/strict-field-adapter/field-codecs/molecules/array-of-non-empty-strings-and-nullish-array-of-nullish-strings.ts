@@ -1,11 +1,11 @@
 import { z } from "zod/v3";
-import type { Nullish } from "../../../../core/helpers/nullish-utils";
-import { pipeCodecs } from "../../../../core/pipe-codecs";
-import type { Codec, SchemaCodec } from "../../../../core/types";
-import { toArrayOf } from "../../helpers/casters/to-array-of";
-import { toNonNullishWithDefault } from "../../helpers/casters/to-non-nullish-with-default";
-import { toNullable } from "../../helpers/casters/to-nullable";
-import { stringAndNullishString } from "../atoms/derived/string";
+import type { Nullish } from "../../../../core/helpers/nullish-utils.js";
+import { pipeCodecs } from "../../../../core/pipe-codecs.js";
+import type { Codec, SchemaCodec } from "../../../../core/types.js";
+import { toArrayOf } from "../../helpers/casters/to-array-of.js";
+import { toNonNullishWithDefault } from "../../helpers/casters/to-non-nullish-with-default.js";
+import { toNullable } from "../../helpers/casters/to-nullable.js";
+import { stringAndNullishString } from "../atoms/derived/string.js";
 
 const nonEmptyStringSchema = z.string().min(1);
 const arrayOfNullishStrings = toArrayOf(stringAndNullishString);

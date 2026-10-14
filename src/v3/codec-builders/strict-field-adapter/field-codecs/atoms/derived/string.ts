@@ -1,9 +1,9 @@
 import { z } from "zod/v3";
-import type { Nullish } from "../../../../../core/helpers/nullish-utils";
-import type { Codec } from "../../../../../core/types";
-import { reverseCodecDirections } from "../../../helpers/casters/reverse-codec-directions";
-import { toNonNullishWithDefault } from "../../../helpers/casters/to-non-nullish-with-default";
-import { toNullable } from "../../../helpers/casters/to-nullable";
+import type { Nullish } from "../../../../../core/helpers/nullish-utils.js";
+import type { Codec } from "../../../../../core/types.js";
+import { reverseCodecDirections } from "../../../helpers/casters/reverse-codec-directions.js";
+import { toNonNullishWithDefault } from "../../../helpers/casters/to-non-nullish-with-default.js";
+import { toNullable } from "../../../helpers/casters/to-nullable.js";
 
 const stringSchema = z.string();
 const nullishStringSchema = stringSchema.nullish();

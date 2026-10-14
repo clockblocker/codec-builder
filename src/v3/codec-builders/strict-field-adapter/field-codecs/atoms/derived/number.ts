@@ -1,7 +1,7 @@
-import { reverseCodecDirections } from "../../../helpers/casters/reverse-codec-directions";
-import { toNonNullishWithDefault } from "../../../helpers/casters/to-non-nullish-with-default";
-import { toNullable } from "../../../helpers/casters/to-nullable";
-import { numericStringAndNumber } from "../core-non-nullable-codecs/numeric-string-and-number";
+import { reverseCodecDirections } from "../../../helpers/casters/reverse-codec-directions.js";
+import { toNonNullishWithDefault } from "../../../helpers/casters/to-non-nullish-with-default.js";
+import { toNullable } from "../../../helpers/casters/to-nullable.js";
+import { numericStringAndNumber } from "../core-non-nullable-codecs/numeric-string-and-number.js";
 
 export { numericStringAndNumber };
 

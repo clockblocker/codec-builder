@@ -7,7 +7,7 @@ import type {
 	NoOpCodec,
 	SchemaCodec,
 	SchemaShapeOf as SharedSchemaShapeOf,
-} from "../../core/types";
+} from "../../core/types.js";
 
 // -- Exports --
 

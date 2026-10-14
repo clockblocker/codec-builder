@@ -1,7 +1,7 @@
 import { z } from "zod/v3";
-import type { SchemaCodec } from "../../../../../core/types";
-import { toNonNullishWithDefault } from "../../../helpers/casters/to-non-nullish-with-default";
-import { toNullable } from "../../../helpers/casters/to-nullable";
+import type { SchemaCodec } from "../../../../../core/types.js";
+import { toNonNullishWithDefault } from "../../../helpers/casters/to-non-nullish-with-default.js";
+import { toNullable } from "../../../helpers/casters/to-nullable.js";
 
 const isoDateSchema = z.string().date();
 const isoDateTimeSchema = z.string().datetime({ offset: true });

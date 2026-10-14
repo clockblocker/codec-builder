@@ -1,11 +1,11 @@
 import { z } from "zod/v3";
-import { pipeCodecs } from "../../../../core/pipe-codecs";
-import type { SchemaCodec } from "../../../../core/types";
-import { reverseCodecDirections } from "../../helpers/casters/reverse-codec-directions";
-import { toNonNullishWithDefault } from "../../helpers/casters/to-non-nullish-with-default";
-import { toNullable } from "../../helpers/casters/to-nullable";
-import { numericStringAndNumber } from "../atoms/core-non-nullable-codecs/numeric-string-and-number";
-import { numberAndInt } from "../atoms/derived/int";
+import { pipeCodecs } from "../../../../core/pipe-codecs.js";
+import type { SchemaCodec } from "../../../../core/types.js";
+import { reverseCodecDirections } from "../../helpers/casters/reverse-codec-directions.js";
+import { toNonNullishWithDefault } from "../../helpers/casters/to-non-nullish-with-default.js";
+import { toNullable } from "../../helpers/casters/to-nullable.js";
+import { numericStringAndNumber } from "../atoms/core-non-nullable-codecs/numeric-string-and-number.js";
+import { numberAndInt } from "../atoms/derived/int.js";
 
 // Digits only, and within Number.isSafeInteger so the value survives the
 // round trip (larger integers lose precision or encode in exponent form).

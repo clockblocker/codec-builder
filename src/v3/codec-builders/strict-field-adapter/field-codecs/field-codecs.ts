@@ -1,14 +1,14 @@
-import type { AnyCodec, NoOpCodec } from "../../../core/types";
-import { noOpCodec } from "../build-strict-field-adapter-codec";
-import { toNullish } from "../helpers/casters/to-nullish";
-import { toOptional } from "../helpers/casters/to-optional";
+import type { AnyCodec, NoOpCodec } from "../../../core/types.js";
+import { noOpCodec } from "../build-strict-field-adapter-codec.js";
+import { toNullish } from "../helpers/casters/to-nullish.js";
+import { toOptional } from "../helpers/casters/to-optional.js";
 import {
 	dateAndNullishIsoString,
 	isoStringAndDate,
 	isoStringAndNullishDate,
 	nullableDateAndNullishIsoString,
 	nullableIsoStringAndNullishDate,
-} from "./atoms/derived/date";
+} from "./atoms/derived/date.js";
 import {
 	nullableNumberAndNumericString,
 	nullableNumericStringAndNumber,
@@ -16,11 +16,11 @@ import {
 	numberAndNumericString,
 	numericStringAndNullishNumber,
 	numericStringAndNumber,
-} from "./atoms/derived/number";
+} from "./atoms/derived/number.js";
 import {
 	nullableStringAndString,
 	stringAndNullishString,
-} from "./atoms/derived/string";
+} from "./atoms/derived/string.js";
 import {
 	booleanAndNullishYesNo,
 	booleanAndYesNo,
@@ -28,8 +28,8 @@ import {
 	nullableYesNoAndBoolean,
 	yesNoAndBoolean,
 	yesNoAndNullishBoolean,
-} from "./atoms/derived/yes-no";
-import { arrayOfNonEmptyStringsAndNullishArrayOfNullishStrings } from "./molecules/array-of-non-empty-strings-and-nullish-array-of-nullish-strings";
+} from "./atoms/derived/yes-no.js";
+import { arrayOfNonEmptyStringsAndNullishArrayOfNullishStrings } from "./molecules/array-of-non-empty-strings-and-nullish-array-of-nullish-strings.js";
 import {
 	intAndNullishNumericString,
 	intAndNumericString,
@@ -37,7 +37,7 @@ import {
 	nullableNumericStringAndInt,
 	numericStringAndInt,
 	numericStringAndNullishInt,
-} from "./molecules/int-and-numeric-string";
+} from "./molecules/int-and-numeric-string.js";
 
 type FieldCodecNamespace = {
 	readonly [key: string]: AnyCodec | NoOpCodec | FieldCodecNamespace;

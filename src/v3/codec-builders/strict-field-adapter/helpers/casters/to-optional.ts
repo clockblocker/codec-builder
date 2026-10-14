@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any -- helper keeps codec generics broad */
 import type { z } from "zod/v3";
-import type { SchemaCodec } from "../../../../core/types";
+import type { SchemaCodec } from "../../../../core/types.js";
 
 export function toOptional<
 	TInputSchema extends z.ZodTypeAny,

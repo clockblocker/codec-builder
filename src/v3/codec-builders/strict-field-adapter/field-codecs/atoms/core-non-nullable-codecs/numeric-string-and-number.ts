@@ -1,5 +1,5 @@
 import { z } from "zod/v3";
-import type { Codec } from "../../../../../core/types";
+import type { Codec } from "../../../../../core/types.js";
 
 // Decimal with optional sign, fraction and exponent. Accepts everything
 // String(number) produces for finite numbers ("1e+21", "1e-7"), so encoded

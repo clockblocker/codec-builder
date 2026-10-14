@@ -1,5 +1,5 @@
 import { z } from "zod/v3";
-import type { SchemaCodec, SchemaShapeOf } from "../core/types";
+import type { SchemaCodec, SchemaShapeOf } from "../core/types.js";
 
 export function buildReshapeCodec<
 	TInputSchema extends z.AnyZodObject,

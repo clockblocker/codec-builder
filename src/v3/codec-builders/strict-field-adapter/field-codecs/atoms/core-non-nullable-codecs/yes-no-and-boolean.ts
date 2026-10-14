@@ -1,5 +1,5 @@
 import { z } from "zod/v3";
-import type { Codec } from "../../../../../core/types";
+import type { Codec } from "../../../../../core/types.js";
 
 const yesNoSchema = z.enum(["Yes", "No"]);
 const booleanSchema = z.boolean();
