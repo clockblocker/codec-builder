@@ -1,6 +1,6 @@
 {
 	"name": "codec-builder-library",
-	"version": "0.4.0",
+	"version": "0.5.0",
 	"description": "Composable Zod codec builders for reshaping and adapting data structures.",
 	"license": "MIT",
 	"repository": {

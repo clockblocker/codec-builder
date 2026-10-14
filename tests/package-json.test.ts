@@ -14,7 +14,7 @@ test("every code export has a default condition so require() resolves", () => {
 });
 
 test("package metadata", async () => {
-	expect(pkg.version).toBe("0.4.0");
+	expect(pkg.version).toBe("0.5.0");
 	expect(pkg.license).toBe("MIT");
 	expect(pkg.repository.url).toBe(
 		"git+https://github.com/clockblocker/codec-builder.git",
