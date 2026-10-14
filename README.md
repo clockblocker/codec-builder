@@ -485,10 +485,12 @@ You can, and this library returns exactly that: a `z.codec(in, out,
 ## Behavior to know about
 
 - Field codecs run inside the object codec's transform. If a field codec
-  rejects a value that the source schema accepted, the `ZodError` is thrown
-  even from `safeDecode`. Make the source schema as precise as the codec (for
-  example `z.iso.datetime()` instead of `z.string()`) so `safeDecode` catches
-  it first.
+  rejects a value that the source schema accepted, the failure is reported
+  like any other issue, with its full path (`["balance"]`,
+  `["items", 2, "price"]`): `safeDecode`, `safeEncode`, and `safeParse` return
+  `{ success: false }`, and `decode`/`encode` throw a `ZodError`. The
+  schema-free `buildStrictFieldAdapter` throws a `ZodError` with the same
+  paths. `helpers.pipeCodecs` reports failures of either codec the same way.
 - Numeric strings must be decimal numbers with an optional exponent (`"12"`,
   `"-3.5"`, `".5"`, `"1e-7"`) that parse to a finite number. Whitespace, hex,
   binary, octal, `"Infinity"` and `"NaN"` are rejected. The exponent form is

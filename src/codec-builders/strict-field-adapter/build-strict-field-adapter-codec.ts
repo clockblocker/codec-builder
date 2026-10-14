@@ -41,18 +41,22 @@ export function buildStrictFieldAdapterCodec<
 	type InputType = z.infer<TInputSchema>;
 	type OutputType = z.infer<typeof outputSchema>;
 
-	const decode = (data: InputType): OutputType =>
-		runPlan(plan, data, "decode") as OutputType;
+	// Field codec failures become issues on the object codec's payload, with
+	// their full path, so `safeDecode`/`safeEncode` report them.
+	const decode = (data: InputType, payload: IssueSink): OutputType =>
+		runPlan(plan, data, "decode", [], payload.issues) as OutputType;
 
-	const encode = (data: OutputType): InputType =>
-		runPlan(plan, data, "encode") as InputType;
+	const encode = (data: OutputType, payload: IssueSink): InputType =>
+		runPlan(plan, data, "encode", [], payload.issues) as InputType;
 
 	return z.codec(inputSchema, outputSchema, {
 		decode: decode as (
 			value: z.output<TInputSchema>,
+			payload: IssueSink,
 		) => z.input<typeof outputSchema>,
 		encode: encode as (
 			value: z.input<typeof outputSchema>,
+			payload: IssueSink,
 		) => z.output<TInputSchema>,
 	});
 }
@@ -82,10 +86,10 @@ export function buildStrictFieldAdapter<
 	const plan = compileObject(shape as RuntimeCodecShape, undefined).plan;
 
 	const decode = (data: InputType): OutputType =>
-		runPlan(plan, data, "decode") as OutputType;
+		runPlanOrThrow(plan, data, "decode") as OutputType;
 
 	const encode = (data: OutputType): InputType =>
-		runPlan(plan, data, "encode") as InputType;
+		runPlanOrThrow(plan, data, "encode") as InputType;
 
 	return {
 		decode,
@@ -704,25 +708,65 @@ function asRecord(v: unknown): Record<string, unknown> {
 }
 
 type Direction = "decode" | "encode";
+type IssuePath = readonly PropertyKey[];
+type IssueSink = { issues: z.core.$ZodRawIssue[] };
 
-function runPlan(plan: Plan, value: unknown, direction: Direction): unknown {
+function runPlanOrThrow(
+	plan: Plan,
+	value: unknown,
+	direction: Direction,
+): unknown {
+	const issues: z.core.$ZodRawIssue[] = [];
+	const result = runPlan(plan, value, direction, [], issues);
+	if (issues.length > 0) {
+		throw new z.ZodError(issues as z.core.$ZodIssue[]);
+	}
+	return result;
+}
+
+function runPlan(
+	plan: Plan,
+	value: unknown,
+	direction: Direction,
+	path: IssuePath,
+	issues: z.core.$ZodRawIssue[],
+): unknown {
 	switch (plan.kind) {
 		case "noOp":
 			return value;
-		case "codec":
-			return direction === "decode"
-				? z.decode(plan.codec, value)
-				: z.encode(plan.codec, value);
+		case "codec": {
+			const result =
+				direction === "decode"
+					? z.safeDecode(plan.codec, value)
+					: z.safeEncode(plan.codec, value);
+			if (result.success) return result.data;
+			for (const issue of result.error.issues) {
+				// Already finalized (message set); Zod finalizes it again as is.
+				issues.push({
+					...issue,
+					path: [...path, ...issue.path],
+				} as z.core.$ZodRawIssue);
+			}
+			return value;
+		}
 		case "array":
 			// null, undefined (and anything the schema let through) pass as is.
 			if (!Array.isArray(value)) return value;
-			return value.map((item) => runPlan(plan.item, item, direction));
+			return value.map((item, index) =>
+				runPlan(plan.item, item, direction, [...path, index], issues),
+			);
 		case "object": {
 			if (typeof value !== "object" || value === null) return value;
 			const data = value as Record<string, unknown>;
 			const result: Record<string, unknown> = {};
 			for (const [key, child] of plan.fields) {
-				result[key] = runPlan(child, data[key], direction);
+				result[key] = runPlan(
+					child,
+					data[key],
+					direction,
+					[...path, key],
+					issues,
+				);
 			}
 			return result;
 		}
