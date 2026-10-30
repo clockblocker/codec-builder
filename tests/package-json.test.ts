@@ -25,8 +25,12 @@ test("package metadata", async () => {
 		"git+https://github.com/clockblocker/codec-builder.git",
 	);
 	expect(pkg.peerDependencies).toEqual({ effect: "^4.0.0", zod: "^4.4.0" });
-	// Only users of `codec-builder-library/effect4` need effect.
-	expect(pkg.peerDependenciesMeta).toEqual({ effect: { optional: true } });
+	// Each entry point needs only its own library: zod for the root and /v4,
+	// effect for /effect4.
+	expect(pkg.peerDependenciesMeta).toEqual({
+		effect: { optional: true },
+		zod: { optional: true },
+	});
 	expect(
 		await Bun.file(resolve(import.meta.dir, "../LICENSE")).exists(),
 	).toBeTrue();

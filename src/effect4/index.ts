@@ -1,6 +1,7 @@
 // `codec-builder-library/effect4`: the same builders on Effect 4 Schema.
 // Nothing here imports zod, and the Zod entry points don't import effect
 // (tests/effect4/boundary.test.ts).
+import { buildFixedFieldsCodec } from "./codec-builders/build-fixed-fields-codec.js";
 import { buildReshapeCodec } from "./codec-builders/build-reshape-codec.js";
 import {
 	arrayOfCodecShapes,
@@ -25,6 +26,7 @@ export const codecBuilder = {
 		pipeCodecs,
 	},
 	buildStrictFieldAdapterCodec,
+	buildFixedFieldsCodec,
 	buildReshapeCodec,
 } as const;
 

@@ -1,7 +1,7 @@
 {
 	"name": "codec-builder-library",
 	"version": "0.5.0",
-	"description": "Composable Zod codec builders for reshaping and adapting data structures.",
+	"description": "Composable Zod and Effect Schema codec builders for reshaping and adapting data structures.",
 	"license": "MIT",
 	"repository": {
 		"type": "git",
@@ -50,6 +50,9 @@
 	},
 	"peerDependenciesMeta": {
 		"effect": {
+			"optional": true
+		},
+		"zod": {
 			"optional": true
 		}
 	},

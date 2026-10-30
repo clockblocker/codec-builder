@@ -23,6 +23,7 @@ can't drift from the first.
 
 The result is a native Zod 4 `z.ZodCodec`, so `decode`, `encode`,
 `safeDecode`, `z.decode()`, and nesting inside other schemas all work as usual.
+The same builders exist for Effect 4 Schema; see [Effect 4](#effect-4).
 
 ## Install
 
@@ -35,6 +36,10 @@ bun add codec-builder-library zod
 `zod` is a peer dependency: `^4.4.0` (the first release with
 `z.invertCodec`). Schemas from `zod` and `zod/v4` both work. Zod Mini is not
 supported. Zod 3 users: pin `codec-builder-library@^0.3`.
+
+Both peer dependencies are optional, and each entry point needs only its own:
+install `zod` for `codec-builder-library` (and `/v4`), and `effect` (`^4.0.0`)
+for `codec-builder-library/effect4`.
 
 The package is ESM. `require("codec-builder-library")` works on Node versions
 that can `require()` ES modules: 20.19+ or 22.12+.
@@ -590,6 +595,193 @@ You can, and this library returns exactly that: a `z.codec(in, out,
   field. `null` and `undefined` pass through unchanged in both directions, and
   the derived field keeps the same wrappers: `z.object({...}).nullable()`
   becomes `{ street: string } | null` in `out`.
+
+## Effect 4
+
+`codec-builder-library/effect4` has the same builders for Effect 4 Schema:
+`buildStrictFieldAdapterCodec`, `buildReshapeCodec` and
+`buildFixedFieldsCodec`, the same `fieldCodec` paths, and the helpers
+`toOptional`, `toNullable`, `toNullish`, `toNonNullishWithDefault`,
+`toArrayOf` and `pipeCodecs`. It doesn't import zod, and the Zod entry points
+don't import effect.
+
+```bash
+npm install codec-builder-library effect
+# or
+bun add codec-builder-library effect
+```
+
+The source is a `Schema.Struct`, and the result is an ordinary Effect schema:
+its `Encoded` is the source's and its `Type` the derived struct, so
+`Schema.decodeSync`, `Schema.encodeEffect`, `Schema.decodeUnknownPromise` and
+nesting inside other schemas all work as usual.
+
+```ts
+import { Schema } from "effect";
+import { codecBuilder } from "codec-builder-library/effect4";
+
+const c = codecBuilder.fieldCodec;
+
+const userRow = Schema.Struct({
+	id: Schema.Number,
+	email: Schema.String,
+	middle_name: Schema.optional(Schema.NullOr(Schema.String)),
+	is_admin: Schema.Literals(["Yes", "No"]),
+	balance: Schema.String, // NUMERIC columns arrive as strings
+	created_at: Schema.String,
+	deleted_at: Schema.NullOr(Schema.String),
+});
+
+const user = codecBuilder.buildStrictFieldAdapterCodec(userRow, {
+	id: c.noOp,
+	email: c.noOp,
+	middle_name: c.nullable.string.and.string,
+	is_admin: c.nonNullish.boolean.and.yesNo,
+	balance: c.nonNullish.number.and.numericString,
+	created_at: c.nonNullish.date.and.isoString,
+	deleted_at: c.nullable.date.and.isoString,
+});
+
+type UserRow = typeof user.Encoded; // the same type as userRow.Encoded
+type User = typeof user.Type;
+// {
+//   readonly id: number;
+//   readonly email: string;
+//   readonly middle_name: string | null;
+//   readonly is_admin: boolean;
+//   readonly balance: number;
+//   readonly created_at: Date;
+//   readonly deleted_at: Date | null;
+// }
+
+const row: UserRow = {
+	id: 1,
+	email: "ada@example.com",
+	is_admin: "Yes",
+	balance: "12.50",
+	created_at: "2024-01-02T03:04:05.000Z",
+	deleted_at: null,
+};
+
+const domain = Schema.decodeSync(user)(row);
+// { ..., middle_name: null, is_admin: true, balance: 12.5,
+//   created_at: new Date("2024-01-02T03:04:05.000Z"), deleted_at: null }
+
+Schema.encodeSync(user)(domain);
+// { ..., middle_name: null, is_admin: "Yes", balance: "12.5",
+//   created_at: "2024-01-02T03:04:05.000Z", deleted_at: null }
+
+Schema.decodeUnknownExit(user)({ ...row, created_at: "yesterday" })._tag; // "Failure"
+
+const page = Schema.Struct({ users: Schema.Array(user), total: Schema.Number });
+Schema.decodeSync(page)({ users: [row], total: 1 }).users[0]?.created_at; // Date
+```
+
+`user` is a `Schema.Struct` whose fields are the source fields with each
+codec attached by `Schema.decodeTo` (`noOp` keeps the source field). In place
+of `in` and `out` it has `from` and `to`, the names `Schema.decodeTo` uses,
+and keeps them through `annotate` and `check`:
+
+```ts
+user.from === userRow; // true, the schema you wrote
+user.to; // the derived Schema.Struct (type side only)
+Schema.is(user.to)(domain); // true
+```
+
+Nested shapes, `c.arrayOf(...)` and your own codecs work as in the Zod
+version. A field codec is any Effect schema whose `Encoded` fits the field,
+for example:
+
+```ts
+import { Schema, SchemaGetter } from "effect";
+
+const centsToDollars = Schema.Int.pipe(
+	Schema.decodeTo(Schema.Number, {
+		decode: SchemaGetter.transform((cents) => cents / 100),
+		encode: SchemaGetter.transform((dollars) => Math.round(dollars * 100)),
+	}),
+);
+```
+
+`buildReshapeCodec` takes the same config. Its result is
+`source.pipe(Schema.decodeTo(derived, ...))`, so `from` is the source and
+`to` the derived struct:
+
+```ts
+const personRow = Schema.Struct({
+	id: Schema.Number,
+	first_name: Schema.String,
+	last_name: Schema.String,
+});
+
+const person = codecBuilder.buildReshapeCodec(personRow, {
+	fieldName: "name",
+	fieldSchema: Schema.Struct({ first: Schema.String, last: Schema.String }),
+	dropFields: ["first_name", "last_name"],
+	construct: (row) => ({ first: row.first_name, last: row.last_name }),
+	reconstruct: (name) => ({ first_name: name.first, last_name: name.last }),
+});
+
+type Person = typeof person.Type;
+// { readonly id: number; readonly name: { readonly first: string; readonly last: string } }
+
+Schema.decodeSync(person)({ id: 1, first_name: "Ada", last_name: "Lovelace" });
+// { id: 1, name: { first: "Ada", last: "Lovelace" } }
+```
+
+`buildFixedFieldsCodec` keeps the reversed direction: the canonical struct
+is the decoded side (`to`), and `from` is the struct without the fixed
+fields. Fixed values are written in their encoded form and decoded with
+their field schemas when the codec is built. Encoding a value whose fixed
+field differs fails with a `SchemaError` at that field's path.
+
+```ts
+const lemma = Schema.Struct({
+	language: Schema.Literal("de"),
+	family: Schema.Literals(["Lexeme", "Phraseme"]),
+	canonicalForm: Schema.String,
+});
+
+const lemmaCodec = codecBuilder.buildFixedFieldsCodec(lemma, {
+	language: "de",
+	family: "Lexeme",
+});
+
+lemmaCodec.to === lemma; // true
+Schema.decodeSync(lemmaCodec)({ canonicalForm: "Bank" });
+// { language: "de", family: "Lexeme", canonicalForm: "Bank" }
+Schema.encodeSync(lemmaCodec)({
+	language: "de",
+	family: "Lexeme",
+	canonicalForm: "Bank",
+});
+// { canonicalForm: "Bank" }
+```
+
+Differences from the Zod version:
+
+- The `yesNo` side is `Schema.Literals(["Yes", "No"])`, because Effect has
+  one `Encoded` type for what a schema accepts and what it encodes. A
+  `yesNo` codec needs a `Literals(["Yes", "No"])` source field; on a
+  `Schema.String` field it is a type error.
+- Optional keys are part of the strictness check. If the source key may be
+  missing (`Schema.optional`, `Schema.optionalKey`), the codec must handle a
+  missing key, as the `nullable.*`, `optional.*`, `nullish.*` and
+  `nonNullish.X.and.nullish.Y` codecs do. If the codec can leave its key out
+  (`optional.*`, `nullish.*`), the source key must be optional.
+- Async field codecs are Effect transformations (`SchemaGetter.transformEffect`,
+  services included), run with `Schema.decodeEffect`/`encodeEffect` or
+  `decodeUnknownPromise`/`encodeUnknownPromise`. There are no `decodeAsync`
+  methods. The sync APIs throw when they reach an async step.
+- Decoded values are readonly, as Effect types them: `readonly` keys and
+  `ReadonlyArray`s.
+- Sources must be plain `Schema.Struct`s. Index signatures
+  (`Schema.StructWithRest`, `Schema.Record`) are not supported, and unknown
+  keys follow Effect's `onExcessProperty` parse option.
+- A source struct with its own `.check(...)` throws when the codec is built:
+  the check runs on the source's decoded value, which the derived struct
+  replaces. Check the derived struct instead.
+- The schema-free `buildStrictFieldAdapter<T>()` is Zod-only.
 
 ## Development
 

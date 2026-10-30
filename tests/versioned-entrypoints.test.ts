@@ -53,6 +53,7 @@ describe("entrypoints", () => {
 		expect(Object.keys(effect4)).toEqual(["codecBuilder"]);
 		expect(effect4.codecBuilder).not.toBe(root.codecBuilder as never);
 		expect(Object.keys(effect4.codecBuilder).sort()).toEqual([
+			"buildFixedFieldsCodec",
 			"buildReshapeCodec",
 			"buildStrictFieldAdapterCodec",
 			"fieldCodec",
