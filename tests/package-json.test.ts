@@ -10,7 +10,12 @@ test("every code export has a default condition so require() resolves", () => {
 		expect(Object.keys(conditions)).toEqual(["types", "import", "default"]);
 		expect(conditions.default).toBe(conditions.import);
 	}
-	expect(Object.keys(pkg.exports)).toEqual([".", "./v4", "./package.json"]);
+	expect(Object.keys(pkg.exports)).toEqual([
+		".",
+		"./v4",
+		"./effect4",
+		"./package.json",
+	]);
 });
 
 test("package metadata", async () => {
@@ -19,7 +24,9 @@ test("package metadata", async () => {
 	expect(pkg.repository.url).toBe(
 		"git+https://github.com/clockblocker/codec-builder.git",
 	);
-	expect(pkg.peerDependencies).toEqual({ zod: "^4.4.0" });
+	expect(pkg.peerDependencies).toEqual({ effect: "^4.0.0", zod: "^4.4.0" });
+	// Only users of `codec-builder-library/effect4` need effect.
+	expect(pkg.peerDependenciesMeta).toEqual({ effect: { optional: true } });
 	expect(
 		await Bun.file(resolve(import.meta.dir, "../LICENSE")).exists(),
 	).toBeTrue();

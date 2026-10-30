@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { resolve } from "node:path";
 import { z } from "zod/v4";
 import * as root from "../src";
+import * as effect4 from "../src/effect4";
 import * as v4 from "../src/v4";
 import type { Expect } from "./type-helpers";
 
@@ -45,6 +46,17 @@ describe("entrypoints", () => {
 		expect(Object.keys(root).sort()).toEqual([
 			"codecBuilder",
 			"codecBuilder4",
+		]);
+	});
+
+	test("/effect4 exports its own builder (see tests/effect4)", () => {
+		expect(Object.keys(effect4)).toEqual(["codecBuilder"]);
+		expect(effect4.codecBuilder).not.toBe(root.codecBuilder as never);
+		expect(Object.keys(effect4.codecBuilder).sort()).toEqual([
+			"buildReshapeCodec",
+			"buildStrictFieldAdapterCodec",
+			"fieldCodec",
+			"helpers",
 		]);
 	});
 

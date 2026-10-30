@@ -22,6 +22,11 @@
 			"import": "./dist/v4/index.js",
 			"default": "./dist/v4/index.js"
 		},
+		"./effect4": {
+			"types": "./dist/effect4/index.d.ts",
+			"import": "./dist/effect4/index.js",
+			"default": "./dist/effect4/index.js"
+		},
 		"./package.json": "./package.json"
 	},
 	"files": [
@@ -40,11 +45,18 @@
 		"typecheck": "./node_modules/typescript/bin/tsc --noEmit"
 	},
 	"peerDependencies": {
+		"effect": "^4.0.0",
 		"zod": "^4.4.0"
+	},
+	"peerDependenciesMeta": {
+		"effect": {
+			"optional": true
+		}
 	},
 	"devDependencies": {
 		"@biomejs/biome": "2.5.13",
 		"@types/bun": "latest",
+		"effect": "^4.0.0",
 		"typeprobe": "^4.0.0",
 		"typescript": "^5.9.0",
 		"zod": "^4.4.0"
